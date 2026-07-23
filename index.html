@@ -1,0 +1,2532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>MicroFin Pro - Microfinance Management</title>
+
+<!-- Bootstrap 5 CDN -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Font Awesome CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+/* ============================================================
+   MicroFin Pro - Prototype Stylesheet
+   ============================================================ */
+:root{
+  --primary:#0b3d6f;
+  --primary-dark:#082a4e;
+  --primary-light:#e8f0fa;
+  --accent:#1f6fd6;
+  --bg:#f3f5f8;
+  --card:#ffffff;
+  --text:#1e2733;
+  --muted:#6b7684;
+  --border:#e3e7ee;
+  --green:#188a4c;
+  --green-bg:#e5f6ec;
+  --orange:#b76e00;
+  --orange-bg:#fff3e0;
+  --red:#c62828;
+  --red-bg:#fdeaea;
+  --blue-bg:#e7f0fd;
+  --radius:14px;
+  --shadow:0 2px 10px rgba(15,35,65,.06);
+}
+body.dark-mode{
+  --bg:#0f1720;
+  --card:#182432;
+  --text:#e7ecf2;
+  --muted:#93a1b0;
+  --border:#26364a;
+  --primary-light:#152a3f;
+  --green-bg:#0f2c1d;
+  --orange-bg:#332209;
+  --red-bg:#331414;
+  --blue-bg:#0f2338;
+}
+*{box-sizing:border-box;}
+html,body{overflow-x:hidden; max-width:100%;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Segoe UI',Roboto,Arial,sans-serif;
+  transition:background .25s ease,color .25s ease;
+  padding-bottom:0;
+}
+a{text-decoration:none;}
+.hidden{display:none !important;}
+
+/* -------- Utility -------- */
+.card-flat{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+}
+.text-muted-fin{color:var(--muted) !important;}
+.rupee::before{content:"₹";}
+.brand-text{color:var(--primary);}
+.btn-primary-fin{
+  background:var(--primary); border-color:var(--primary); color:#fff;
+}
+.btn-primary-fin:hover{background:var(--primary-dark); border-color:var(--primary-dark); color:#fff;}
+.btn-outline-fin{border:1px solid var(--primary); color:var(--primary); background:transparent;}
+.btn-outline-fin:hover{background:var(--primary); color:#fff;}
+.section-title{font-weight:700; color:var(--primary); margin-bottom:2px;}
+.page-sub{color:var(--muted); font-size:.85rem;}
+
+/* -------- Status badges -------- */
+.badge-status{
+  padding:.32em .7em; border-radius:20px; font-size:.72rem; font-weight:600;
+  display:inline-flex; align-items:center; gap:5px; white-space:nowrap;
+}
+.badge-approved,.badge-paid,.badge-active{background:var(--green-bg); color:var(--green);}
+.badge-pending,.badge-upcoming,.badge-duetoday{background:var(--orange-bg); color:var(--orange);}
+.badge-rejected,.badge-overdue,.badge-suspended,.badge-closed{background:var(--red-bg); color:var(--red);}
+.badge-verification{background:var(--blue-bg); color:var(--accent);}
+
+/* -------- Login -------- */
+#loginScreen{
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,var(--primary) 0%,#123a63 45%,#0a2440 100%);
+  padding:20px;
+}
+.login-box{
+  width:100%; max-width:420px; background:var(--card); border-radius:18px;
+  box-shadow:0 20px 60px rgba(0,0,0,.35); padding:32px 26px; animation:fadeUp .4s ease;
+}
+@keyframes fadeUp{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);}}
+.login-logo{
+  width:62px;height:62px;border-radius:16px;background:var(--primary);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;margin:0 auto 10px;
+}
+.demo-role-btns .btn{font-size:.78rem;}
+.otp-box input{text-align:center; font-size:1.1rem; letter-spacing:2px;}
+
+/* -------- App Shell -------- */
+.app-shell{display:flex; min-height:100vh;}
+.sidebar{
+  width:250px; background:var(--primary); color:#fff; flex-shrink:0;
+  position:fixed; top:0; left:0; bottom:0; z-index:1030; overflow-y:auto;
+  transition:transform .25s ease;
+}
+.sidebar .brand{display:flex;align-items:center;gap:10px;padding:18px 16px;border-bottom:1px solid rgba(255,255,255,.12);}
+.sidebar .brand .logo-sm{width:36px;height:36px;border-radius:9px;background:#fff;color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:700;}
+.sidebar nav{padding:10px 0;}
+.sidebar .nav-link{
+  color:rgba(255,255,255,.82); padding:11px 20px; font-size:.92rem; border-left:3px solid transparent;
+  display:flex; align-items:center; gap:12px; cursor:pointer; transition:.15s;
+}
+.sidebar .nav-link i{width:18px; text-align:center;}
+.sidebar .nav-link:hover{background:rgba(255,255,255,.08); color:#fff;}
+.sidebar .nav-link.active{background:rgba(255,255,255,.14); color:#fff; border-left-color:#fff; font-weight:600;}
+.main-wrap{flex:1; margin-left:250px; min-width:0; display:flex; flex-direction:column;}
+.topbar{
+  background:var(--card); border-bottom:1px solid var(--border); padding:12px 18px;
+  display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:1020;
+}
+.content-area{padding:18px; flex:1;}
+.sidebar-overlay{display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:1025;}
+
+@media (max-width:991.98px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.show{transform:translateX(0);}
+  .main-wrap{margin-left:0;}
+  .sidebar-overlay.show{display:block;}
+}
+
+/* -------- Summary cards -------- */
+.stat-card{
+  background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:16px;
+  box-shadow:var(--shadow); height:100%;
+}
+.stat-icon{
+  width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;
+}
+.stat-value{font-size:1.35rem; font-weight:700;}
+.stat-label{font-size:.76rem; color:var(--muted);}
+
+/* -------- Table -> card on mobile -------- */
+.table-fin thead th{font-size:.75rem; text-transform:uppercase; color:var(--muted); border-bottom:2px solid var(--border); font-weight:700;}
+.table-fin td{vertical-align:middle; font-size:.87rem;}
+.data-cards{display:none;}
+@media (max-width:767.98px){
+  .table-responsive-fin{display:none;}
+  .data-cards{display:block;}
+}
+.data-card{
+  background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:12px; box-shadow:var(--shadow);
+}
+.data-card .dc-row{display:flex; justify-content:space-between; font-size:.83rem; padding:3px 0; border-bottom:1px dashed var(--border);}
+.data-card .dc-row:last-child{border-bottom:none;}
+.data-card .dc-label{color:var(--muted);}
+.data-card .dc-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
+
+/* -------- Customer app (mobile-first) -------- */
+#customerApp{background:var(--bg); min-height:100vh; padding-bottom:78px;}
+.cust-header{
+  background:linear-gradient(120deg,var(--primary),var(--accent)); color:#fff; padding:18px 16px 34px; border-radius:0 0 22px 22px;
+}
+.cust-content{margin-top:-22px; padding:0 14px;}
+.bottom-nav{
+  position:fixed; left:0; right:0; bottom:0; background:var(--card); border-top:1px solid var(--border);
+  display:flex; z-index:1040; box-shadow:0 -2px 10px rgba(0,0,0,.06);
+}
+.bottom-nav .bn-item{
+  flex:1; text-align:center; padding:8px 2px 7px; color:var(--muted); font-size:.68rem; cursor:pointer; border-top:3px solid transparent;
+}
+.bottom-nav .bn-item i{display:block; font-size:1.05rem; margin-bottom:2px;}
+.bottom-nav .bn-item.active{color:var(--primary); border-top-color:var(--primary); font-weight:600;}
+.progress-fin{height:10px; border-radius:6px; background:var(--border);}
+.qtile{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:10px 6px; text-align:center; box-shadow:var(--shadow); cursor:pointer;}
+.qtile i{font-size:1.2rem; color:var(--primary);}
+.qtile span{display:block; font-size:.7rem; margin-top:4px; color:var(--text);}
+.doc-card{background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:12px; box-shadow:var(--shadow);}
+
+/* -------- misc -------- */
+.copy-chip{cursor:pointer; border:1px dashed var(--border); border-radius:8px; padding:6px 10px; display:flex; justify-content:space-between; align-items:center; font-size:.85rem;}
+.qr-box{width:150px;height:150px;background:repeating-linear-gradient(45deg,#333,#333 6px,#fff 6px,#fff 12px); border:6px solid #fff; border-radius:8px; margin:0 auto;}
+.screenshot-thumb{width:52px;height:52px;border-radius:8px;object-fit:cover;border:1px solid var(--border); background:var(--primary-light);}
+.toast-fin{min-width:280px;}
+.form-section-title{font-weight:700; color:var(--primary); border-bottom:2px solid var(--primary-light); padding-bottom:6px; margin:22px 0 14px;}
+.form-section-title:first-child{margin-top:0;}
+.calc-box{background:var(--primary-light); border-radius:12px; padding:14px;}
+.print-area{background:#fff; color:#111; padding:26px;}
+.letterhead{border-bottom:3px solid var(--primary); padding-bottom:12px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;}
+.sign-box{border-top:1px solid #999; margin-top:46px; padding-top:6px; font-size:.85rem; text-align:center;}
+@media print{
+  body *{visibility:hidden;}
+  #printArea, #printArea *{visibility:visible;}
+  #printArea{position:absolute; top:0; left:0; width:100%;}
+}
+.nav-badge{font-size:.65rem; margin-left:auto;}
+.dark-toggle-btn{cursor:pointer;}
+.otp-hint{font-size:.75rem;color:var(--muted);}
+.form-label{font-size:.83rem;font-weight:600;color:var(--text);}
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-thumb{background:#c7d0dc;border-radius:8px;}
+.small-note{font-size:.75rem;color:var(--muted);}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     TOAST CONTAINER
+============================================================ -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:2000;" id="toastContainer"></div>
+
+<!-- ============================================================
+     LOGIN SCREEN
+============================================================ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="text-center mb-3">
+      <div class="login-logo"><i class="fa-solid fa-sack-dollar"></i></div>
+      <h4 class="fw-bold brand-text mb-0">MicroFin Pro</h4>
+      <div class="page-sub">Microfinance Management Platform</div>
+    </div>
+
+    <!-- Standard login (Admin / Shop Owner) -->
+    <div id="loginStandard">
+      <div class="mb-3">
+        <label class="form-label">Mobile Number or Email</label>
+        <input type="text" class="form-control" id="loginId" placeholder="e.g. 9876543210 or you@email.com">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-control" id="loginPass" placeholder="Enter password">
+      </div>
+      <button class="btn btn-primary-fin w-100 mb-2" onclick="attemptLogin()"><i class="fa-solid fa-right-to-bracket me-1"></i> Login</button>
+      <div class="text-center small-note mb-2">
+        Are you a customer? <a href="#" onclick="showCustomerLoginMode();return false;">Login with OTP instead</a>
+      </div>
+    </div>
+
+    <!-- Customer OTP login -->
+    <div id="loginOtp" class="hidden">
+      <div class="mb-3">
+        <label class="form-label">Registered Mobile Number</label>
+        <input type="text" class="form-control" id="otpMobile" placeholder="10-digit mobile number" maxlength="10">
+      </div>
+      <button class="btn btn-outline-fin w-100 mb-3" id="btnSendOtp" onclick="sendOtp()"><i class="fa-solid fa-paper-plane me-1"></i> Send OTP</button>
+      <div id="otpEntryBlock" class="hidden">
+        <label class="form-label">Enter 6-Digit OTP</label>
+        <input type="text" class="form-control otp-box mb-1" id="otpValue" maxlength="6" placeholder="••••••">
+        <div class="otp-hint mb-3">Demo OTP is <strong>123456</strong></div>
+        <button class="btn btn-primary-fin w-100 mb-2" onclick="verifyOtp()"><i class="fa-solid fa-check me-1"></i> Verify OTP</button>
+      </div>
+      <div class="text-center small-note mb-2">
+        <a href="#" onclick="showStandardLoginMode();return false;">Back to password login</a>
+      </div>
+    </div>
+
+    <hr>
+    <div class="text-center small-note mb-2">Quick Demo Access</div>
+    <div class="demo-role-btns d-grid gap-2">
+      <button class="btn btn-sm btn-outline-fin" onclick="loginAsDemo('admin')"><i class="fa-solid fa-user-shield me-1"></i> Login as Admin</button>
+      <button class="btn btn-sm btn-outline-fin" onclick="loginAsDemo('shopowner')"><i class="fa-solid fa-store me-1"></i> Login as Shop Owner</button>
+      <button class="btn btn-sm btn-outline-fin" onclick="loginAsDemo('customer')"><i class="fa-solid fa-user me-1"></i> Login as Customer</button>
+    </div>
+    <div class="text-center small-note mt-3">
+      Want to list your shop? <a href="#" onclick="openPublicRegister();return false;">Register as Shop Owner</a>
+    </div>
+  </div>
+</div>
+
+<!-- Public Shop Owner Self-Registration Screen -->
+<div id="publicRegisterScreen" class="hidden">
+  <div class="d-flex align-items-center justify-content-center" style="min-height:100vh; background:linear-gradient(160deg,var(--primary) 0%,#123a63 45%,#0a2440 100%); padding:20px;">
+    <div class="login-box" style="max-width:520px;">
+      <div class="text-center mb-3">
+        <div class="login-logo"><i class="fa-solid fa-store"></i></div>
+        <h5 class="fw-bold brand-text mb-0">Shop Owner Registration</h5>
+        <div class="page-sub">Join MicroFin Pro as a Partner Shop</div>
+      </div>
+      <div id="publicRegisterForm">
+        <div class="row g-2">
+          <div class="col-12"><label class="form-label">Full Name</label><input class="form-control" id="pr_name" placeholder="Full name"></div>
+          <div class="col-12"><label class="form-label">Shop Name</label><input class="form-control" id="pr_shop" placeholder="Shop / Business name"></div>
+          <div class="col-6"><label class="form-label">Mobile Number</label><input class="form-control" id="pr_mobile" placeholder="10-digit mobile"></div>
+          <div class="col-6"><label class="form-label">Email</label><input class="form-control" id="pr_email" placeholder="Email address"></div>
+          <div class="col-6"><label class="form-label">PAN Number</label><input class="form-control" id="pr_pan" placeholder="ABCDE1234F"></div>
+          <div class="col-6"><label class="form-label">Aadhaar Number</label><input class="form-control" id="pr_aadhaar" placeholder="12-digit Aadhaar"></div>
+          <div class="col-12"><label class="form-label">Address</label><input class="form-control" id="pr_address" placeholder="Full address"></div>
+          <div class="col-6"><label class="form-label">City</label><input class="form-control" id="pr_city" placeholder="City"></div>
+          <div class="col-6"><label class="form-label">Password</label><input type="password" class="form-control" id="pr_password" placeholder="Set a password"></div>
+        </div>
+        <button class="btn btn-primary-fin w-100 mt-3" onclick="submitPublicRegister()"><i class="fa-solid fa-paper-plane me-1"></i> Submit Registration</button>
+      </div>
+      <div id="publicRegisterSuccess" class="hidden text-center py-3">
+        <i class="fa-solid fa-circle-check text-success" style="font-size:3rem;"></i>
+        <h5 class="fw-bold mt-3">Registration Submitted</h5>
+        <p class="text-muted-fin">Your registration has been submitted and is pending Admin approval.</p>
+      </div>
+      <div class="text-center small-note mt-3"><a href="#" onclick="closePublicRegister();return false;">Back to Login</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     ADMIN / SHOP OWNER APP SHELL
+============================================================ -->
+<div id="app" class="app-shell hidden">
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar(false)"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="logo-sm"><i class="fa-solid fa-sack-dollar"></i></div>
+      <div>
+        <div class="fw-bold">MicroFin Pro</div>
+        <div style="font-size:.7rem; opacity:.75;" id="sidebarRoleLabel">Admin Panel</div>
+      </div>
+    </div>
+    <nav id="sidebarNav">
+      <!-- Admin menu -->
+      <div class="role-admin">
+        <a class="nav-link active" data-section="admin-dashboard" onclick="goSection('admin-dashboard')"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+        <a class="nav-link" data-section="admin-shopowners" onclick="goSection('admin-shopowners')"><i class="fa-solid fa-store"></i> Shop Owners</a>
+        <a class="nav-link" data-section="admin-customers" onclick="goSection('admin-customers')"><i class="fa-solid fa-users"></i> Customers</a>
+        <a class="nav-link" data-section="admin-create-customer" onclick="goSection('admin-create-customer')"><i class="fa-solid fa-user-plus"></i> Create Customer</a>
+        <a class="nav-link" data-section="admin-active-loans" onclick="goSection('admin-active-loans')"><i class="fa-solid fa-file-invoice-dollar"></i> Active Loans</a>
+        <a class="nav-link" data-section="admin-payment-verification" onclick="goSection('admin-payment-verification')"><i class="fa-solid fa-magnifying-glass-dollar"></i> Payment Verification</a>
+        <a class="nav-link" data-section="admin-payment-settings" onclick="goSection('admin-payment-settings')"><i class="fa-solid fa-gear"></i> Payment Settings</a>
+        <a class="nav-link" data-section="admin-documents" onclick="goSection('admin-documents')"><i class="fa-solid fa-file-lines"></i> Documents</a>
+      </div>
+      <!-- Shop Owner menu -->
+      <div class="role-shopowner">
+        <a class="nav-link active" data-section="sw-dashboard" onclick="goSection('sw-dashboard')"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+        <a class="nav-link" data-section="sw-customers" onclick="goSection('sw-customers')"><i class="fa-solid fa-users"></i> Customers</a>
+        <a class="nav-link" data-section="sw-create-customer" onclick="goSection('sw-create-customer')"><i class="fa-solid fa-user-plus"></i> Create Customer</a>
+        <a class="nav-link" data-section="sw-active-loans" onclick="goSection('sw-active-loans')"><i class="fa-solid fa-file-invoice-dollar"></i> Active Loans</a>
+        <a class="nav-link" data-section="sw-emi-list" onclick="goSection('sw-emi-list')"><i class="fa-solid fa-calendar-check"></i> EMI List</a>
+        <a class="nav-link" data-section="sw-documents" onclick="goSection('sw-documents')"><i class="fa-solid fa-file-lines"></i> Documents</a>
+      </div>
+      <hr style="border-color:rgba(255,255,255,.15); margin:8px 16px;">
+      <a class="nav-link" onclick="doLogout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+    </nav>
+  </aside>
+
+  <div class="main-wrap">
+    <div class="topbar">
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-sm btn-outline-secondary d-lg-none" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+        <div>
+          <div class="fw-bold" id="topbarTitle">Dashboard</div>
+          <div class="page-sub" id="topbarDate"></div>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-3">
+        <i class="fa-solid fa-circle-half-stroke dark-toggle-btn" title="Toggle dark mode" onclick="toggleDarkMode()"></i>
+        <div class="d-flex align-items-center gap-2">
+          <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width:34px;height:34px;"><i class="fa-solid fa-user"></i></div>
+          <span class="d-none d-sm-inline fw-semibold" id="topbarUserName">User</span>
+        </div>
+      </div>
+    </div>
+    <div class="content-area" id="contentArea">
+      <!-- Sections injected by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     CUSTOMER APP
+============================================================ -->
+<div id="customerApp" class="hidden">
+  <div class="cust-header">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <div style="font-size:.8rem;opacity:.85;">Welcome back,</div>
+        <div class="fw-bold fs-5" id="custHeaderName">Customer</div>
+      </div>
+      <div class="d-flex align-items-center gap-3">
+        <i class="fa-solid fa-circle-half-stroke" style="cursor:pointer;" onclick="toggleDarkMode()"></i>
+        <i class="fa-solid fa-right-from-bracket" style="cursor:pointer;" onclick="doLogout()" title="Logout"></i>
+      </div>
+    </div>
+  </div>
+  <div class="cust-content" id="custContent"></div>
+  <div class="bottom-nav">
+    <div class="bn-item active" data-tab="home" onclick="goCustomerTab('home')"><i class="fa-solid fa-house"></i>Home</div>
+    <div class="bn-item" data-tab="loan" onclick="goCustomerTab('loan')"><i class="fa-solid fa-file-invoice-dollar"></i>Loan</div>
+    <div class="bn-item" data-tab="pay" onclick="goCustomerTab('pay')"><i class="fa-solid fa-indian-rupee-sign"></i>Pay EMI</div>
+    <div class="bn-item" data-tab="docs" onclick="goCustomerTab('docs')"><i class="fa-solid fa-file-lines"></i>Documents</div>
+    <div class="bn-item" data-tab="profile" onclick="goCustomerTab('profile')"><i class="fa-solid fa-user"></i>Profile</div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODALS HOST (populated by JS)
+============================================================ -->
+<div id="modalsHost">
+
+<!-- Add / Edit Shop Owner Modal -->
+<div class="modal fade" id="modalAddShopOwner" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fa-solid fa-store me-2"></i>Add Shop Owner</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6"><label class="form-label">Full Name</label><input class="form-control" id="so_name" placeholder="Full name"></div>
+          <div class="col-md-6"><label class="form-label">Shop Name</label><input class="form-control" id="so_shop" placeholder="Shop name"></div>
+          <div class="col-md-6"><label class="form-label">Mobile Number</label><input class="form-control" id="so_mobile" placeholder="10-digit mobile"></div>
+          <div class="col-md-6"><label class="form-label">Email</label><input class="form-control" id="so_email" placeholder="Email address"></div>
+          <div class="col-md-6"><label class="form-label">PAN Number</label><input class="form-control" id="so_pan" placeholder="ABCDE1234F"></div>
+          <div class="col-md-6"><label class="form-label">Aadhaar Number</label><input class="form-control" id="so_aadhaar" placeholder="12-digit Aadhaar"></div>
+          <div class="col-md-8"><label class="form-label">Address</label><input class="form-control" id="so_address" placeholder="Full address"></div>
+          <div class="col-md-4"><label class="form-label">City</label><input class="form-control" id="so_city" placeholder="City"></div>
+          <div class="col-md-6"><label class="form-label">Password</label><input type="password" class="form-control" id="so_password" placeholder="Set login password"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary-fin" onclick="saveShopOwner()"><i class="fa-solid fa-check me-1"></i>Save Shop Owner</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- View Shop Owner Modal -->
+<div class="modal fade" id="modalViewShopOwner" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Shop Owner Details</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body" id="viewShopOwnerBody"></div>
+      <div class="modal-footer"><button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- Generic Reject Reason Modal (used for shop owner reject + payment reject) -->
+<div class="modal fade" id="modalRejectReason" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="rejectReasonTitle">Reject</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <label class="form-label">Reason for Rejection</label>
+        <textarea class="form-control" id="rejectReasonText" rows="3" placeholder="Enter reason..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-danger" onclick="confirmRejectReason()"><i class="fa-solid fa-xmark me-1"></i>Confirm Reject</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Generic Confirm Action Modal -->
+<div class="modal fade" id="modalConfirmAction" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Please Confirm</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body" id="confirmActionText">Are you sure?</div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary-fin" id="confirmActionBtn" onclick="">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Customer Creation Success Modal -->
+<div class="modal fade" id="modalCustomerSuccess" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-success-subtle"><h5 class="modal-title"><i class="fa-solid fa-circle-check text-success me-2"></i>Customer & Loan Created</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body" id="customerSuccessBody"></div>
+      <div class="modal-footer flex-wrap">
+        <button class="btn btn-outline-fin btn-sm" onclick="closeModal('modalCustomerSuccess'); goSection(currentUser.role==='admin'?'admin-customers':'sw-customers');">View Customer</button>
+        <button class="btn btn-outline-fin btn-sm" onclick="previewDocumentFor(lastCreatedCustomerId,'welcome')">Generate Welcome Letter</button>
+        <button class="btn btn-primary-fin btn-sm" onclick="previewDocumentFor(lastCreatedCustomerId,'sanction')">Generate Sanction Letter</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Payment View Modal (Admin verification) -->
+<div class="modal fade" id="modalPaymentView" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Payment Submission</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body" id="paymentViewBody"></div>
+      <div class="modal-footer">
+        <button class="btn btn-danger btn-sm" onclick="rejectPaymentPrompt()"><i class="fa-solid fa-xmark me-1"></i>Reject</button>
+        <button class="btn btn-primary-fin btn-sm" onclick="approvePayment()"><i class="fa-solid fa-check me-1"></i>Approve</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Document Preview Modal (Welcome Letter / Sanction Letter) -->
+<div class="modal fade" id="modalDocPreview" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="docPreviewTitle">Document Preview</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body" style="background:#eef1f5;">
+        <div id="printArea" class="print-area" style="border-radius:10px;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+        <button class="btn btn-outline-fin btn-sm" onclick="openUploadSigned()"><i class="fa-solid fa-upload me-1"></i>Upload Signed Copy</button>
+        <button class="btn btn-primary-fin btn-sm" onclick="window.print()"><i class="fa-solid fa-print me-1"></i>Print</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Upload Signed Document Modal -->
+<div class="modal fade" id="modalUploadSigned" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Upload Signed Document</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div class="mb-2"><label class="form-label">Document Type</label>
+          <select class="form-select" id="us_doctype">
+            <option>Welcome Letter</option>
+            <option>Loan Sanction Letter</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="mb-2"><label class="form-label">Upload Signed Document</label><input type="file" class="form-control" id="us_file"></div>
+        <div class="mb-2"><label class="form-label">Signed Date</label><input type="date" class="form-control" id="us_date"></div>
+        <div class="mb-2"><label class="form-label">Remarks</label><textarea class="form-control" id="us_remarks" rows="2"></textarea></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary-fin" onclick="submitSignedDoc()"><i class="fa-solid fa-check me-1"></i>Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Screenshot Full View Modal -->
+<div class="modal fade" id="modalScreenshotFull" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Payment Screenshot</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body text-center">
+        <div class="d-inline-flex align-items-center justify-content-center rounded" style="width:100%;min-height:280px;background:var(--primary-light);">
+          <div><i class="fa-solid fa-image fa-3x text-muted-fin mb-2"></i><div class="small-note">Simulated payment screenshot preview</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- Bootstrap + Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+<script>
+/* ============================================================================================
+   MicroFin Pro — Frontend-only Prototype
+   All logic below is a simulation for client demo purposes. No real backend / API / auth.
+============================================================================================ */
+
+/* ---------------------------------------------------------------------------
+   0. REFERENCE "TODAY" DATE (fixed so demo data statuses stay consistent)
+--------------------------------------------------------------------------- */
+const TODAY = new Date('2026-07-23T00:00:00');
+
+/* ---------------------------------------------------------------------------
+   1. UTILITY HELPERS
+--------------------------------------------------------------------------- */
+function formatCurrency(n){
+  n = Math.round(Number(n)||0);
+  return '₹' + n.toLocaleString('en-IN');
+}
+function pad2(n){ return n<10 ? '0'+n : ''+n; }
+function formatDate(d){
+  if(!(d instanceof Date)) d = new Date(d);
+  if(isNaN(d)) return '-';
+  return pad2(d.getDate())+'/'+pad2(d.getMonth()+1)+'/'+d.getFullYear();
+}
+function addMonths(date, n){
+  const d = new Date(date);
+  d.setMonth(d.getMonth()+n);
+  return d;
+}
+function addDays(date, n){
+  const d = new Date(date);
+  d.setDate(d.getDate()+n);
+  return d;
+}
+function daysDiff(a,b){
+  return Math.round((a-b)/(1000*60*60*24));
+}
+function genId(prefix, num, digits){
+  return prefix + String(num).padStart(digits||6,'0');
+}
+function nextSeq(list, key){
+  return list.length ? Math.max(...list.map(x=>x[key])) + 1 : 1;
+}
+function escapeHtml(str){
+  if(str===undefined || str===null) return '';
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ---------------------------------------------------------------------------
+   2. TOAST NOTIFICATIONS
+--------------------------------------------------------------------------- */
+function showToast(message, type){
+  type = type || 'success';
+  const icons = {success:'fa-circle-check text-success', danger:'fa-circle-xmark text-danger', warning:'fa-triangle-exclamation text-warning', info:'fa-circle-info text-primary'};
+  const el = document.createElement('div');
+  el.className = 'toast toast-fin align-items-center border-0 shadow';
+  el.setAttribute('role','alert');
+  el.innerHTML = `<div class="d-flex">
+      <div class="toast-body"><i class="fa-solid ${icons[type]||icons.success} me-2"></i>${escapeHtml(message)}</div>
+      <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>`;
+  document.getElementById('toastContainer').appendChild(el);
+  const t = new bootstrap.Toast(el, {delay:3200});
+  t.show();
+  el.addEventListener('hidden.bs.toast', ()=> el.remove());
+}
+
+/* ---------------------------------------------------------------------------
+   3. GENERIC CONFIRM MODAL
+--------------------------------------------------------------------------- */
+let pendingConfirmCallback = null;
+function showConfirm(message, onConfirm, btnClass){
+  document.getElementById('confirmActionText').innerText = message;
+  pendingConfirmCallback = onConfirm;
+  const btn = document.getElementById('confirmActionBtn');
+  btn.className = 'btn ' + (btnClass || 'btn-primary-fin');
+  btn.onclick = function(){
+    if(pendingConfirmCallback) pendingConfirmCallback();
+    closeModal('modalConfirmAction');
+  };
+  openModal('modalConfirmAction');
+}
+function openModal(id){
+  const el = document.getElementById(id);
+  bootstrap.Modal.getOrCreateInstance(el).show();
+}
+function closeModal(id){
+  const el = document.getElementById(id);
+  const inst = bootstrap.Modal.getInstance(el);
+  if(inst) inst.hide();
+}
+
+/* ---------------------------------------------------------------------------
+   4. SAMPLE DATA — SHOP OWNERS
+--------------------------------------------------------------------------- */
+let shopOwners = [
+  {id:'SHP000102', name:'Amit Sharma', shop:'Sharma Finance Point', mobile:'9876511223', email:'amit.sharma@example.com',
+   pan:'AMPSH1234K', aadhaar:'234567891234', address:'12 MG Road', city:'Pune', password:'demo123',
+   status:'Approved', regType:'Self Registered', createdOn:'2026-01-15'},
+  {id:'SHP000103', name:'Priya Verma', shop:'Verma Credit Solutions', mobile:'9812345670', email:'priya.verma@example.com',
+   pan:'VRMPP5678L', aadhaar:'345678912345', address:'45 Station Road', city:'Nagpur', password:'demo123',
+   status:'Pending', regType:'Self Registered', createdOn:'2026-06-30'},
+  {id:'SHP000104', name:'Ravi Patel', shop:'Patel Micro Loans', mobile:'9898765432', email:'ravi.patel@example.com',
+   pan:'PTLRP9012M', aadhaar:'456789123456', address:'8 Ring Road', city:'Surat', password:'demo123',
+   status:'Approved', regType:'Created by Admin', createdOn:'2026-03-05'},
+  {id:'SHP000105', name:'Suresh Nair', shop:'Nair Finserve', mobile:'9845098450', email:'suresh.nair@example.com',
+   pan:'NAIRS3456N', aadhaar:'567891234567', address:'21 Marine Drive', city:'Kochi', password:'demo123',
+   status:'Rejected', regType:'Self Registered', createdOn:'2026-05-20'},
+  {id:'SHP000106', name:'Kavita Rao', shop:'Rao Money Mart', mobile:'9900112233', email:'kavita.rao@example.com',
+   pan:'RAOKV7890P', aadhaar:'678912345678', address:'3 Anna Salai', city:'Chennai', password:'demo123',
+   status:'Suspended', regType:'Created by Admin', createdOn:'2026-02-11'}
+];
+
+/* ---------------------------------------------------------------------------
+   5. PAYMENT SETTINGS (Admin configured)
+--------------------------------------------------------------------------- */
+let paymentSettings = {
+  upiId: 'microfinpro@okicici',
+  upiHolder: 'MicroFin Pro Services',
+  qrUploaded: true,
+  bankName: 'HDFC Bank',
+  bankHolder: 'MicroFin Pro Services Pvt Ltd',
+  accountNo: '50200012345678',
+  ifsc: 'HDFC0001234',
+  branch: 'Andheri West, Mumbai',
+  instructions: 'Please pay the exact EMI amount using the UPI ID or Bank details shown below. After payment, upload a clear screenshot along with the transaction/UTR number. Your EMI will be marked as paid only after Admin verification, which is usually completed within 24 hours.'
+};
+
+/* ---------------------------------------------------------------------------
+   6. EMI SCHEDULE GENERATOR
+--------------------------------------------------------------------------- */
+// Builds an EMI schedule array for a loan. `paidCount` EMIs are pre-marked
+// paid, `verificationIdx` (0-based) optionally marked "Under Verification".
+function buildEmiSchedule(loan, paidCount, verificationIdx){
+  const schedule = [];
+  for(let i=1; i<=loan.numEmis; i++){
+    let due;
+    if(loan.frequency === 'Weekly') due = addDays(loan.firstDueDate, (i-1)*7);
+    else due = addMonths(loan.firstDueDate, i-1);
+    let status = 'Upcoming';
+    let paymentDate = null;
+    if(paidCount && i <= paidCount){
+      status = 'Paid';
+      paymentDate = addDays(due, -1);
+    } else if(verificationIdx && i === verificationIdx){
+      status = 'Under Verification';
+    } else {
+      const diff = daysDiff(due, TODAY);
+      if(diff === 0) status = 'Due Today';
+      else if(diff < 0) status = 'Overdue';
+      else status = 'Upcoming';
+    }
+    schedule.push({
+      number:i, dueDate:due, amount:loan.emiAmount, status:status, paymentDate:paymentDate
+    });
+  }
+  return schedule;
+}
+
+/* ---------------------------------------------------------------------------
+   7. SAMPLE DATA — CUSTOMERS (with embedded loan, EMI schedule, payments, docs)
+--------------------------------------------------------------------------- */
+let customers = [];
+let paymentSubmissions = []; // pending / processed payment proof submissions
+let customerSeq = 125;
+let loanSeq = 125;
+let paymentSeq = 4001;
+
+function makeCustomer(opts){
+  const loan = {
+    purpose: opts.purpose,
+    principal: opts.principal,
+    interest: opts.interest,
+    fee: opts.fee,
+    totalPayable: opts.principal + opts.interest + opts.fee,
+    numEmis: opts.numEmis,
+    emiAmount: Math.round((opts.principal + opts.interest + opts.fee)/opts.numEmis),
+    frequency: opts.frequency || 'Monthly',
+    startDate: new Date(opts.startDate),
+    firstDueDate: new Date(opts.firstDueDate),
+    lateFee: opts.lateFee || 200,
+    assignedShopOwner: opts.assignedShopOwner
+  };
+  const schedule = buildEmiSchedule(loan, opts.paidCount||0, opts.verificationIdx||0);
+  const paidEmis = schedule.filter(e=>e.status==='Paid').length;
+  const amountPaid = paidEmis * loan.emiAmount;
+  let loanStatus = 'Active';
+  if(paidEmis === loan.numEmis) loanStatus = 'Closed';
+  else if(schedule.some(e=>e.status==='Overdue')) loanStatus = 'Overdue';
+
+  const customer = {
+    id: opts.id,
+    name: opts.name,
+    fatherName: opts.fatherName,
+    mobile: opts.mobile,
+    altMobile: opts.altMobile || '',
+    email: opts.email,
+    dob: opts.dob,
+    gender: opts.gender,
+    address: opts.address,
+    city: opts.city,
+    state: opts.state,
+    pin: opts.pin,
+    pan: opts.pan,
+    aadhaar: opts.aadhaar,
+    photo: null,
+    loanAccountNo: opts.loanAccountNo,
+    loan: loan,
+    emiSchedule: schedule,
+    amountPaid: amountPaid,
+    status: loanStatus,
+    payments: [],
+    documents: {welcome:{generated:true, signedUploaded:false}, sanction:{generated:true, signedUploaded:false}},
+    createdOn: opts.startDate
+  };
+
+  // seed a payment history entry for each paid EMI + one under verification
+  schedule.forEach(e=>{
+    if(e.status==='Paid'){
+      customer.payments.push({
+        ref:'PAY'+(paymentSeq++), emiNumber:e.number, amount:e.amount, method: (e.number%2===0?'UPI':'Bank Transfer'),
+        txnId: 'TXN'+Math.floor(100000+Math.random()*899999), submittedOn: e.paymentDate, status:'Approved'
+      });
+    }
+    if(e.status==='Under Verification'){
+      const sub = {
+        ref:'PAY'+(paymentSeq++), customerId: customer.id, customerName: customer.name, loanAccountNo: customer.loanAccountNo,
+        emiNumber:e.number, emiAmount:e.amount, paidAmount:e.amount, method:'UPI', txnId:'TXN'+Math.floor(100000+Math.random()*899999),
+        submittedOn: addDays(TODAY,-1), status:'Under Verification', remarks:''
+      };
+      paymentSubmissions.push(sub);
+      customer.payments.push({ref:sub.ref, emiNumber:e.number, amount:e.amount, method:'UPI', txnId:sub.txnId, submittedOn:sub.submittedOn, status:'Under Verification'});
+    }
+  });
+  return customer;
+}
+
+customers.push(makeCustomer({
+  id:'CUS000125', name:'Rajesh Kumar', fatherName:'Ram Kumar', mobile:'9876543210', altMobile:'9876500000',
+  email:'rajesh.kumar@example.com', dob:'1990-05-14', gender:'Male',
+  address:'B-12, Shivaji Nagar', city:'Pune', state:'Maharashtra', pin:'411005',
+  pan:'RAJPK4567Q', aadhaar:'234598761234',
+  loanAccountNo:'MF2026000125', purpose:'Business Expansion', principal:50000, interest:10000, fee:1000,
+  numEmis:10, frequency:'Monthly', startDate:'2026-02-01', firstDueDate:'2026-03-01',
+  assignedShopOwner:'SHP000102', paidCount:4, verificationIdx:5
+}));
+
+customers.push(makeCustomer({
+  id:'CUS000126', name:'Sunita Devi', fatherName:'Mohan Lal', mobile:'9812309876', altMobile:'',
+  email:'sunita.devi@example.com', dob:'1988-11-02', gender:'Female',
+  address:'22 Gandhi Chowk', city:'Nagpur', state:'Maharashtra', pin:'440001',
+  pan:'SUNPD7890R', aadhaar:'345612378901',
+  loanAccountNo:'MF2026000126', purpose:'Home Renovation', principal:30000, interest:6000, fee:600,
+  numEmis:6, frequency:'Monthly', startDate:'2026-01-10', firstDueDate:'2026-02-10',
+  assignedShopOwner:'SHP000102', paidCount:6, verificationIdx:0
+}));
+
+customers.push(makeCustomer({
+  id:'CUS000127', name:'Vikram Singh', fatherName:'Harpal Singh', mobile:'9900987654', altMobile:'9900987600',
+  email:'vikram.singh@example.com', dob:'1995-03-21', gender:'Male',
+  address:'17 Sarojini Nagar', city:'Surat', state:'Gujarat', pin:'395003',
+  pan:'VIKPS1122S', aadhaar:'456723489012',
+  loanAccountNo:'MF2026000127', purpose:'Shop Equipment Purchase', principal:80000, interest:16000, fee:1500,
+  numEmis:12, frequency:'Monthly', startDate:'2026-01-15', firstDueDate:'2026-02-15',
+  assignedShopOwner:'SHP000104', paidCount:2, verificationIdx:0
+}));
+
+customers.push(makeCustomer({
+  id:'CUS000128', name:'Meena Kumari', fatherName:'Suresh Chand', mobile:'9765432109', altMobile:'',
+  email:'meena.kumari@example.com', dob:'1992-07-09', gender:'Female',
+  address:'5 Lal Bagh', city:'Pune', state:'Maharashtra', pin:'411002',
+  pan:'MEENK3344T', aadhaar:'567834590123',
+  loanAccountNo:'MF2026000128', purpose:'Medical Emergency', principal:20000, interest:4000, fee:500,
+  numEmis:8, frequency:'Weekly', startDate:'2026-06-01', firstDueDate:'2026-06-08',
+  assignedShopOwner:'SHP000102', paidCount:1, verificationIdx:0
+}));
+
+customers.push(makeCustomer({
+  id:'CUS000129', name:'Anil Yadav', fatherName:'Ramesh Yadav', mobile:'9723456781', altMobile:'',
+  email:'anil.yadav@example.com', dob:'1985-12-30', gender:'Male',
+  address:'9 Nehru Road', city:'Surat', state:'Gujarat', pin:'395007',
+  pan:'ANILY5566U', aadhaar:'678945601234',
+  loanAccountNo:'MF2026000129', purpose:'Working Capital', principal:60000, interest:12000, fee:1200,
+  numEmis:10, frequency:'Monthly', startDate:'2025-11-01', firstDueDate:'2025-12-01',
+  assignedShopOwner:'SHP000104', paidCount:10, verificationIdx:0
+}));
+
+/* ---------------------------------------------------------------------------
+   8. CURRENT SESSION STATE
+--------------------------------------------------------------------------- */
+let currentUser = null;     // {role:'admin'|'shopowner'|'customer', id, name}
+let sidebarOpen = false;
+let lastCreatedCustomerId = null;
+let pendingRejectContext = null; // {type:'shopowner'|'payment', id}
+let generatedEmiPreview = null;  // holds preview schedule before Save Customer
+
+/* ---------------------------------------------------------------------------
+   9. LOGIN / LOGOUT
+--------------------------------------------------------------------------- */
+function showStandardLoginMode(){
+  document.getElementById('loginOtp').classList.add('hidden');
+  document.getElementById('loginStandard').classList.remove('hidden');
+}
+function showCustomerLoginMode(){
+  document.getElementById('loginStandard').classList.add('hidden');
+  document.getElementById('loginOtp').classList.remove('hidden');
+}
+function attemptLogin(){
+  const id = document.getElementById('loginId').value.trim();
+  const pass = document.getElementById('loginPass').value.trim();
+  if(!id || !pass){ showToast('Please enter your mobile/email and password.', 'warning'); return; }
+  // Prototype: any credentials log in as Admin for demonstration purposes.
+  loginAsDemo('admin');
+}
+function sendOtp(){
+  const mobile = document.getElementById('otpMobile').value.trim();
+  if(mobile.length !== 10){ showToast('Enter a valid 10-digit mobile number.', 'warning'); return; }
+  document.getElementById('otpEntryBlock').classList.remove('hidden');
+  showToast('OTP sent to +91 ' + mobile + ' (Demo OTP: 123456)', 'info');
+}
+function verifyOtp(){
+  const otp = document.getElementById('otpValue').value.trim();
+  if(otp !== '123456'){ showToast('Incorrect OTP. Please try again.', 'danger'); return; }
+  showToast('OTP verified successfully.', 'success');
+  loginAsDemo('customer');
+}
+function loginAsDemo(role){
+  if(role === 'admin'){
+    currentUser = {role:'admin', id:'ADM001', name:'Admin User'};
+  } else if(role === 'shopowner'){
+    currentUser = {role:'shopowner', id:'SHP000102', name:'Amit Sharma'};
+  } else {
+    currentUser = {role:'customer', id:'CUS000125', name:'Rajesh Kumar'};
+  }
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('publicRegisterScreen').classList.add('hidden');
+
+  if(role === 'customer'){
+    document.getElementById('app').classList.add('hidden');
+    document.getElementById('customerApp').classList.remove('hidden');
+    initCustomerApp();
+  } else {
+    document.getElementById('customerApp').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    initAdminShopApp(role);
+  }
+  showToast('Welcome, ' + currentUser.name + '!', 'success');
+}
+function doLogout(){
+  showConfirm('Are you sure you want to logout?', function(){
+    currentUser = null;
+    document.getElementById('app').classList.add('hidden');
+    document.getElementById('customerApp').classList.add('hidden');
+    document.getElementById('publicRegisterScreen').classList.add('hidden');
+    document.getElementById('loginScreen').classList.remove('hidden');
+    // reset login form fields
+    document.getElementById('loginId').value = '';
+    document.getElementById('loginPass').value = '';
+    document.getElementById('otpMobile').value = '';
+    document.getElementById('otpValue').value = '';
+    document.getElementById('otpEntryBlock').classList.add('hidden');
+    showStandardLoginMode();
+    showToast('You have been logged out.', 'info');
+  }, 'btn-danger');
+}
+
+/* ---------------------------------------------------------------------------
+   10. PUBLIC SHOP OWNER SELF-REGISTRATION
+--------------------------------------------------------------------------- */
+function openPublicRegister(){
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('publicRegisterScreen').classList.remove('hidden');
+  document.getElementById('publicRegisterForm').classList.remove('hidden');
+  document.getElementById('publicRegisterSuccess').classList.add('hidden');
+}
+function closePublicRegister(){
+  document.getElementById('publicRegisterScreen').classList.add('hidden');
+  document.getElementById('loginScreen').classList.remove('hidden');
+}
+function submitPublicRegister(){
+  const name = document.getElementById('pr_name').value.trim();
+  const shop = document.getElementById('pr_shop').value.trim();
+  const mobile = document.getElementById('pr_mobile').value.trim();
+  const email = document.getElementById('pr_email').value.trim();
+  if(!name || !shop || mobile.length !== 10 || !email){
+    showToast('Please fill all required fields correctly.', 'warning'); return;
+  }
+  const seq = nextSeq(shopOwners.map(s=>({n:parseInt(s.id.replace('SHP',''))})), 'n');
+  const newOwner = {
+    id: genId('SHP', 100 + shopOwners.length + 1, 6),
+    name, shop, mobile, email,
+    pan: document.getElementById('pr_pan').value.trim(),
+    aadhaar: document.getElementById('pr_aadhaar').value.trim(),
+    address: document.getElementById('pr_address').value.trim(),
+    city: document.getElementById('pr_city').value.trim(),
+    password: document.getElementById('pr_password').value.trim() || 'demo123',
+    status: 'Pending', regType: 'Self Registered', createdOn: formatDate(TODAY)
+  };
+  shopOwners.push(newOwner);
+  document.getElementById('publicRegisterForm').classList.add('hidden');
+  document.getElementById('publicRegisterSuccess').classList.remove('hidden');
+}
+
+/* ---------------------------------------------------------------------------
+   11. SIDEBAR / DARK MODE
+--------------------------------------------------------------------------- */
+function toggleSidebar(force){
+  sidebarOpen = (force !== undefined) ? force : !sidebarOpen;
+  document.getElementById('sidebar').classList.toggle('show', sidebarOpen);
+  document.getElementById('sidebarOverlay').classList.toggle('show', sidebarOpen);
+}
+function toggleDarkMode(){
+  document.body.classList.toggle('dark-mode');
+}
+
+/* ---------------------------------------------------------------------------
+   12. APP INIT (Admin / Shop Owner shell)
+--------------------------------------------------------------------------- */
+function initAdminShopApp(role){
+  document.getElementById('topbarUserName').innerText = currentUser.name;
+  document.getElementById('topbarDate').innerText = formatDate(TODAY);
+  document.querySelectorAll('#sidebar .role-admin, #sidebar .role-shopowner').forEach(el=>{
+    el.style.display = 'none';
+  });
+  if(role === 'admin'){
+    document.querySelectorAll('#sidebar .role-admin').forEach(el=> el.style.display = 'block');
+    document.getElementById('sidebarRoleLabel').innerText = 'Admin Panel';
+    goSection('admin-dashboard');
+  } else {
+    document.querySelectorAll('#sidebar .role-shopowner').forEach(el=> el.style.display = 'block');
+    document.getElementById('sidebarRoleLabel').innerText = 'Shop Owner Panel';
+    goSection('sw-dashboard');
+  }
+}
+
+const sectionTitles = {
+  'admin-dashboard':'Dashboard', 'admin-shopowners':'Shop Owners', 'admin-customers':'Customers',
+  'admin-create-customer':'Create Customer', 'admin-active-loans':'Active Loans',
+  'admin-payment-verification':'Payment Verification', 'admin-payment-settings':'Payment Settings',
+  'admin-documents':'Documents', 'admin-customer-detail':'Customer Details',
+  'sw-dashboard':'Dashboard', 'sw-customers':'My Customers', 'sw-create-customer':'Create Customer',
+  'sw-active-loans':'Active Loans', 'sw-emi-list':'EMI List', 'sw-documents':'Documents',
+  'sw-customer-detail':'Customer Details'
+};
+
+function goSection(sectionId){
+  document.querySelectorAll('#sidebar .nav-link[data-section]').forEach(a=>{
+    a.classList.toggle('active', a.getAttribute('data-section') === sectionId);
+  });
+  document.getElementById('topbarTitle').innerText = sectionTitles[sectionId] || 'MicroFin Pro';
+  toggleSidebar(false);
+  renderSection(sectionId);
+  document.getElementById('contentArea').scrollTop = 0;
+  window.scrollTo(0,0);
+}
+
+// Router: calls the right render function for a given section id.
+function renderSection(id, param){
+  const map = {
+    'admin-dashboard': renderAdminDashboard,
+    'admin-shopowners': renderShopOwners,
+    'admin-customers': ()=>renderCustomersList('admin'),
+    'admin-create-customer': ()=>renderCreateCustomerForm('admin'),
+    'admin-active-loans': ()=>renderActiveLoans('admin'),
+    'admin-payment-verification': renderPaymentVerification,
+    'admin-payment-settings': renderPaymentSettings,
+    'admin-documents': ()=>renderDocumentsSection('admin'),
+    'admin-customer-detail': ()=>renderCustomerDetail(param, 'admin'),
+    'sw-dashboard': renderShopOwnerDashboard,
+    'sw-customers': ()=>renderCustomersList('shopowner'),
+    'sw-create-customer': ()=>renderCreateCustomerForm('shopowner'),
+    'sw-active-loans': ()=>renderActiveLoans('shopowner'),
+    'sw-emi-list': renderShopOwnerEmiList,
+    'sw-documents': ()=>renderDocumentsSection('shopowner'),
+    'sw-customer-detail': ()=>renderCustomerDetail(param, 'shopowner')
+  };
+  if(map[id]) map[id]();
+}
+function openCustomerDetail(custId){
+  const target = currentUser.role === 'admin' ? 'admin-customer-detail' : 'sw-customer-detail';
+  document.querySelectorAll('#sidebar .nav-link[data-section]').forEach(a=> a.classList.remove('active'));
+  document.getElementById('topbarTitle').innerText = 'Customer Details';
+  renderSection(target, custId);
+  window.scrollTo(0,0);
+}
+
+/* ---------------------------------------------------------------------------
+   13. SHARED STATUS BADGE HELPER
+--------------------------------------------------------------------------- */
+function statusBadge(status){
+  const s = String(status).toLowerCase().replace(/\s+/g,'');
+  let cls='badge-pending';
+  if(['approved','paid','active'].includes(s)) cls='badge-approved';
+  else if(['pending','upcoming','duetoday'].includes(s)) cls='badge-pending';
+  else if(['rejected','overdue','suspended','closed'].includes(s)) cls='badge-rejected';
+  else if(['underverification'].includes(s)) cls='badge-verification';
+  return `<span class="badge-status ${cls}"><i class="fa-solid fa-circle" style="font-size:6px;"></i> ${escapeHtml(status)}</span>`;
+}
+
+/* ---------------------------------------------------------------------------
+   14. ADMIN DASHBOARD
+--------------------------------------------------------------------------- */
+let emiChartInstance = null;
+function computeGlobalStats(){
+  const totalOutstanding = customers.reduce((s,c)=> s + (c.loan.totalPayable - c.amountPaid), 0);
+  const emiCollected = customers.reduce((s,c)=> s + c.amountPaid, 0);
+  const overdueEmis = customers.reduce((s,c)=> s + c.emiSchedule.filter(e=>e.status==='Overdue').length, 0);
+  return {
+    totalShopOwners: shopOwners.length,
+    pendingShopOwners: shopOwners.filter(s=>s.status==='Pending').length,
+    totalCustomers: customers.length,
+    activeLoans: customers.filter(c=>c.status==='Active'||c.status==='Overdue').length,
+    totalOutstanding, emiCollected,
+    pendingVerifications: paymentSubmissions.filter(p=>p.status==='Under Verification').length,
+    overdueEmis
+  };
+}
+
+function renderAdminDashboard(){
+  const st = computeGlobalStats();
+  const cards = [
+    {label:'Total Shop Owners', value:st.totalShopOwners, icon:'fa-store', color:'var(--primary)', bg:'var(--primary-light)'},
+    {label:'Pending Shop Owners', value:st.pendingShopOwners, icon:'fa-hourglass-half', color:'var(--orange)', bg:'var(--orange-bg)'},
+    {label:'Total Customers', value:st.totalCustomers, icon:'fa-users', color:'var(--primary)', bg:'var(--primary-light)'},
+    {label:'Active Loans', value:st.activeLoans, icon:'fa-file-invoice-dollar', color:'var(--green)', bg:'var(--green-bg)'},
+    {label:'Total Outstanding', value:formatCurrency(st.totalOutstanding), icon:'fa-indian-rupee-sign', color:'var(--red)', bg:'var(--red-bg)'},
+    {label:'EMI Collected', value:formatCurrency(st.emiCollected), icon:'fa-sack-dollar', color:'var(--green)', bg:'var(--green-bg)'},
+    {label:'Pending Verifications', value:st.pendingVerifications, icon:'fa-magnifying-glass-dollar', color:'var(--orange)', bg:'var(--orange-bg)'},
+    {label:'Overdue EMIs', value:st.overdueEmis, icon:'fa-triangle-exclamation', color:'var(--red)', bg:'var(--red-bg)'}
+  ];
+
+  const recentCustomers = customers.slice(-5).reverse();
+  const upcomingEmis = [];
+  customers.forEach(c=>{
+    c.emiSchedule.forEach(e=>{
+      if(e.status==='Upcoming' || e.status==='Due Today') upcomingEmis.push({cust:c, emi:e});
+    });
+  });
+  upcomingEmis.sort((a,b)=> a.emi.dueDate - b.emi.dueDate);
+  const upcomingTop = upcomingEmis.slice(0,5);
+  const pendingVerifs = paymentSubmissions.filter(p=>p.status==='Under Verification').slice(0,5);
+
+  document.getElementById('contentArea').innerHTML = `
+    <div class="row g-3 mb-3">
+      ${cards.map(c=>`
+        <div class="col-6 col-lg-3">
+          <div class="stat-card d-flex align-items-center gap-3">
+            <div class="stat-icon" style="background:${c.bg}; color:${c.color};"><i class="fa-solid ${c.icon}"></i></div>
+            <div class="min-w-0">
+              <div class="stat-value text-truncate">${c.value}</div>
+              <div class="stat-label text-truncate">${c.label}</div>
+            </div>
+          </div>
+        </div>`).join('')}
+    </div>
+
+    <div class="card-flat p-3 mb-3">
+      <div class="section-title mb-2"><i class="fa-solid fa-chart-column me-2"></i>EMI Collection (Last 6 Months)</div>
+      <div style="height:260px;"><canvas id="emiCollectionChart"></canvas></div>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-lg-4">
+        <div class="card-flat p-3 h-100">
+          <div class="section-title mb-2"><i class="fa-solid fa-users me-2"></i>Recent Customers</div>
+          ${recentCustomers.map(c=>`
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+              <div class="min-w-0">
+                <div class="fw-semibold text-truncate">${escapeHtml(c.name)}</div>
+                <div class="small-note">${c.loanAccountNo} · ${formatCurrency(c.loan.principal)}</div>
+              </div>
+              ${statusBadge(c.status)}
+            </div>`).join('') || '<div class="small-note">No customers yet.</div>'}
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="card-flat p-3 h-100">
+          <div class="section-title mb-2"><i class="fa-solid fa-calendar-day me-2"></i>Upcoming EMI Due</div>
+          ${upcomingTop.map(u=>`
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+              <div class="min-w-0">
+                <div class="fw-semibold text-truncate">${escapeHtml(u.cust.name)}</div>
+                <div class="small-note">${formatCurrency(u.emi.amount)} · Due ${formatDate(u.emi.dueDate)}</div>
+              </div>
+              ${statusBadge(u.emi.status)}
+            </div>`).join('') || '<div class="small-note">No upcoming EMIs.</div>'}
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="card-flat p-3 h-100">
+          <div class="section-title mb-2"><i class="fa-solid fa-magnifying-glass-dollar me-2"></i>Pending Payment Verification</div>
+          ${pendingVerifs.map(p=>`
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+              <div class="min-w-0">
+                <div class="fw-semibold text-truncate">${escapeHtml(p.customerName)}</div>
+                <div class="small-note">EMI #${p.emiNumber} · ${formatCurrency(p.paidAmount)}</div>
+              </div>
+              <button class="btn btn-sm btn-outline-fin" onclick="viewPaymentSubmission('${p.ref}')">View</button>
+            </div>`).join('') || '<div class="small-note">No pending verifications.</div>'}
+        </div>
+      </div>
+    </div>
+  `;
+
+  const ctx = document.getElementById('emiCollectionChart');
+  if(emiChartInstance) emiChartInstance.destroy();
+  emiChartInstance = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels:['Feb','Mar','Apr','May','Jun','Jul'],
+      datasets:[{
+        label:'EMI Collected (₹)',
+        data:[42000, 61000, 73500, 68000, 81000, 54000],
+        backgroundColor:'#1f6fd6',
+        borderRadius:6,
+        maxBarThickness:38
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{ y:{beginAtZero:true, ticks:{callback:v=>'₹'+(v/1000)+'k'}} }
+    }
+  });
+}
+
+/* ---------------------------------------------------------------------------
+   15. SHOP OWNER MANAGEMENT (Admin)
+--------------------------------------------------------------------------- */
+let shopOwnerFilter = {search:'', status:'All'};
+function filterShopOwners(){
+  shopOwnerFilter.search = document.getElementById('soSearchInput').value.toLowerCase();
+  shopOwnerFilter.status = document.getElementById('soStatusFilter').value;
+  renderShopOwnerRows();
+}
+function getFilteredShopOwners(){
+  return shopOwners.filter(s=>{
+    const matchSearch = !shopOwnerFilter.search || (s.name+s.shop+s.mobile+s.id).toLowerCase().includes(shopOwnerFilter.search);
+    const matchStatus = shopOwnerFilter.status === 'All' || s.status === shopOwnerFilter.status;
+    return matchSearch && matchStatus;
+  });
+}
+function renderShopOwners(){
+  document.getElementById('contentArea').innerHTML = `
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+      <div>
+        <div class="section-title mb-0">Shop Owner Management</div>
+        <div class="page-sub">Manage partner shop owner accounts</div>
+      </div>
+      <button class="btn btn-primary-fin btn-sm" onclick="openAddShopOwner()"><i class="fa-solid fa-plus me-1"></i>Add Shop Owner</button>
+    </div>
+    <div class="card-flat p-3 mb-3">
+      <div class="row g-2">
+        <div class="col-md-8"><input class="form-control" id="soSearchInput" placeholder="Search by name, shop, mobile or ID..." oninput="filterShopOwners()"></div>
+        <div class="col-md-4">
+          <select class="form-select" id="soStatusFilter" onchange="filterShopOwners()">
+            <option value="All">All Statuses</option>
+            <option>Pending</option><option>Approved</option><option>Rejected</option><option>Suspended</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div id="shopOwnerRowsHost"></div>
+  `;
+  renderShopOwnerRows();
+}
+function shopOwnerActionButtons(s){
+  let btns = `<button class="btn btn-sm btn-outline-fin" onclick="viewShopOwner('${s.id}')" title="View"><i class="fa-solid fa-eye"></i></button>`;
+  if(s.status === 'Pending'){
+    btns += ` <button class="btn btn-sm btn-outline-success" onclick="approveShopOwner('${s.id}')" title="Approve"><i class="fa-solid fa-check"></i></button>`;
+    btns += ` <button class="btn btn-sm btn-outline-danger" onclick="rejectShopOwnerPrompt('${s.id}')" title="Reject"><i class="fa-solid fa-xmark"></i></button>`;
+  } else if(s.status === 'Approved'){
+    btns += ` <button class="btn btn-sm btn-outline-warning" onclick="suspendShopOwner('${s.id}')" title="Suspend"><i class="fa-solid fa-ban"></i></button>`;
+  } else if(s.status === 'Suspended'){
+    btns += ` <button class="btn btn-sm btn-outline-success" onclick="approveShopOwner('${s.id}')" title="Reactivate"><i class="fa-solid fa-rotate-left"></i></button>`;
+  }
+  return btns;
+}
+function renderShopOwnerRows(){
+  const list = getFilteredShopOwners();
+  const host = document.getElementById('shopOwnerRowsHost');
+  host.innerHTML = `
+    <div class="card-flat p-0 table-responsive-fin">
+      <table class="table table-fin mb-0">
+        <thead><tr>
+          <th>ID</th><th>Full Name</th><th>Shop Name</th><th>Mobile</th><th>City</th><th>Reg. Type</th><th>Status</th><th>Actions</th>
+        </tr></thead>
+        <tbody>
+        ${list.map(s=>`
+          <tr>
+            <td class="fw-semibold">${s.id}</td>
+            <td>${escapeHtml(s.name)}</td>
+            <td>${escapeHtml(s.shop)}</td>
+            <td>${s.mobile}</td>
+            <td>${escapeHtml(s.city)}</td>
+            <td><span class="small-note">${s.regType}</span></td>
+            <td>${statusBadge(s.status)}</td>
+            <td>${shopOwnerActionButtons(s)}</td>
+          </tr>`).join('') || `<tr><td colspan="8" class="text-center text-muted-fin py-3">No shop owners found.</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+    <div class="data-cards">
+      ${list.map(s=>`
+        <div class="data-card">
+          <div class="dc-head">
+            <div><div class="fw-bold">${escapeHtml(s.name)}</div><div class="small-note">${s.id}</div></div>
+            ${statusBadge(s.status)}
+          </div>
+          <div class="dc-row"><span class="dc-label">Shop Name</span><span>${escapeHtml(s.shop)}</span></div>
+          <div class="dc-row"><span class="dc-label">Mobile</span><span>${s.mobile}</span></div>
+          <div class="dc-row"><span class="dc-label">City</span><span>${escapeHtml(s.city)}</span></div>
+          <div class="dc-row"><span class="dc-label">Reg. Type</span><span>${s.regType}</span></div>
+          <div class="d-flex gap-2 mt-2">${shopOwnerActionButtons(s)}</div>
+        </div>`).join('') || '<div class="text-center text-muted-fin py-3">No shop owners found.</div>'}
+    </div>
+  `;
+}
+function openAddShopOwner(){
+  ['so_name','so_shop','so_mobile','so_email','so_pan','so_aadhaar','so_address','so_city','so_password'].forEach(id=> document.getElementById(id).value='');
+  openModal('modalAddShopOwner');
+}
+function saveShopOwner(){
+  const name = document.getElementById('so_name').value.trim();
+  const shop = document.getElementById('so_shop').value.trim();
+  const mobile = document.getElementById('so_mobile').value.trim();
+  if(!name || !shop || mobile.length !== 10){ showToast('Please fill required fields correctly.', 'warning'); return; }
+  const newOwner = {
+    id: genId('SHP', 100 + shopOwners.length + 1, 6),
+    name, shop, mobile,
+    email: document.getElementById('so_email').value.trim(),
+    pan: document.getElementById('so_pan').value.trim(),
+    aadhaar: document.getElementById('so_aadhaar').value.trim(),
+    address: document.getElementById('so_address').value.trim(),
+    city: document.getElementById('so_city').value.trim(),
+    password: document.getElementById('so_password').value.trim() || 'demo123',
+    status:'Approved', regType:'Created by Admin', createdOn: formatDate(TODAY)
+  };
+  shopOwners.push(newOwner);
+  closeModal('modalAddShopOwner');
+  renderShopOwners();
+  showToast('Shop Owner ' + newOwner.id + ' created successfully.', 'success');
+}
+function viewShopOwner(id){
+  const s = shopOwners.find(x=>x.id===id);
+  if(!s) return;
+  document.getElementById('viewShopOwnerBody').innerHTML = `
+    <div class="d-flex justify-content-between mb-2"><span class="fw-bold">${escapeHtml(s.name)}</span>${statusBadge(s.status)}</div>
+    <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Shop Owner ID</span><span>${s.id}</span></div>
+    <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Shop Name</span><span>${escapeHtml(s.shop)}</span></div>
+    <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Mobile</span><span>${s.mobile}</span></div>
+    <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Email</span><span>${escapeHtml(s.email||'-')}</span></div>
+    <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">PAN</span><span>${escapeHtml(s.pan||'-')}</span></div>
+    <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Aadhaar</span><span>${escapeHtml(s.aadhaar||'-')}</span></div>
+    <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Address</span><span class="text-end">${escapeHtml(s.address||'-')}, ${escapeHtml(s.city||'')}</span></div>
+    <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Registration Type</span><span>${s.regType}</span></div>
+    <div class="dc-row d-flex justify-content-between py-1"><span class="text-muted-fin">Registered On</span><span>${s.createdOn}</span></div>
+  `;
+  openModal('modalViewShopOwner');
+}
+function approveShopOwner(id){
+  const s = shopOwners.find(x=>x.id===id);
+  showConfirm(`Approve ${s.name} (${s.id}) as an active Shop Owner?`, function(){
+    s.status = 'Approved';
+    renderShopOwnerRows();
+    showToast(s.name + ' has been approved.', 'success');
+  });
+}
+function suspendShopOwner(id){
+  const s = shopOwners.find(x=>x.id===id);
+  showConfirm(`Suspend ${s.name} (${s.id})? They will not be able to create new customers.`, function(){
+    s.status = 'Suspended';
+    renderShopOwnerRows();
+    showToast(s.name + ' has been suspended.', 'warning');
+  }, 'btn-warning');
+}
+function rejectShopOwnerPrompt(id){
+  pendingRejectContext = {type:'shopowner', id};
+  document.getElementById('rejectReasonTitle').innerText = 'Reject Shop Owner Registration';
+  document.getElementById('rejectReasonText').value = '';
+  openModal('modalRejectReason');
+}
+function confirmRejectReason(){
+  const reason = document.getElementById('rejectReasonText').value.trim();
+  if(!reason){ showToast('Please provide a reason.', 'warning'); return; }
+  if(!pendingRejectContext) return;
+  if(pendingRejectContext.type === 'shopowner'){
+    const s = shopOwners.find(x=>x.id===pendingRejectContext.id);
+    s.status = 'Rejected';
+    s.rejectReason = reason;
+    closeModal('modalRejectReason');
+    renderShopOwnerRows();
+    showToast(s.name + ' registration was rejected.', 'danger');
+  } else if(pendingRejectContext.type === 'payment'){
+    const p = paymentSubmissions.find(x=>x.ref===pendingRejectContext.id);
+    p.status = 'Rejected';
+    p.rejectReason = reason;
+    const cust = customers.find(c=>c.id===p.customerId);
+    if(cust){
+      const emi = cust.emiSchedule.find(e=>e.number===p.emiNumber);
+      if(emi){
+        const diff = daysDiff(emi.dueDate, TODAY);
+        emi.status = diff < 0 ? 'Overdue' : (diff===0 ? 'Due Today' : 'Upcoming');
+      }
+      const pay = cust.payments.find(x=>x.ref===p.ref);
+      if(pay) pay.status = 'Rejected';
+    }
+    closeModal('modalRejectReason');
+    closeModal('modalPaymentView');
+    renderSection(currentUser.role==='admin' ? 'admin-payment-verification' : 'admin-payment-verification');
+    showToast('Payment for ' + p.customerName + ' was rejected. Reason: ' + reason, 'danger');
+  }
+  pendingRejectContext = null;
+}
+
+/* ---------------------------------------------------------------------------
+   16. CUSTOMERS LIST (shared: Admin sees all, Shop Owner sees own)
+--------------------------------------------------------------------------- */
+let customerFilter = {search:'', status:'All'};
+function scopedCustomers(role){
+  let list = customers;
+  if(role === 'shopowner') list = list.filter(c=> c.loan.assignedShopOwner === currentUser.id);
+  return list;
+}
+function filterCustomers(role){
+  customerFilter.search = document.getElementById('custSearchInput').value.toLowerCase();
+  customerFilter.status = document.getElementById('custStatusFilter').value;
+  renderCustomerRows(role);
+}
+function getFilteredCustomers(role){
+  return scopedCustomers(role).filter(c=>{
+    const matchSearch = !customerFilter.search || (c.name+c.mobile+c.loanAccountNo+c.id).toLowerCase().includes(customerFilter.search);
+    const matchStatus = customerFilter.status === 'All' || c.status === customerFilter.status;
+    return matchSearch && matchStatus;
+  });
+}
+function nextDueInfo(c){
+  const next = c.emiSchedule.find(e=> e.status==='Upcoming' || e.status==='Due Today' || e.status==='Overdue');
+  return next ? next.dueDate : null;
+}
+function renderCustomersList(role){
+  document.getElementById('contentArea').innerHTML = `
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+      <div>
+        <div class="section-title mb-0">${role==='admin' ? 'Customer List' : 'My Customers'}</div>
+        <div class="page-sub">${role==='admin' ? 'All registered customers across shop owners' : 'Customers assigned to your shop'}</div>
+      </div>
+      <button class="btn btn-primary-fin btn-sm" onclick="goSection('${role==='admin'?'admin-create-customer':'sw-create-customer'}')"><i class="fa-solid fa-user-plus me-1"></i>Create Customer</button>
+    </div>
+    <div class="card-flat p-3 mb-3">
+      <div class="row g-2">
+        <div class="col-md-8"><input class="form-control" id="custSearchInput" placeholder="Search by name, mobile, customer ID or loan A/C..." oninput="filterCustomers('${role}')"></div>
+        <div class="col-md-4">
+          <select class="form-select" id="custStatusFilter" onchange="filterCustomers('${role}')">
+            <option value="All">All Statuses</option>
+            <option>Active</option><option>Overdue</option><option>Closed</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div id="customerRowsHost"></div>
+  `;
+  renderCustomerRows(role);
+}
+function renderCustomerRows(role){
+  const list = getFilteredCustomers(role);
+  document.getElementById('customerRowsHost').innerHTML = `
+    <div class="card-flat p-0 table-responsive-fin">
+      <table class="table table-fin mb-0">
+        <thead><tr>
+          <th>Customer ID</th><th>Name</th><th>Mobile</th><th>Loan A/C No.</th><th>Loan Amount</th><th>EMI Amt</th><th>Next Due</th><th>Status</th><th>Actions</th>
+        </tr></thead>
+        <tbody>
+        ${list.map(c=>`
+          <tr>
+            <td class="fw-semibold">${c.id}</td>
+            <td>${escapeHtml(c.name)}</td>
+            <td>${c.mobile}</td>
+            <td>${c.loanAccountNo}</td>
+            <td>${formatCurrency(c.loan.principal)}</td>
+            <td>${formatCurrency(c.loan.emiAmount)}</td>
+            <td>${nextDueInfo(c) ? formatDate(nextDueInfo(c)) : '-'}</td>
+            <td>${statusBadge(c.status)}</td>
+            <td>
+              <button class="btn btn-sm btn-outline-fin" onclick="openCustomerDetail('${c.id}')" title="View"><i class="fa-solid fa-eye"></i></button>
+              <button class="btn btn-sm btn-outline-fin" onclick="openCustomerDetail('${c.id}')" title="EMI Schedule"><i class="fa-solid fa-calendar-check"></i></button>
+              <button class="btn btn-sm btn-outline-fin" onclick="openCustomerDetail('${c.id}')" title="Documents"><i class="fa-solid fa-file-lines"></i></button>
+            </td>
+          </tr>`).join('') || `<tr><td colspan="9" class="text-center text-muted-fin py-3">No customers found.</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+    <div class="data-cards">
+      ${list.map(c=>`
+        <div class="data-card">
+          <div class="dc-head">
+            <div><div class="fw-bold">${escapeHtml(c.name)}</div><div class="small-note">${c.id} · ${c.loanAccountNo}</div></div>
+            ${statusBadge(c.status)}
+          </div>
+          <div class="dc-row"><span class="dc-label">Mobile</span><span>${c.mobile}</span></div>
+          <div class="dc-row"><span class="dc-label">Loan Amount</span><span>${formatCurrency(c.loan.principal)}</span></div>
+          <div class="dc-row"><span class="dc-label">EMI Amount</span><span>${formatCurrency(c.loan.emiAmount)}</span></div>
+          <div class="dc-row"><span class="dc-label">Next Due</span><span>${nextDueInfo(c) ? formatDate(nextDueInfo(c)) : '-'}</span></div>
+          <button class="btn btn-sm btn-outline-fin w-100 mt-2" onclick="openCustomerDetail('${c.id}')"><i class="fa-solid fa-eye me-1"></i>View Details</button>
+        </div>`).join('') || '<div class="text-center text-muted-fin py-3">No customers found.</div>'}
+    </div>
+  `;
+}
+
+/* ---------------------------------------------------------------------------
+   17. ACTIVE LOANS (shared)
+--------------------------------------------------------------------------- */
+function renderActiveLoans(role){
+  const list = scopedCustomers(role).filter(c=> c.status==='Active' || c.status==='Overdue');
+  document.getElementById('contentArea').innerHTML = `
+    <div class="mb-3">
+      <div class="section-title mb-0">Active Loans</div>
+      <div class="page-sub">Loans currently being repaid</div>
+    </div>
+    <div class="card-flat p-0 table-responsive-fin">
+      <table class="table table-fin mb-0">
+        <thead><tr><th>Customer</th><th>Loan A/C No.</th><th>Principal</th><th>Total Payable</th><th>Paid</th><th>Outstanding</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+        ${list.map(c=>`
+          <tr>
+            <td>${escapeHtml(c.name)}</td>
+            <td>${c.loanAccountNo}</td>
+            <td>${formatCurrency(c.loan.principal)}</td>
+            <td>${formatCurrency(c.loan.totalPayable)}</td>
+            <td>${formatCurrency(c.amountPaid)}</td>
+            <td>${formatCurrency(c.loan.totalPayable - c.amountPaid)}</td>
+            <td>${statusBadge(c.status)}</td>
+            <td><button class="btn btn-sm btn-outline-fin" onclick="openCustomerDetail('${c.id}')">View</button></td>
+          </tr>`).join('') || `<tr><td colspan="8" class="text-center text-muted-fin py-3">No active loans.</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+    <div class="data-cards">
+      ${list.map(c=>`
+        <div class="data-card">
+          <div class="dc-head"><div class="fw-bold">${escapeHtml(c.name)}</div>${statusBadge(c.status)}</div>
+          <div class="dc-row"><span class="dc-label">Loan A/C</span><span>${c.loanAccountNo}</span></div>
+          <div class="dc-row"><span class="dc-label">Total Payable</span><span>${formatCurrency(c.loan.totalPayable)}</span></div>
+          <div class="dc-row"><span class="dc-label">Paid</span><span>${formatCurrency(c.amountPaid)}</span></div>
+          <div class="dc-row"><span class="dc-label">Outstanding</span><span>${formatCurrency(c.loan.totalPayable - c.amountPaid)}</span></div>
+          <button class="btn btn-sm btn-outline-fin w-100 mt-2" onclick="openCustomerDetail('${c.id}')">View Details</button>
+        </div>`).join('') || '<div class="text-center text-muted-fin py-3">No active loans.</div>'}
+    </div>
+  `;
+}
+
+/* ---------------------------------------------------------------------------
+   18. PAYMENT VERIFICATION (Admin only)
+--------------------------------------------------------------------------- */
+function renderPaymentVerification(){
+  const list = paymentSubmissions.slice().sort((a,b)=> b.submittedOn - a.submittedOn);
+  document.getElementById('contentArea').innerHTML = `
+    <div class="mb-3">
+      <div class="section-title mb-0">Payment Verification</div>
+      <div class="page-sub">Review and approve manual EMI payment submissions</div>
+    </div>
+    <div class="card-flat p-0 table-responsive-fin">
+      <table class="table table-fin mb-0">
+        <thead><tr><th>Customer</th><th>Loan A/C</th><th>EMI #</th><th>Amount</th><th>Method</th><th>Txn No.</th><th>Screenshot</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+        ${list.map(p=>`
+          <tr>
+            <td>${escapeHtml(p.customerName)}</td>
+            <td>${p.loanAccountNo}</td>
+            <td>${p.emiNumber}</td>
+            <td>${formatCurrency(p.paidAmount)}</td>
+            <td>${p.method}</td>
+            <td>${p.txnId}</td>
+            <td><div class="screenshot-thumb d-inline-flex align-items-center justify-content-center" style="cursor:pointer;" onclick="viewScreenshot()"><i class="fa-solid fa-image text-primary"></i></div></td>
+            <td>${formatDate(p.submittedOn)}</td>
+            <td>${statusBadge(p.status)}</td>
+            <td><button class="btn btn-sm btn-outline-fin" onclick="viewPaymentSubmission('${p.ref}')">View</button></td>
+          </tr>`).join('') || `<tr><td colspan="10" class="text-center text-muted-fin py-3">No payment submissions.</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+    <div class="data-cards">
+      ${list.map(p=>`
+        <div class="data-card">
+          <div class="dc-head"><div><div class="fw-bold">${escapeHtml(p.customerName)}</div><div class="small-note">${p.loanAccountNo} · EMI #${p.emiNumber}</div></div>${statusBadge(p.status)}</div>
+          <div class="dc-row"><span class="dc-label">Amount</span><span>${formatCurrency(p.paidAmount)}</span></div>
+          <div class="dc-row"><span class="dc-label">Method</span><span>${p.method}</span></div>
+          <div class="dc-row"><span class="dc-label">Txn No.</span><span>${p.txnId}</span></div>
+          <div class="dc-row"><span class="dc-label">Submitted</span><span>${formatDate(p.submittedOn)}</span></div>
+          <button class="btn btn-sm btn-outline-fin w-100 mt-2" onclick="viewPaymentSubmission('${p.ref}')">View & Verify</button>
+        </div>`).join('') || '<div class="text-center text-muted-fin py-3">No payment submissions.</div>'}
+    </div>
+  `;
+}
+let currentPaymentRef = null;
+function viewScreenshot(){ openModal('modalScreenshotFull'); }
+function viewPaymentSubmission(ref){
+  currentPaymentRef = ref;
+  const p = paymentSubmissions.find(x=>x.ref===ref);
+  document.getElementById('paymentViewBody').innerHTML = `
+    <div class="text-center mb-3">
+      <div class="screenshot-thumb mx-auto d-flex align-items-center justify-content-center" style="width:120px;height:120px;cursor:pointer;" onclick="viewScreenshot()">
+        <i class="fa-solid fa-image fa-2x text-primary"></i>
+      </div>
+      <div class="small-note mt-1">Tap to view full screenshot</div>
+    </div>
+    <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Customer</span><span>${escapeHtml(p.customerName)}</span></div>
+    <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Loan A/C No.</span><span>${p.loanAccountNo}</span></div>
+    <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">EMI Number</span><span>#${p.emiNumber}</span></div>
+    <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">EMI Amount</span><span>${formatCurrency(p.emiAmount)}</span></div>
+    <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Paid Amount</span><span>${formatCurrency(p.paidAmount)}</span></div>
+    <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Payment Method</span><span>${p.method}</span></div>
+    <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Transaction No.</span><span>${p.txnId}</span></div>
+    <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Submitted On</span><span>${formatDate(p.submittedOn)}</span></div>
+    <div class="dc-row d-flex justify-content-between py-1"><span class="text-muted-fin">Status</span>${statusBadge(p.status)}</div>
+    ${p.remarks ? `<div class="mt-2 small-note"><strong>Customer Remarks:</strong> ${escapeHtml(p.remarks)}</div>` : ''}
+  `;
+  openModal('modalPaymentView');
+}
+function approvePayment(){
+  if(!currentPaymentRef) return;
+  const p = paymentSubmissions.find(x=>x.ref===currentPaymentRef);
+  if(p.status !== 'Under Verification'){ showToast('This payment has already been processed.', 'warning'); return; }
+  p.status = 'Approved';
+  const cust = customers.find(c=>c.id===p.customerId);
+  if(cust){
+    const emi = cust.emiSchedule.find(e=>e.number===p.emiNumber);
+    if(emi){ emi.status='Paid'; emi.paymentDate = TODAY; }
+    cust.amountPaid += p.emiAmount;
+    const pay = cust.payments.find(x=>x.ref===p.ref);
+    if(pay) pay.status = 'Approved';
+    const remainingUnpaid = cust.emiSchedule.some(e=>e.status!=='Paid');
+    cust.status = remainingUnpaid ? (cust.emiSchedule.some(e=>e.status==='Overdue') ? 'Overdue' : 'Active') : 'Closed';
+  }
+  closeModal('modalPaymentView');
+  renderPaymentVerification();
+  showToast('Payment approved. EMI #' + p.emiNumber + ' marked as Paid.', 'success');
+  currentPaymentRef = null;
+}
+function rejectPaymentPrompt(){
+  if(!currentPaymentRef) return;
+  pendingRejectContext = {type:'payment', id: currentPaymentRef};
+  document.getElementById('rejectReasonTitle').innerText = 'Reject Payment Submission';
+  document.getElementById('rejectReasonText').value = '';
+  openModal('modalRejectReason');
+}
+
+/* ---------------------------------------------------------------------------
+   19. PAYMENT SETTINGS (Admin only)
+--------------------------------------------------------------------------- */
+function renderPaymentSettings(){
+  const s = paymentSettings;
+  document.getElementById('contentArea').innerHTML = `
+    <div class="mb-3">
+      <div class="section-title mb-0">Payment Settings</div>
+      <div class="page-sub">Configure the UPI, QR & bank details shown to customers for manual payment</div>
+    </div>
+    <div class="alert alert-warning d-flex align-items-center gap-2" role="alert">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <div>No online payment gateway is connected. All EMI payments are manually verified.</div>
+    </div>
+    <div class="row g-3">
+      <div class="col-lg-6">
+        <div class="card-flat p-3 mb-3">
+          <div class="section-title mb-2"><i class="fa-solid fa-qrcode me-2"></i>UPI Details</div>
+          <div class="mb-2"><label class="form-label">UPI ID</label><input class="form-control" id="ps_upi" value="${escapeHtml(s.upiId)}"></div>
+          <div class="mb-2"><label class="form-label">Account Holder Name</label><input class="form-control" id="ps_upiHolder" value="${escapeHtml(s.upiHolder)}"></div>
+          <div class="mb-2"><label class="form-label">QR Code Upload</label><input type="file" class="form-control" id="ps_qrFile" accept="image/*" onchange="previewQr(this)"></div>
+          <div class="qr-box" id="qrPreviewBox"></div>
+        </div>
+        <div class="card-flat p-3">
+          <div class="section-title mb-2"><i class="fa-solid fa-university me-2"></i>Bank Details</div>
+          <div class="mb-2"><label class="form-label">Bank Name</label><input class="form-control" id="ps_bankName" value="${escapeHtml(s.bankName)}"></div>
+          <div class="mb-2"><label class="form-label">Account Holder Name</label><input class="form-control" id="ps_bankHolder" value="${escapeHtml(s.bankHolder)}"></div>
+          <div class="mb-2"><label class="form-label">Account Number</label><input class="form-control" id="ps_accNo" value="${escapeHtml(s.accountNo)}"></div>
+          <div class="mb-2"><label class="form-label">IFSC Code</label><input class="form-control" id="ps_ifsc" value="${escapeHtml(s.ifsc)}"></div>
+          <div class="mb-2"><label class="form-label">Branch Name</label><input class="form-control" id="ps_branch" value="${escapeHtml(s.branch)}"></div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card-flat p-3">
+          <div class="section-title mb-2"><i class="fa-solid fa-message me-2"></i>Payment Instructions</div>
+          <textarea class="form-control" id="ps_instructions" rows="6">${escapeHtml(s.instructions)}</textarea>
+          <div class="d-flex gap-2 mt-3">
+            <button class="btn btn-primary-fin" onclick="savePaymentSettings()"><i class="fa-solid fa-floppy-disk me-1"></i>Save Settings</button>
+            <button class="btn btn-outline-fin" onclick="previewCustomerPaymentScreen()"><i class="fa-solid fa-eye me-1"></i>Preview Customer Screen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('qrPreviewBox').style.background = s.qrUploaded ? '' : 'var(--border)';
+}
+function previewQr(input){
+  if(input.files && input.files[0]){
+    showToast('QR code image uploaded (preview simulated).', 'success');
+  }
+}
+function savePaymentSettings(){
+  paymentSettings.upiId = document.getElementById('ps_upi').value.trim();
+  paymentSettings.upiHolder = document.getElementById('ps_upiHolder').value.trim();
+  paymentSettings.bankName = document.getElementById('ps_bankName').value.trim();
+  paymentSettings.bankHolder = document.getElementById('ps_bankHolder').value.trim();
+  paymentSettings.accountNo = document.getElementById('ps_accNo').value.trim();
+  paymentSettings.ifsc = document.getElementById('ps_ifsc').value.trim();
+  paymentSettings.branch = document.getElementById('ps_branch').value.trim();
+  paymentSettings.instructions = document.getElementById('ps_instructions').value.trim();
+  showToast('Payment settings saved successfully.', 'success');
+}
+function previewCustomerPaymentScreen(){
+  showToast('Opening customer Pay EMI screen preview...', 'info');
+  loginAsDemo('customer');
+  setTimeout(()=> goCustomerTab('pay'), 150);
+}
+
+/* ---------------------------------------------------------------------------
+   20. CREATE CUSTOMER & LOAN (shared: Admin / Shop Owner)
+--------------------------------------------------------------------------- */
+function renderCreateCustomerForm(role){
+  generatedEmiPreview = null;
+  const approvedOwners = shopOwners.filter(s=> s.status==='Approved');
+  const shopOwnerFieldHtml = role === 'admin'
+    ? `<select class="form-select" id="loan_shopOwner">
+         ${approvedOwners.map(o=>`<option value="${o.id}">${escapeHtml(o.name)} — ${escapeHtml(o.shop)}</option>`).join('')}
+       </select>`
+    : `<input class="form-control" value="${escapeHtml(currentUser.name)} (You)" disabled>
+       <input type="hidden" id="loan_shopOwner" value="${currentUser.id}">`;
+
+  document.getElementById('contentArea').innerHTML = `
+    <div class="mb-3">
+      <div class="section-title mb-0">Create Customer &amp; Loan</div>
+      <div class="page-sub">Fill in personal, identity and loan details to onboard a new customer</div>
+    </div>
+    <div class="card-flat p-3 p-md-4">
+      <form id="createCustomerForm" onsubmit="return false;">
+
+        <div class="form-section-title"><i class="fa-solid fa-id-card me-2"></i>Personal Details</div>
+        <div class="row g-3">
+          <div class="col-md-4"><label class="form-label">Full Name *</label><input class="form-control" id="pf_fullname" required></div>
+          <div class="col-md-4"><label class="form-label">Father's / Guardian's Name</label><input class="form-control" id="pf_father"></div>
+          <div class="col-md-4"><label class="form-label">Gender</label>
+            <select class="form-select" id="pf_gender"><option>Male</option><option>Female</option><option>Other</option></select>
+          </div>
+          <div class="col-md-4"><label class="form-label">Mobile Number *</label><input class="form-control" id="pf_mobile" maxlength="10" required></div>
+          <div class="col-md-4"><label class="form-label">Alternate Mobile Number</label><input class="form-control" id="pf_altmobile" maxlength="10"></div>
+          <div class="col-md-4"><label class="form-label">Email</label><input type="email" class="form-control" id="pf_email"></div>
+          <div class="col-md-4"><label class="form-label">Date of Birth</label><input type="date" class="form-control" id="pf_dob"></div>
+          <div class="col-md-8"><label class="form-label">Full Address *</label><input class="form-control" id="pf_address" required></div>
+          <div class="col-md-4"><label class="form-label">City *</label><input class="form-control" id="pf_city" required></div>
+          <div class="col-md-4"><label class="form-label">State</label><input class="form-control" id="pf_state"></div>
+          <div class="col-md-4"><label class="form-label">PIN Code</label><input class="form-control" id="pf_pin" maxlength="6"></div>
+        </div>
+
+        <div class="form-section-title"><i class="fa-solid fa-fingerprint me-2"></i>Identity Details</div>
+        <div class="row g-3">
+          <div class="col-md-6"><label class="form-label">PAN Number *</label><input class="form-control text-uppercase" id="id_pan" maxlength="10" required></div>
+          <div class="col-md-6"><label class="form-label">Aadhaar Number *</label><input class="form-control" id="id_aadhaar" maxlength="12" required></div>
+          <div class="col-md-4"><label class="form-label">Profile Photo</label><input type="file" class="form-control" id="id_photo" accept="image/*"></div>
+          <div class="col-md-4"><label class="form-label">Aadhaar Upload</label><input type="file" class="form-control" id="id_aadhaarUpload" accept="image/*,.pdf"></div>
+          <div class="col-md-4"><label class="form-label">PAN Upload</label><input type="file" class="form-control" id="id_panUpload" accept="image/*,.pdf"></div>
+        </div>
+
+        <div class="form-section-title"><i class="fa-solid fa-file-invoice-dollar me-2"></i>Loan Details</div>
+        <div class="row g-3">
+          <div class="col-md-6"><label class="form-label">Loan Purpose *</label><input class="form-control" id="loan_purpose" required placeholder="e.g. Business Expansion"></div>
+          <div class="col-md-3"><label class="form-label">Principal Loan Amount *</label><input type="number" min="0" class="form-control" id="loan_principal" oninput="updateLoanCalc()" required></div>
+          <div class="col-md-3"><label class="form-label">Total Interest *</label><input type="number" min="0" class="form-control" id="loan_interest" oninput="updateLoanCalc()" required></div>
+          <div class="col-md-3"><label class="form-label">Processing Fee</label><input type="number" min="0" class="form-control" id="loan_fee" value="0" oninput="updateLoanCalc()"></div>
+          <div class="col-md-3"><label class="form-label">Number of EMIs *</label><input type="number" min="1" class="form-control" id="loan_numEmis" oninput="updateLoanCalc()" required></div>
+          <div class="col-md-3"><label class="form-label">EMI Frequency</label>
+            <select class="form-select" id="loan_frequency"><option>Monthly</option><option>Weekly</option></select>
+          </div>
+          <div class="col-md-3"><label class="form-label">Loan Start Date *</label><input type="date" class="form-control" id="loan_startDate" required></div>
+          <div class="col-md-3"><label class="form-label">First EMI Due Date *</label><input type="date" class="form-control" id="loan_firstDue" required></div>
+          <div class="col-md-3"><label class="form-label">Late Fee (per EMI)</label><input type="number" min="0" class="form-control" id="loan_lateFee" value="200"></div>
+          <div class="col-md-9"><label class="form-label">Assigned Shop Owner</label>${shopOwnerFieldHtml}</div>
+        </div>
+
+        <div class="calc-box mt-4">
+          <div class="row text-center g-2">
+            <div class="col-6 col-md-3">
+              <div class="small-note">Total Payable</div>
+              <div class="fw-bold fs-5" id="calc_totalPayable">₹0</div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="small-note">EMI Amount</div>
+              <div class="fw-bold fs-5" id="calc_emiAmount">₹0</div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="small-note">Number of EMIs</div>
+              <div class="fw-bold fs-5" id="calc_numEmis">0</div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="small-note">Frequency</div>
+              <div class="fw-bold fs-5" id="calc_frequency">Monthly</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 mt-4">
+          <button type="button" class="btn btn-outline-fin" onclick="generateEmiSchedulePreview()"><i class="fa-solid fa-calendar-plus me-1"></i>Generate EMI Schedule</button>
+          <button type="button" class="btn btn-primary-fin" onclick="saveCustomerAndLoan('${role}')"><i class="fa-solid fa-floppy-disk me-1"></i>Save Customer &amp; Loan</button>
+        </div>
+
+        <div id="emiPreviewHost" class="mt-4"></div>
+      </form>
+    </div>
+  `;
+  updateLoanCalc();
+}
+function updateLoanCalc(){
+  const principal = Number(document.getElementById('loan_principal').value) || 0;
+  const interest = Number(document.getElementById('loan_interest').value) || 0;
+  const fee = Number(document.getElementById('loan_fee').value) || 0;
+  const numEmis = Number(document.getElementById('loan_numEmis').value) || 0;
+  const totalPayable = principal + interest + fee;
+  const emiAmount = numEmis > 0 ? Math.round(totalPayable / numEmis) : 0;
+  document.getElementById('calc_totalPayable').innerText = formatCurrency(totalPayable);
+  document.getElementById('calc_emiAmount').innerText = formatCurrency(emiAmount);
+  document.getElementById('calc_numEmis').innerText = numEmis;
+  document.getElementById('calc_frequency').innerText = document.getElementById('loan_frequency').value;
+}
+function validateCustomerForm(){
+  const required = ['pf_fullname','pf_mobile','pf_address','pf_city','id_pan','id_aadhaar','loan_purpose','loan_principal','loan_interest','loan_numEmis','loan_startDate','loan_firstDue'];
+  for(const id of required){
+    const el = document.getElementById(id);
+    if(!el.value || !String(el.value).trim()){
+      el.focus();
+      showToast('Please fill all required fields (marked *).', 'warning');
+      return false;
+    }
+  }
+  if(document.getElementById('pf_mobile').value.trim().length !== 10){
+    showToast('Mobile number must be 10 digits.', 'warning'); return false;
+  }
+  if(Number(document.getElementById('loan_numEmis').value) < 1){
+    showToast('Number of EMIs must be at least 1.', 'warning'); return false;
+  }
+  return true;
+}
+function buildLoanFromForm(){
+  return {
+    purpose: document.getElementById('loan_purpose').value.trim(),
+    principal: Number(document.getElementById('loan_principal').value)||0,
+    interest: Number(document.getElementById('loan_interest').value)||0,
+    fee: Number(document.getElementById('loan_fee').value)||0,
+    numEmis: Number(document.getElementById('loan_numEmis').value)||1,
+    frequency: document.getElementById('loan_frequency').value,
+    firstDueDate: new Date(document.getElementById('loan_firstDue').value),
+    startDate: new Date(document.getElementById('loan_startDate').value),
+    lateFee: Number(document.getElementById('loan_lateFee').value)||0,
+    assignedShopOwner: document.getElementById('loan_shopOwner').value
+  };
+}
+function generateEmiSchedulePreview(){
+  if(!validateCustomerForm()) return;
+  const loan = buildLoanFromForm();
+  loan.totalPayable = loan.principal + loan.interest + loan.fee;
+  loan.emiAmount = Math.round(loan.totalPayable / loan.numEmis);
+  const schedule = buildEmiSchedule(loan, 0, 0);
+  generatedEmiPreview = schedule;
+  document.getElementById('emiPreviewHost').innerHTML = `
+    <div class="form-section-title"><i class="fa-solid fa-calendar-check me-2"></i>EMI Schedule Preview</div>
+    <div class="card-flat p-0 table-responsive-fin">
+      <table class="table table-fin mb-0">
+        <thead><tr><th>EMI #</th><th>Due Date</th><th>Amount</th><th>Status</th></tr></thead>
+        <tbody>
+          ${schedule.map(e=>`<tr><td>${e.number}</td><td>${formatDate(e.dueDate)}</td><td>${formatCurrency(e.amount)}</td><td>${statusBadge(e.status)}</td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="data-cards">
+      ${schedule.map(e=>`
+        <div class="data-card">
+          <div class="dc-head"><div class="fw-bold">EMI #${e.number}</div>${statusBadge(e.status)}</div>
+          <div class="dc-row"><span class="dc-label">Due Date</span><span>${formatDate(e.dueDate)}</span></div>
+          <div class="dc-row"><span class="dc-label">Amount</span><span>${formatCurrency(e.amount)}</span></div>
+        </div>`).join('')}
+    </div>
+  `;
+  showToast('EMI schedule generated. Review below, then Save Customer & Loan.', 'success');
+}
+function saveCustomerAndLoan(role){
+  if(!validateCustomerForm()) return;
+  const loan = buildLoanFromForm();
+  loan.totalPayable = loan.principal + loan.interest + loan.fee;
+  loan.emiAmount = Math.round(loan.totalPayable / loan.numEmis);
+  const schedule = generatedEmiPreview || buildEmiSchedule(loan, 0, 0);
+
+  customerSeq++;
+  loanSeq++;
+  const custId = genId('CUS', customerSeq, 6);
+  const loanAcc = 'MF2026' + String(loanSeq).padStart(6,'0');
+
+  const customer = {
+    id: custId,
+    name: document.getElementById('pf_fullname').value.trim(),
+    fatherName: document.getElementById('pf_father').value.trim(),
+    mobile: document.getElementById('pf_mobile').value.trim(),
+    altMobile: document.getElementById('pf_altmobile').value.trim(),
+    email: document.getElementById('pf_email').value.trim(),
+    dob: document.getElementById('pf_dob').value,
+    gender: document.getElementById('pf_gender').value,
+    address: document.getElementById('pf_address').value.trim(),
+    city: document.getElementById('pf_city').value.trim(),
+    state: document.getElementById('pf_state').value.trim(),
+    pin: document.getElementById('pf_pin').value.trim(),
+    pan: document.getElementById('id_pan').value.trim().toUpperCase(),
+    aadhaar: document.getElementById('id_aadhaar').value.trim(),
+    photo: null,
+    loanAccountNo: loanAcc,
+    loan: loan,
+    emiSchedule: schedule,
+    amountPaid: 0,
+    status: 'Active',
+    payments: [],
+    documents: {welcome:{generated:true, signedUploaded:false}, sanction:{generated:true, signedUploaded:false}},
+    createdOn: formatDate(TODAY)
+  };
+  customers.push(customer);
+  lastCreatedCustomerId = custId;
+
+  document.getElementById('customerSuccessBody').innerHTML = `
+    <div class="text-center mb-3"><i class="fa-solid fa-circle-check text-success" style="font-size:2.4rem;"></i></div>
+    <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Customer Name</span><span class="fw-semibold">${escapeHtml(customer.name)}</span></div>
+    <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Customer ID</span><span class="fw-semibold">${customer.id}</span></div>
+    <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Loan Account Number</span><span class="fw-semibold">${customer.loanAccountNo}</span></div>
+    <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Loan Amount</span><span>${formatCurrency(loan.principal)}</span></div>
+    <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Total Payable</span><span>${formatCurrency(loan.totalPayable)}</span></div>
+    <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">EMI Amount</span><span>${formatCurrency(loan.emiAmount)}</span></div>
+    <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Number of EMIs</span><span>${loan.numEmis}</span></div>
+    <div class="dc-row d-flex justify-content-between py-1"><span class="text-muted-fin">First Due Date</span><span>${formatDate(loan.firstDueDate)}</span></div>
+  `;
+  openModal('modalCustomerSuccess');
+  showToast('Customer and loan created successfully: ' + custId, 'success');
+}
+
+/* ---------------------------------------------------------------------------
+   21. CUSTOMER DETAIL (shared: Admin / Shop Owner)
+--------------------------------------------------------------------------- */
+let currentDetailCustomerId = null;
+let currentDetailTab = 'overview';
+function renderCustomerDetail(custId, role){
+  currentDetailCustomerId = custId;
+  currentDetailTab = 'overview';
+  const c = customers.find(x=>x.id===custId);
+  if(!c){ document.getElementById('contentArea').innerHTML = '<div class="text-center text-muted-fin py-5">Customer not found.</div>'; return; }
+  const paidEmis = c.emiSchedule.filter(e=>e.status==='Paid').length;
+  const totalEmis = c.emiSchedule.length;
+  const pendingCount = totalEmis - paidEmis;
+  const next = nextDueInfo(c);
+  const outstanding = c.loan.totalPayable - c.amountPaid;
+  const owner = shopOwners.find(s=>s.id===c.loan.assignedShopOwner);
+
+  document.getElementById('contentArea').innerHTML = `
+    <button class="btn btn-sm btn-outline-fin mb-3" onclick="goSection('${role==='admin'?'admin-customers':'sw-customers'}')"><i class="fa-solid fa-arrow-left me-1"></i>Back to Customers</button>
+
+    <div class="card-flat p-3 p-md-4 mb-3">
+      <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width:64px;height:64px;font-size:1.6rem;"><i class="fa-solid fa-user"></i></div>
+          <div>
+            <div class="fw-bold fs-5">${escapeHtml(c.name)}</div>
+            <div class="small-note">${c.id} · Loan A/C ${c.loanAccountNo}</div>
+            <div class="small-note"><i class="fa-solid fa-phone me-1"></i>${c.mobile}${owner ? ' · Shop: '+escapeHtml(owner.shop) : ''}</div>
+          </div>
+        </div>
+        ${statusBadge(c.status)}
+      </div>
+      <div class="row g-3 mt-1">
+        <div class="col-6 col-md-3"><div class="small-note">Principal Amount</div><div class="fw-bold">${formatCurrency(c.loan.principal)}</div></div>
+        <div class="col-6 col-md-3"><div class="small-note">Total Payable</div><div class="fw-bold">${formatCurrency(c.loan.totalPayable)}</div></div>
+        <div class="col-6 col-md-3"><div class="small-note">Amount Paid</div><div class="fw-bold text-success">${formatCurrency(c.amountPaid)}</div></div>
+        <div class="col-6 col-md-3"><div class="small-note">Outstanding</div><div class="fw-bold text-danger">${formatCurrency(outstanding)}</div></div>
+        <div class="col-6 col-md-3"><div class="small-note">EMI Amount</div><div class="fw-bold">${formatCurrency(c.loan.emiAmount)}</div></div>
+        <div class="col-6 col-md-3"><div class="small-note">Paid EMIs</div><div class="fw-bold">${paidEmis} / ${totalEmis}</div></div>
+        <div class="col-6 col-md-3"><div class="small-note">Pending EMIs</div><div class="fw-bold">${pendingCount}</div></div>
+        <div class="col-6 col-md-3"><div class="small-note">Next EMI Due</div><div class="fw-bold">${next ? formatDate(next) : '-'}</div></div>
+      </div>
+    </div>
+
+    <ul class="nav nav-pills flex-nowrap overflow-auto mb-3" style="gap:6px;" id="custDetailTabs">
+      <li class="nav-item"><button class="nav-link active" data-tab="overview" onclick="switchDetailTab('overview')">Overview</button></li>
+      <li class="nav-item"><button class="nav-link" data-tab="emi" onclick="switchDetailTab('emi')">EMI Schedule</button></li>
+      <li class="nav-item"><button class="nav-link" data-tab="payments" onclick="switchDetailTab('payments')">Payments</button></li>
+      <li class="nav-item"><button class="nav-link" data-tab="docs" onclick="switchDetailTab('docs')">Documents</button></li>
+    </ul>
+    <div id="custDetailTabBody"></div>
+  `;
+  document.querySelectorAll('#custDetailTabs .nav-link').forEach(b=>{
+    b.style.setProperty('--bs-nav-pills-link-active-bg','var(--primary)');
+  });
+  renderDetailTabBody();
+}
+function switchDetailTab(tab){
+  currentDetailTab = tab;
+  document.querySelectorAll('#custDetailTabs .nav-link').forEach(b=> b.classList.toggle('active', b.getAttribute('data-tab')===tab));
+  renderDetailTabBody();
+}
+function renderDetailTabBody(){
+  const c = customers.find(x=>x.id===currentDetailCustomerId);
+  const host = document.getElementById('custDetailTabBody');
+  if(currentDetailTab === 'overview'){
+    host.innerHTML = `
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="card-flat p-3">
+            <div class="section-title mb-2">Personal Details</div>
+            <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Father's/Guardian's Name</span><span>${escapeHtml(c.fatherName||'-')}</span></div>
+            <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Gender</span><span>${c.gender||'-'}</span></div>
+            <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Date of Birth</span><span>${c.dob ? formatDate(c.dob) : '-'}</span></div>
+            <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Alternate Mobile</span><span>${c.altMobile||'-'}</span></div>
+            <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Email</span><span>${escapeHtml(c.email||'-')}</span></div>
+            <div class="dc-row d-flex justify-content-between py-1"><span class="text-muted-fin">Address</span><span class="text-end">${escapeHtml(c.address)}, ${escapeHtml(c.city)}, ${escapeHtml(c.state||'')} - ${c.pin||''}</span></div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card-flat p-3">
+            <div class="section-title mb-2">Identity &amp; Loan Info</div>
+            <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">PAN Number</span><span>${c.pan}</span></div>
+            <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Aadhaar Number</span><span>${c.aadhaar}</span></div>
+            <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Loan Purpose</span><span>${escapeHtml(c.loan.purpose)}</span></div>
+            <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">EMI Frequency</span><span>${c.loan.frequency}</span></div>
+            <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Loan Start Date</span><span>${formatDate(c.loan.startDate)}</span></div>
+            <div class="dc-row d-flex justify-content-between py-1"><span class="text-muted-fin">Late Fee / EMI</span><span>${formatCurrency(c.loan.lateFee)}</span></div>
+          </div>
+        </div>
+      </div>`;
+  } else if(currentDetailTab === 'emi'){
+    host.innerHTML = `
+      <div class="card-flat p-0 table-responsive-fin">
+        <table class="table table-fin mb-0">
+          <thead><tr><th>EMI #</th><th>Due Date</th><th>Amount</th><th>Status</th><th>Payment Date</th></tr></thead>
+          <tbody>
+          ${c.emiSchedule.map(e=>`
+            <tr>
+              <td>${e.number}</td><td>${formatDate(e.dueDate)}</td><td>${formatCurrency(e.amount)}</td>
+              <td>${statusBadge(e.status)}</td><td>${e.paymentDate ? formatDate(e.paymentDate) : '-'}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div class="data-cards">
+        ${c.emiSchedule.map(e=>`
+          <div class="data-card">
+            <div class="dc-head"><div class="fw-bold">EMI #${e.number}</div>${statusBadge(e.status)}</div>
+            <div class="dc-row"><span class="dc-label">Due Date</span><span>${formatDate(e.dueDate)}</span></div>
+            <div class="dc-row"><span class="dc-label">Amount</span><span>${formatCurrency(e.amount)}</span></div>
+            <div class="dc-row"><span class="dc-label">Payment Date</span><span>${e.paymentDate ? formatDate(e.paymentDate) : '-'}</span></div>
+          </div>`).join('')}
+      </div>`;
+  } else if(currentDetailTab === 'payments'){
+    host.innerHTML = `
+      <div class="card-flat p-0 table-responsive-fin">
+        <table class="table table-fin mb-0">
+          <thead><tr><th>Ref</th><th>EMI #</th><th>Amount</th><th>Method</th><th>Txn No.</th><th>Date</th><th>Status</th></tr></thead>
+          <tbody>
+          ${c.payments.slice().reverse().map(p=>`
+            <tr><td>${p.ref}</td><td>${p.emiNumber}</td><td>${formatCurrency(p.amount)}</td><td>${p.method}</td><td>${p.txnId}</td><td>${formatDate(p.submittedOn)}</td><td>${statusBadge(p.status)}</td></tr>`).join('') || `<tr><td colspan="7" class="text-center text-muted-fin py-3">No payments yet.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+      <div class="data-cards">
+        ${c.payments.slice().reverse().map(p=>`
+          <div class="data-card">
+            <div class="dc-head"><div class="fw-bold">EMI #${p.emiNumber}</div>${statusBadge(p.status)}</div>
+            <div class="dc-row"><span class="dc-label">Amount</span><span>${formatCurrency(p.amount)}</span></div>
+            <div class="dc-row"><span class="dc-label">Method</span><span>${p.method}</span></div>
+            <div class="dc-row"><span class="dc-label">Txn No.</span><span>${p.txnId}</span></div>
+            <div class="dc-row"><span class="dc-label">Date</span><span>${formatDate(p.submittedOn)}</span></div>
+          </div>`).join('') || '<div class="text-center text-muted-fin py-3">No payments yet.</div>'}
+      </div>`;
+  } else if(currentDetailTab === 'docs'){
+    host.innerHTML = `
+      <div class="row g-3">
+        ${documentCardHtml(c, 'welcome', 'Welcome Letter', 'fa-envelope-open-text')}
+        ${documentCardHtml(c, 'sanction', 'Loan Sanction Letter', 'fa-file-signature')}
+        ${documentCardHtml(c, 'emischedule', 'EMI Schedule', 'fa-calendar-check')}
+        ${documentCardHtml(c, 'receipts', 'Payment Receipts', 'fa-receipt')}
+        ${documentCardHtml(c, 'statement', 'Customer Statement', 'fa-file-lines')}
+      </div>`;
+  }
+}
+function documentCardHtml(c, type, label, icon){
+  const canPreview = type==='welcome' || type==='sanction';
+  return `
+    <div class="col-md-6 col-lg-4">
+      <div class="doc-card h-100 d-flex flex-column">
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <div class="stat-icon" style="background:var(--primary-light); color:var(--primary);"><i class="fa-solid ${icon}"></i></div>
+          <div class="fw-semibold">${label}</div>
+        </div>
+        <div class="small-note mb-3">${docStatusNote(c, type)}</div>
+        <div class="mt-auto d-flex gap-2 flex-wrap">
+          <button class="btn btn-sm btn-outline-fin" onclick="${canPreview ? `previewDocumentFor('${c.id}','${type}')` : `showToast('Preview simulated for demo.','info')`}"><i class="fa-solid fa-eye me-1"></i>View</button>
+          <button class="btn btn-sm btn-outline-fin" onclick="${canPreview ? `previewDocumentFor('${c.id}','${type}')` : `showToast('Print simulated for demo.','info')`}"><i class="fa-solid fa-print me-1"></i>Print</button>
+          <button class="btn btn-sm btn-outline-secondary" onclick="showToast('Download simulated for demo.','info')"><i class="fa-solid fa-download me-1"></i>Download</button>
+        </div>
+      </div>
+    </div>`;
+}
+function docStatusNote(c, type){
+  if(type==='welcome' || type==='sanction'){
+    const d = c.documents[type];
+    return d.signedUploaded ? 'Signed copy uploaded' : 'Generated · Awaiting signed copy';
+  }
+  return 'Available for this loan account';
+}
+
+/* ---------------------------------------------------------------------------
+   22. SHOP OWNER DASHBOARD & EMI LIST
+--------------------------------------------------------------------------- */
+function renderShopOwnerDashboard(){
+  const own = scopedCustomers('shopowner');
+  const totalCustomers = own.length;
+  const activeLoans = own.filter(c=>c.status==='Active'||c.status==='Overdue').length;
+  const emiCollected = own.reduce((s,c)=>s+c.amountPaid,0);
+  const pendingEmi = own.reduce((s,c)=> s + c.emiSchedule.filter(e=>e.status==='Upcoming'||e.status==='Due Today').length, 0);
+  const overdueEmi = own.reduce((s,c)=> s + c.emiSchedule.filter(e=>e.status==='Overdue').length, 0);
+  const pendingDocs = own.filter(c=> !c.documents.welcome.signedUploaded || !c.documents.sanction.signedUploaded).length;
+
+  const cards = [
+    {label:'Total Customers', value:totalCustomers, icon:'fa-users', color:'var(--primary)', bg:'var(--primary-light)'},
+    {label:'Active Loans', value:activeLoans, icon:'fa-file-invoice-dollar', color:'var(--green)', bg:'var(--green-bg)'},
+    {label:'EMI Collected', value:formatCurrency(emiCollected), icon:'fa-sack-dollar', color:'var(--green)', bg:'var(--green-bg)'},
+    {label:'Pending EMI', value:pendingEmi, icon:'fa-hourglass-half', color:'var(--orange)', bg:'var(--orange-bg)'},
+    {label:'Overdue EMI', value:overdueEmi, icon:'fa-triangle-exclamation', color:'var(--red)', bg:'var(--red-bg)'},
+    {label:'Pending Documents', value:pendingDocs, icon:'fa-file-lines', color:'var(--orange)', bg:'var(--orange-bg)'}
+  ];
+  const recentCustomers = own.slice(-5).reverse();
+  const upcoming = [];
+  own.forEach(c=> c.emiSchedule.forEach(e=>{ if(e.status==='Upcoming'||e.status==='Due Today') upcoming.push({cust:c, emi:e}); }));
+  upcoming.sort((a,b)=>a.emi.dueDate-b.emi.dueDate);
+
+  document.getElementById('contentArea').innerHTML = `
+    <div class="row g-3 mb-3">
+      ${cards.map(c=>`
+        <div class="col-6 col-lg-4">
+          <div class="stat-card d-flex align-items-center gap-3">
+            <div class="stat-icon" style="background:${c.bg}; color:${c.color};"><i class="fa-solid ${c.icon}"></i></div>
+            <div class="min-w-0"><div class="stat-value text-truncate">${c.value}</div><div class="stat-label text-truncate">${c.label}</div></div>
+          </div>
+        </div>`).join('')}
+    </div>
+    <div class="d-flex justify-content-end mb-3">
+      <button class="btn btn-primary-fin btn-sm" onclick="goSection('sw-create-customer')"><i class="fa-solid fa-user-plus me-1"></i>Create New Customer</button>
+    </div>
+    <div class="row g-3">
+      <div class="col-lg-6">
+        <div class="card-flat p-3 h-100">
+          <div class="section-title mb-2">Recent Customers</div>
+          ${recentCustomers.map(c=>`
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+              <div class="min-w-0"><div class="fw-semibold text-truncate">${escapeHtml(c.name)}</div><div class="small-note">${c.loanAccountNo}</div></div>
+              ${statusBadge(c.status)}
+            </div>`).join('') || '<div class="small-note">No customers yet.</div>'}
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card-flat p-3 h-100">
+          <div class="section-title mb-2">Upcoming EMI Due</div>
+          ${upcoming.slice(0,6).map(u=>`
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+              <div class="min-w-0"><div class="fw-semibold text-truncate">${escapeHtml(u.cust.name)}</div><div class="small-note">${formatCurrency(u.emi.amount)} · Due ${formatDate(u.emi.dueDate)}</div></div>
+              ${statusBadge(u.emi.status)}
+            </div>`).join('') || '<div class="small-note">No upcoming EMIs.</div>'}
+        </div>
+      </div>
+    </div>
+  `;
+}
+function renderShopOwnerEmiList(){
+  const own = scopedCustomers('shopowner');
+  const rows = [];
+  own.forEach(c=> c.emiSchedule.forEach(e=> rows.push({cust:c, emi:e})));
+  rows.sort((a,b)=> a.emi.dueDate - b.emi.dueDate);
+  document.getElementById('contentArea').innerHTML = `
+    <div class="mb-3">
+      <div class="section-title mb-0">EMI List</div>
+      <div class="page-sub">All EMIs across your customers</div>
+    </div>
+    <div class="card-flat p-0 table-responsive-fin">
+      <table class="table table-fin mb-0">
+        <thead><tr><th>Customer</th><th>Loan A/C</th><th>EMI #</th><th>Due Date</th><th>Amount</th><th>Status</th></tr></thead>
+        <tbody>
+        ${rows.map(r=>`
+          <tr><td>${escapeHtml(r.cust.name)}</td><td>${r.cust.loanAccountNo}</td><td>${r.emi.number}</td><td>${formatDate(r.emi.dueDate)}</td><td>${formatCurrency(r.emi.amount)}</td><td>${statusBadge(r.emi.status)}</td></tr>`).join('') || `<tr><td colspan="6" class="text-center text-muted-fin py-3">No EMIs found.</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+    <div class="data-cards">
+      ${rows.map(r=>`
+        <div class="data-card">
+          <div class="dc-head"><div><div class="fw-bold">${escapeHtml(r.cust.name)}</div><div class="small-note">${r.cust.loanAccountNo} · EMI #${r.emi.number}</div></div>${statusBadge(r.emi.status)}</div>
+          <div class="dc-row"><span class="dc-label">Due Date</span><span>${formatDate(r.emi.dueDate)}</span></div>
+          <div class="dc-row"><span class="dc-label">Amount</span><span>${formatCurrency(r.emi.amount)}</span></div>
+        </div>`).join('') || '<div class="text-center text-muted-fin py-3">No EMIs found.</div>'}
+    </div>
+  `;
+}
+
+/* ---------------------------------------------------------------------------
+   23. DOCUMENTS SECTION (shared list view — Admin sees all, Shop Owner sees own)
+--------------------------------------------------------------------------- */
+function renderDocumentsSection(role){
+  const list = scopedCustomers(role);
+  document.getElementById('contentArea').innerHTML = `
+    <div class="mb-3">
+      <div class="section-title mb-0">Documents</div>
+      <div class="page-sub">Generate Welcome Letters &amp; Sanction Letters, and manage signed copies</div>
+    </div>
+    <div class="row g-3">
+      ${list.map(c=>`
+        <div class="col-md-6 col-lg-4">
+          <div class="card-flat p-3">
+            <div class="fw-semibold">${escapeHtml(c.name)}</div>
+            <div class="small-note mb-2">${c.id} · ${c.loanAccountNo}</div>
+            <div class="d-flex flex-wrap gap-2">
+              <button class="btn btn-sm btn-outline-fin" onclick="previewDocumentFor('${c.id}','welcome')"><i class="fa-solid fa-envelope-open-text me-1"></i>Welcome Letter</button>
+              <button class="btn btn-sm btn-outline-fin" onclick="previewDocumentFor('${c.id}','sanction')"><i class="fa-solid fa-file-signature me-1"></i>Sanction Letter</button>
+            </div>
+          </div>
+        </div>`).join('') || '<div class="text-center text-muted-fin py-3">No customers found.</div>'}
+    </div>
+  `;
+}
+
+/* ---------------------------------------------------------------------------
+   24. DOCUMENT TEMPLATES — Welcome Letter & Loan Sanction Letter
+--------------------------------------------------------------------------- */
+let currentDocContext = null; // {custId, type}
+function previewDocumentFor(custId, type){
+  const c = customers.find(x=>x.id===custId);
+  if(!c) return;
+  currentDocContext = {custId, type};
+  document.getElementById('docPreviewTitle').innerText = type==='welcome' ? 'Welcome Letter' : 'Loan Sanction Letter';
+  document.getElementById('printArea').innerHTML = type==='welcome' ? welcomeLetterHtml(c) : sanctionLetterHtml(c);
+  // close the success modal if it's open behind this one
+  const successEl = document.getElementById('modalCustomerSuccess');
+  const successInst = bootstrap.Modal.getInstance(successEl);
+  if(successInst) successInst.hide();
+  openModal('modalDocPreview');
+}
+function companyLetterheadHtml(){
+  return `
+    <div class="letterhead">
+      <div class="d-flex align-items-center gap-2">
+        <div style="width:44px;height:44px;border-radius:10px;background:var(--primary,#0b3d6f);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;"><i class="fa-solid fa-sack-dollar"></i></div>
+        <div>
+          <div style="font-weight:700;font-size:1.1rem;color:#0b3d6f;">MicroFin Pro Services Pvt. Ltd.</div>
+          <div style="font-size:.72rem;color:#666;">Regd. Office: 4th Floor, Business Tower, Andheri West, Mumbai - 400058 | CIN: U65929MH2026PTC000000</div>
+        </div>
+      </div>
+      <div class="text-end" style="font-size:.8rem;color:#444;">Date: ${formatDate(TODAY)}</div>
+    </div>`;
+}
+function welcomeLetterHtml(c){
+  return `
+    ${companyLetterheadHtml()}
+    <p>To,<br><strong>${escapeHtml(c.name)}</strong><br>${escapeHtml(c.address)}, ${escapeHtml(c.city)}, ${escapeHtml(c.state||'')} - ${c.pin||''}</p>
+    <p><strong>Customer ID:</strong> ${c.id} &nbsp; | &nbsp; <strong>Loan Account Number:</strong> ${c.loanAccountNo}</p>
+    <p>Dear ${escapeHtml(c.name.split(' ')[0])},</p>
+    <p>Welcome to MicroFin Pro! We are pleased to inform you that your loan application has been processed and your loan account has been successfully created. We thank you for choosing us as your trusted microfinance partner.</p>
+    <table class="table table-sm table-bordered mt-3" style="max-width:520px;">
+      <tbody>
+        <tr><td>Loan Amount (Principal)</td><td class="text-end">${formatCurrency(c.loan.principal)}</td></tr>
+        <tr><td>Total Payable</td><td class="text-end">${formatCurrency(c.loan.totalPayable)}</td></tr>
+        <tr><td>EMI Amount</td><td class="text-end">${formatCurrency(c.loan.emiAmount)}</td></tr>
+        <tr><td>Number of EMIs</td><td class="text-end">${c.loan.numEmis} (${c.loan.frequency})</td></tr>
+        <tr><td>First EMI Due Date</td><td class="text-end">${formatDate(c.loan.firstDueDate)}</td></tr>
+      </tbody>
+    </table>
+    <p>Please ensure timely payment of your EMIs to maintain a good credit history. For any queries, feel free to reach out to your assigned shop owner or our support team.</p>
+    <div class="row mt-5">
+      <div class="col-6"><div class="sign-box">Authorised Signatory<br><span style="font-size:.75rem;">MicroFin Pro Services</span></div></div>
+      <div class="col-6"><div class="sign-box">Customer Signature<br><span style="font-size:.75rem;">${escapeHtml(c.name)}</span></div></div>
+    </div>
+  `;
+}
+function sanctionLetterHtml(c){
+  const owner = shopOwners.find(s=>s.id===c.loan.assignedShopOwner);
+  const sanctionNo = 'MFP/SL/2026/' + c.loanAccountNo.replace('MF2026','');
+  return `
+    ${companyLetterheadHtml()}
+    <h5 class="text-center fw-bold mt-2" style="color:#0b3d6f;">LOAN SANCTION LETTER</h5>
+    <p class="text-center small-note" style="font-size:.8rem;">Sanction Letter No: ${sanctionNo}</p>
+    <p><strong>Customer Name:</strong> ${escapeHtml(c.name)}<br>
+       <strong>Customer ID:</strong> ${c.id} &nbsp; | &nbsp; <strong>Loan Account Number:</strong> ${c.loanAccountNo}<br>
+       <strong>Address:</strong> ${escapeHtml(c.address)}, ${escapeHtml(c.city)}, ${escapeHtml(c.state||'')} - ${c.pin||''}</p>
+    <p>Dear ${escapeHtml(c.name.split(' ')[0])}, we are pleased to inform you that your loan request has been sanctioned on the following terms:</p>
+    <table class="table table-sm table-bordered mt-2" style="max-width:560px;">
+      <tbody>
+        <tr><td>Loan Purpose</td><td class="text-end">${escapeHtml(c.loan.purpose)}</td></tr>
+        <tr><td>Loan Amount (Principal)</td><td class="text-end">${formatCurrency(c.loan.principal)}</td></tr>
+        <tr><td>Total Interest</td><td class="text-end">${formatCurrency(c.loan.interest)}</td></tr>
+        <tr><td>Processing Fee</td><td class="text-end">${formatCurrency(c.loan.fee)}</td></tr>
+        <tr><td><strong>Total Payable</strong></td><td class="text-end"><strong>${formatCurrency(c.loan.totalPayable)}</strong></td></tr>
+        <tr><td>EMI Amount</td><td class="text-end">${formatCurrency(c.loan.emiAmount)}</td></tr>
+        <tr><td>Number of EMIs</td><td class="text-end">${c.loan.numEmis} (${c.loan.frequency})</td></tr>
+        <tr><td>First EMI Due Date</td><td class="text-end">${formatDate(c.loan.firstDueDate)}</td></tr>
+      </tbody>
+    </table>
+    <p class="fw-bold mb-1" style="font-size:.85rem;">Terms &amp; Conditions</p>
+    <ol style="font-size:.78rem; color:#444;">
+      <li>EMIs must be paid on or before the due date via UPI, QR code or bank transfer as per Admin instructions.</li>
+      <li>A late fee of ${formatCurrency(c.loan.lateFee)} is applicable per EMI on delayed payment.</li>
+      <li>Payments are manually verified by MicroFin Pro Admin within 24 hours of screenshot submission.</li>
+      <li>Foreclosure and part-payment requests may be raised through the assigned shop owner.</li>
+      <li>This sanction letter is issued for the purpose stated above and is non-transferable.</li>
+    </ol>
+    <div class="row mt-4">
+      <div class="col-4"><div class="sign-box">Customer Signature<br><span style="font-size:.75rem;">${escapeHtml(c.name)}</span></div></div>
+      <div class="col-4"><div class="sign-box">Shop Owner Signature<br><span style="font-size:.75rem;">${escapeHtml(owner ? owner.name : '-')}</span></div></div>
+      <div class="col-4"><div class="sign-box">Authorised Signatory<br><span style="font-size:.75rem;">MicroFin Pro Services</span></div></div>
+    </div>
+  `;
+}
+function openUploadSigned(){
+  if(!currentDocContext) return;
+  document.getElementById('us_doctype').value = currentDocContext.type==='welcome' ? 'Welcome Letter' : 'Loan Sanction Letter';
+  document.getElementById('us_file').value = '';
+  document.getElementById('us_date').value = '';
+  document.getElementById('us_remarks').value = '';
+  openModal('modalUploadSigned');
+}
+function submitSignedDoc(){
+  if(!currentDocContext) return;
+  const c = customers.find(x=>x.id===currentDocContext.custId);
+  const file = document.getElementById('us_file').value;
+  if(!file){ showToast('Please choose a file to upload.', 'warning'); return; }
+  c.documents[currentDocContext.type].signedUploaded = true;
+  closeModal('modalUploadSigned');
+  showToast('Signed document uploaded successfully for ' + c.name + '.', 'success');
+}
+
+/* ---------------------------------------------------------------------------
+   25. CUSTOMER PANEL (mobile-first)
+--------------------------------------------------------------------------- */
+function currentCustomer(){
+  return customers.find(c=>c.id===currentUser.id);
+}
+function initCustomerApp(){
+  const c = currentCustomer();
+  document.getElementById('custHeaderName').innerText = c ? c.name : currentUser.name;
+  goCustomerTab('home');
+}
+function goCustomerTab(tab){
+  document.querySelectorAll('.bottom-nav .bn-item').forEach(el=> el.classList.toggle('active', el.getAttribute('data-tab')===tab));
+  const map = {home:renderCustHome, loan:renderCustLoan, pay:renderCustPay, docs:renderCustDocs, profile:renderCustProfile};
+  if(map[tab]) map[tab]();
+  document.getElementById('custContent').scrollTop = 0;
+  window.scrollTo(0,0);
+}
+function renderCustHome(){
+  const c = currentCustomer();
+  const outstanding = c.loan.totalPayable - c.amountPaid;
+  const next = nextDueInfo(c);
+  const progress = Math.round((c.amountPaid / c.loan.totalPayable) * 100);
+  const recentPayments = c.payments.slice().reverse().slice(0,4);
+  document.getElementById('custContent').innerHTML = `
+    <div class="card-flat p-3 mb-3">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+          <div class="small-note">Loan Account</div>
+          <div class="fw-bold">${c.loanAccountNo}</div>
+        </div>
+        ${statusBadge(c.status)}
+      </div>
+      <div class="row text-center g-2 mb-2">
+        <div class="col-6"><div class="small-note">Total Payable</div><div class="fw-bold">${formatCurrency(c.loan.totalPayable)}</div></div>
+        <div class="col-6"><div class="small-note">Outstanding</div><div class="fw-bold text-danger">${formatCurrency(outstanding)}</div></div>
+        <div class="col-6"><div class="small-note">Amount Paid</div><div class="fw-bold text-success">${formatCurrency(c.amountPaid)}</div></div>
+        <div class="col-6"><div class="small-note">EMI Amount</div><div class="fw-bold">${formatCurrency(c.loan.emiAmount)}</div></div>
+      </div>
+      <div class="d-flex justify-content-between small-note mb-1"><span>Loan Progress</span><span>${progress}%</span></div>
+      <div class="progress progress-fin"><div class="progress-bar bg-success" style="width:${progress}%;"></div></div>
+      <div class="small-note mt-2"><i class="fa-solid fa-calendar-day me-1"></i>Next EMI Due: <strong>${next ? formatDate(next) : 'No dues'}</strong></div>
+    </div>
+
+    <div class="row g-2 mb-3">
+      <div class="col-3"><div class="qtile" onclick="goCustomerTab('pay')"><i class="fa-solid fa-indian-rupee-sign"></i><span>Pay Now</span></div></div>
+      <div class="col-3"><div class="qtile" onclick="goCustomerTab('loan')"><i class="fa-solid fa-calendar-check"></i><span>EMI Schedule</span></div></div>
+      <div class="col-3"><div class="qtile" onclick="previewDocumentFor('${c.id}','sanction')"><i class="fa-solid fa-file-signature"></i><span>Sanction Letter</span></div></div>
+      <div class="col-3"><div class="qtile" onclick="showToast('Statement generated (demo).','info')"><i class="fa-solid fa-file-lines"></i><span>Statement</span></div></div>
+    </div>
+
+    <div class="card-flat p-3 mb-3">
+      <div class="section-title mb-2">Recent Payments</div>
+      ${recentPayments.map(p=>`
+        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+          <div><div class="fw-semibold">EMI #${p.emiNumber}</div><div class="small-note">${formatDate(p.submittedOn)} · ${p.method}</div></div>
+          <div class="text-end"><div class="fw-semibold">${formatCurrency(p.amount)}</div>${statusBadge(p.status)}</div>
+        </div>`).join('') || '<div class="small-note">No payments yet.</div>'}
+    </div>
+  `;
+}
+function renderCustLoan(){
+  const c = currentCustomer();
+  const outstanding = c.loan.totalPayable - c.amountPaid;
+  document.getElementById('custContent').innerHTML = `
+    <div class="card-flat p-3 mb-3">
+      <div class="section-title mb-2">Loan Details</div>
+      <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Loan Account No.</span><span class="fw-semibold">${c.loanAccountNo}</span></div>
+      <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Loan Purpose</span><span>${escapeHtml(c.loan.purpose)}</span></div>
+      <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Principal Amount</span><span>${formatCurrency(c.loan.principal)}</span></div>
+      <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Total Interest</span><span>${formatCurrency(c.loan.interest)}</span></div>
+      <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Processing Fee</span><span>${formatCurrency(c.loan.fee)}</span></div>
+      <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Total Payable</span><span class="fw-semibold">${formatCurrency(c.loan.totalPayable)}</span></div>
+      <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">EMI Amount</span><span>${formatCurrency(c.loan.emiAmount)}</span></div>
+      <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Number of EMIs</span><span>${c.loan.numEmis}</span></div>
+      <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">EMI Frequency</span><span>${c.loan.frequency}</span></div>
+      <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Loan Start Date</span><span>${formatDate(c.loan.startDate)}</span></div>
+      <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Next Due Date</span><span>${nextDueInfo(c) ? formatDate(nextDueInfo(c)) : '-'}</span></div>
+      <div class="dc-row d-flex justify-content-between py-1"><span class="text-muted-fin">Outstanding Balance</span><span class="fw-semibold text-danger">${formatCurrency(outstanding)}</span></div>
+    </div>
+    <div class="card-flat p-3 mb-3">
+      <div class="section-title mb-2">EMI Schedule</div>
+      ${c.emiSchedule.map(e=>`
+        <div class="data-card">
+          <div class="dc-head"><div class="fw-bold">EMI #${e.number}</div>${statusBadge(e.status)}</div>
+          <div class="dc-row"><span class="dc-label">Due Date</span><span>${formatDate(e.dueDate)}</span></div>
+          <div class="dc-row"><span class="dc-label">Amount</span><span>${formatCurrency(e.amount)}</span></div>
+          <div class="dc-row"><span class="dc-label">Payment Date</span><span>${e.paymentDate ? formatDate(e.paymentDate) : '-'}</span></div>
+        </div>`).join('')}
+    </div>
+  `;
+}
+function nextUnpaidEmi(c){
+  return c.emiSchedule.find(e=> e.status==='Upcoming' || e.status==='Due Today' || e.status==='Overdue');
+}
+function copyToClipboard(text, label){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=> showToast((label||'Value')+' copied to clipboard.', 'success'))
+      .catch(()=> showToast('Could not copy automatically. Value: '+text, 'warning'));
+  } else {
+    showToast((label||'Value')+': '+text, 'info');
+  }
+}
+function renderCustPay(){
+  const c = currentCustomer();
+  const emi = nextUnpaidEmi(c);
+  const s = paymentSettings;
+  if(!emi){
+    document.getElementById('custContent').innerHTML = `
+      <div class="card-flat p-4 text-center">
+        <i class="fa-solid fa-circle-check text-success" style="font-size:2.4rem;"></i>
+        <h6 class="fw-bold mt-3">All EMIs Paid!</h6>
+        <div class="small-note">You have no pending EMI payments on this loan.</div>
+      </div>`;
+    return;
+  }
+  const lateFee = emi.status === 'Overdue' ? c.loan.lateFee : 0;
+  const totalPayable = emi.amount + lateFee;
+  document.getElementById('custContent').innerHTML = `
+    <div class="card-flat p-3 mb-3">
+      <div class="section-title mb-2">Payment Summary</div>
+      <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">EMI Number</span><span>#${emi.number}</span></div>
+      <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Due Date</span><span>${formatDate(emi.dueDate)}</span></div>
+      <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">EMI Amount</span><span>${formatCurrency(emi.amount)}</span></div>
+      <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Late Fee</span><span>${formatCurrency(lateFee)}</span></div>
+      <div class="dc-row d-flex justify-content-between py-1"><span class="text-muted-fin fw-semibold">Total Payable</span><span class="fw-bold">${formatCurrency(totalPayable)}</span></div>
+    </div>
+
+    <div class="card-flat p-3 mb-3">
+      <div class="section-title mb-2">Payment Details</div>
+      <div class="qr-box mb-3"></div>
+      <div class="copy-chip mb-2" onclick="copyToClipboard('${s.upiId}','UPI ID')"><span><i class="fa-solid fa-at me-1"></i>${s.upiId}</span><i class="fa-solid fa-copy"></i></div>
+      <div class="small-note mb-3">Account Holder: ${escapeHtml(s.upiHolder)}</div>
+      <div class="copy-chip mb-2" onclick="copyToClipboard('${s.bankName}','Bank Name')"><span>Bank: ${escapeHtml(s.bankName)}</span><i class="fa-solid fa-copy"></i></div>
+      <div class="copy-chip mb-2" onclick="copyToClipboard('${s.accountNo}','Account Number')"><span>A/C No: ${s.accountNo}</span><i class="fa-solid fa-copy"></i></div>
+      <div class="copy-chip mb-2" onclick="copyToClipboard('${s.ifsc}','IFSC Code')"><span>IFSC: ${s.ifsc}</span><i class="fa-solid fa-copy"></i></div>
+      <div class="small-note">Branch: ${escapeHtml(s.branch)} · Holder: ${escapeHtml(s.bankHolder)}</div>
+      <div class="alert alert-info mt-3 mb-0" style="font-size:.78rem;"><i class="fa-solid fa-circle-info me-1"></i>This is a manual payment process. Your EMI will be marked as paid only after Admin verification.</div>
+    </div>
+
+    <div class="card-flat p-3 mb-4">
+      <div class="section-title mb-2">Upload Payment Proof</div>
+      <div class="mb-2"><label class="form-label">Paid Amount</label><input type="number" class="form-control" id="pay_amount" value="${totalPayable}"></div>
+      <div class="mb-2"><label class="form-label">Payment Date</label><input type="date" class="form-control" id="pay_date" value="${TODAY.toISOString().slice(0,10)}"></div>
+      <div class="mb-2"><label class="form-label">Payment Method</label>
+        <select class="form-select" id="pay_method"><option>UPI</option><option>Bank Transfer</option></select>
+      </div>
+      <div class="mb-2"><label class="form-label">Transaction / UTR Number</label><input class="form-control" id="pay_txn" placeholder="e.g. 425678901234"></div>
+      <div class="mb-2"><label class="form-label">Upload Payment Screenshot</label><input type="file" class="form-control" id="pay_screenshot" accept="image/*" onchange="previewPayScreenshot(this)"></div>
+      <div id="payScreenshotPreview" class="mb-2"></div>
+      <div class="mb-3"><label class="form-label">Remarks</label><textarea class="form-control" id="pay_remarks" rows="2" placeholder="Optional"></textarea></div>
+      <button class="btn btn-primary-fin w-100" onclick="submitPaymentProof(${emi.number}, ${totalPayable})"><i class="fa-solid fa-paper-plane me-1"></i>Submit Payment for Verification</button>
+    </div>
+
+    <div id="paySuccessHost"></div>
+  `;
+}
+function previewPayScreenshot(input){
+  const host = document.getElementById('payScreenshotPreview');
+  if(input.files && input.files[0]){
+    host.innerHTML = `<div class="screenshot-thumb d-flex align-items-center justify-content-center" style="width:80px;height:80px;"><i class="fa-solid fa-image text-primary"></i></div><div class="small-note mt-1">${escapeHtml(input.files[0].name)}</div>`;
+  } else {
+    host.innerHTML = '';
+  }
+}
+function submitPaymentProof(emiNumber, totalPayable){
+  const amount = Number(document.getElementById('pay_amount').value)||0;
+  const date = document.getElementById('pay_date').value;
+  const method = document.getElementById('pay_method').value;
+  const txn = document.getElementById('pay_txn').value.trim();
+  const file = document.getElementById('pay_screenshot').value;
+  const remarks = document.getElementById('pay_remarks').value.trim();
+  if(!amount || !date || !txn || !file){
+    showToast('Please fill amount, date, transaction number and upload a screenshot.', 'warning'); return;
+  }
+  const c = currentCustomer();
+  const emi = c.emiSchedule.find(e=>e.number===emiNumber);
+  emi.status = 'Under Verification';
+  const ref = 'PAY'+(paymentSeq++);
+  const sub = {
+    ref, customerId:c.id, customerName:c.name, loanAccountNo:c.loanAccountNo,
+    emiNumber, emiAmount:emi.amount, paidAmount:amount, method, txnId:txn,
+    submittedOn:new Date(date), status:'Under Verification', remarks
+  };
+  paymentSubmissions.push(sub);
+  c.payments.push({ref, emiNumber, amount, method, txnId:txn, submittedOn:new Date(date), status:'Under Verification'});
+
+  document.getElementById('paySuccessHost').innerHTML = `
+    <div class="card-flat p-3 mb-4" style="border-color:var(--green);">
+      <div class="text-center mb-2"><i class="fa-solid fa-circle-check text-success" style="font-size:2rem;"></i></div>
+      <div class="text-center fw-semibold mb-2">Your payment has been submitted successfully and is under verification.</div>
+      <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Submission Reference</span><span>${ref}</span></div>
+      <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">EMI Number</span><span>#${emiNumber}</span></div>
+      <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Amount</span><span>${formatCurrency(amount)}</span></div>
+      <div class="dc-row d-flex justify-content-between py-1"><span class="text-muted-fin">Status</span>${statusBadge('Under Verification')}</div>
+    </div>`;
+  showToast('Payment submitted for verification.', 'success');
+}
+function renderCustDocs(){
+  const c = currentCustomer();
+  document.getElementById('custContent').innerHTML = `
+    <div class="mb-2 fw-bold">My Documents</div>
+    ${documentCardHtml(c,'welcome','Welcome Letter','fa-envelope-open-text')}
+    ${documentCardHtml(c,'sanction','Loan Sanction Letter','fa-file-signature')}
+    ${documentCardHtml(c,'emischedule','EMI Schedule','fa-calendar-check')}
+    ${documentCardHtml(c,'receipts','Payment Receipts','fa-receipt')}
+    ${documentCardHtml(c,'statement','Customer Statement','fa-file-lines')}
+  `;
+}
+function renderCustProfile(){
+  const c = currentCustomer();
+  document.getElementById('custContent').innerHTML = `
+    <div class="card-flat p-3 mb-3 text-center">
+      <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center mx-auto mb-2" style="width:72px;height:72px;font-size:2rem;"><i class="fa-solid fa-user"></i></div>
+      <div class="fw-bold fs-5">${escapeHtml(c.name)}</div>
+      <div class="small-note">${c.id}</div>
+    </div>
+    <div class="card-flat p-3 mb-3">
+      <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Mobile Number</span><span>${c.mobile}</span></div>
+      <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Email</span><span>${escapeHtml(c.email||'-')}</span></div>
+      <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">Address</span><span class="text-end">${escapeHtml(c.address)}, ${escapeHtml(c.city)}</span></div>
+      <div class="dc-row d-flex justify-content-between border-bottom py-1"><span class="text-muted-fin">PAN</span><span>${c.pan}</span></div>
+      <div class="dc-row d-flex justify-content-between py-1"><span class="text-muted-fin">Aadhaar</span><span>${c.aadhaar}</span></div>
+    </div>
+    <button class="btn btn-outline-danger w-100 mb-4" onclick="doLogout()"><i class="fa-solid fa-right-from-bracket me-1"></i>Logout</button>
+  `;
+}
+
+</script>
+</body>
+</html>
