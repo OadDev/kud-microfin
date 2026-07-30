@@ -104,6 +104,15 @@ jobs:
             --exclude='storage/logs/' \
             deploy/ "${{ secrets.HOSTINGER_SSH_USERNAME }}@${{ secrets.HOSTINGER_SSH_HOST }}:${{ vars.HOSTINGER_TARGET_PATH }}/"
 
+      # Observed pattern across several runs: the rsync connection above
+      # always succeeds, and a second SSH connection opened less than a
+      # second later always fails instantly (exit 255, no output) -- the
+      # signature of a "max N new connections per window" throttle on
+      # Hostinger's side, not a total-connection-count block. Give it room
+      # to reset before opening the next connection.
+      - name: Pause between SSH connections
+        run: sleep 20
+
       - name: Bootstrap runtime directories, .env (first deploy only), caches
         env:
           SSHPASS: ${{ secrets.HOSTINGER_SSH_PASSWORD }}
