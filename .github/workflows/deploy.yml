@@ -83,15 +83,12 @@ jobs:
               ;;
           esac
 
-      - name: Ensure target directory exists
-        env:
-          SSHPASS: ${{ secrets.HOSTINGER_SSH_PASSWORD }}
-        run: |
-          set -e
-          sshpass -e ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} -o StrictHostKeyChecking=no \
-            "${{ secrets.HOSTINGER_SSH_USERNAME }}@${{ secrets.HOSTINGER_SSH_HOST }}" \
-            "mkdir -p '${{ vars.HOSTINGER_TARGET_PATH }}'"
-
+      # Some Hostinger accounts' SSH security layer (Imunify360/CSF-style)
+      # rate-limits by *number of connections per deploy*, not just per
+      # minute -- so every step below is folded into as few separate SSH
+      # sessions as possible (2 total: one for rsync, one for bootstrap).
+      # mkdir happens inside rsync's own SSH session via --rsync-path,
+      # instead of a separate connection beforehand.
       - name: Deploy over SSH (rsync, password auth)
         env:
           SSHPASS: ${{ secrets.HOSTINGER_SSH_PASSWORD }}
@@ -99,6 +96,7 @@ jobs:
           set -e
           sshpass -e rsync -avz --delete \
             -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} -o StrictHostKeyChecking=no" \
+            --rsync-path="mkdir -p '${{ vars.HOSTINGER_TARGET_PATH }}' && rsync" \
             --exclude='.env' \
             --exclude='uploads/' \
             --exclude='storage/app/' \
@@ -111,9 +109,6 @@ jobs:
           SSHPASS: ${{ secrets.HOSTINGER_SSH_PASSWORD }}
         run: |
           set -e
-          sshpass -e scp -P ${{ secrets.HOSTINGER_SSH_PORT }} -o StrictHostKeyChecking=no \
-            scripts/remote-setup.sh "${{ secrets.HOSTINGER_SSH_USERNAME }}@${{ secrets.HOSTINGER_SSH_HOST }}:~/remote-setup.sh"
-
           sshpass -e ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} -o StrictHostKeyChecking=no \
             "${{ secrets.HOSTINGER_SSH_USERNAME }}@${{ secrets.HOSTINGER_SSH_HOST }}" \
-            "bash ~/remote-setup.sh '${{ vars.HOSTINGER_TARGET_PATH }}' && rm -f ~/remote-setup.sh"
+            "bash -s -- '${{ vars.HOSTINGER_TARGET_PATH }}'" < scripts/remote-setup.sh
