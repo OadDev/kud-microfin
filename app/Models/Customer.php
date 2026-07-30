@@ -52,6 +52,11 @@ class Customer extends Model
         return $this->hasMany(Loan::class);
     }
 
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
     /**
      * A customer is created together with exactly one loan today; this
      * returns that loan (or the most recent, if that ever changes).

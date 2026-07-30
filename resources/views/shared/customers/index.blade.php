@@ -37,7 +37,10 @@
         <td>₹{{ number_format($loan?->emi_amount ?? 0) }}</td>
         <td>{{ $next?->due_date->format('d/m/Y') ?? '-' }}</td>
         <td><x-status-badge :status="ucfirst($loan?->status ?? 'active')" /></td>
-        <td><a class="btn btn-sm btn-outline-fin" href="{{ route('customers.show', $c) }}"><i class="fa-solid fa-eye"></i></a></td>
+        <td class="d-flex gap-2">
+          <a class="btn btn-sm btn-outline-fin" href="{{ route('customers.show', $c) }}" title="View"><i class="fa-solid fa-eye"></i></a>
+          <a class="btn btn-sm btn-outline-success" href="tel:{{ $c->user->mobile }}" title="Call {{ $c->user->mobile }}"><i class="fa-solid fa-phone"></i></a>
+        </td>
       </tr>
     @empty
       <tr><td colspan="9" class="text-center text-muted-fin py-3">No customers found.</td></tr>
@@ -58,7 +61,10 @@
       <div class="dc-row"><span class="dc-label">Loan Amount</span><span>₹{{ number_format($loan?->principal ?? 0) }}</span></div>
       <div class="dc-row"><span class="dc-label">EMI Amount</span><span>₹{{ number_format($loan?->emi_amount ?? 0) }}</span></div>
       <div class="dc-row"><span class="dc-label">Next Due</span><span>{{ $next?->due_date->format('d/m/Y') ?? '-' }}</span></div>
-      <a class="btn btn-sm btn-outline-fin w-100 mt-2" href="{{ route('customers.show', $c) }}"><i class="fa-solid fa-eye me-1"></i>View Details</a>
+      <div class="d-flex gap-2 mt-2">
+        <a class="btn btn-sm btn-outline-fin flex-fill" href="{{ route('customers.show', $c) }}"><i class="fa-solid fa-eye me-1"></i>View Details</a>
+        <a class="btn btn-sm btn-outline-success" href="tel:{{ $c->user->mobile }}"><i class="fa-solid fa-phone"></i></a>
+      </div>
     </div>
   @empty
     <div class="text-center text-muted-fin py-3">No customers found.</div>

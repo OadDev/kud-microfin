@@ -1,15 +1,22 @@
 <?php
 
+use App\Http\Controllers\Admin\BannerController;
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\PaymentSettingController;
 use App\Http\Controllers\Admin\PaymentVerificationController;
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ShopOwnerController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerPanel\DocumentController as CustomerDocumentController;
+use App\Http\Controllers\CustomerPanel\HelplineController;
 use App\Http\Controllers\CustomerPanel\HomeController as CustomerHomeController;
 use App\Http\Controllers\CustomerPanel\LoanController as CustomerLoanController;
+use App\Http\Controllers\CustomerPanel\OrderController as CustomerOrderController;
 use App\Http\Controllers\CustomerPanel\PaymentController as CustomerPaymentController;
+use App\Http\Controllers\CustomerPanel\ProductController as CustomerProductController;
 use App\Http\Controllers\CustomerPanel\ProfileController as CustomerProfileController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentController;
@@ -108,6 +115,29 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     Route::get('/payment-settings', [PaymentSettingController::class, 'edit'])->name('payment-settings.edit');
     Route::post('/payment-settings', [PaymentSettingController::class, 'update'])->name('payment-settings.update');
+
+    // Home banners (customer home page carousel)
+    Route::get('/banners', [BannerController::class, 'index'])->name('banners.index');
+    Route::post('/banners', [BannerController::class, 'store'])->name('banners.store');
+    Route::post('/banners/{banner}', [BannerController::class, 'update'])->name('banners.update');
+    Route::delete('/banners/{banner}', [BannerController::class, 'destroy'])->name('banners.destroy');
+
+    // Product catalog
+    Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+    Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+    Route::post('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+    Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+
+    Route::get('/products', [AdminProductController::class, 'index'])->name('products.index');
+    Route::post('/products', [AdminProductController::class, 'store'])->name('products.store');
+    Route::post('/products/{product}', [AdminProductController::class, 'update'])->name('products.update');
+    Route::delete('/products/{product}', [AdminProductController::class, 'destroy'])->name('products.destroy');
+
+    // Orders (COD / Razorpay purchases placed by customers)
+    Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
+    Route::post('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.status');
+    Route::post('/orders/{order}/mark-cod-paid', [AdminOrderController::class, 'markCodPaid'])->name('orders.mark-cod-paid');
 });
 
 /*
@@ -122,4 +152,16 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::post('/pay', [CustomerPaymentController::class, 'store'])->name('pay.store');
     Route::get('/documents', [CustomerDocumentController::class, 'index'])->name('documents');
     Route::get('/profile', [CustomerProfileController::class, 'index'])->name('profile');
+
+    // Products / Buy Now / Orders
+    Route::get('/products', [CustomerProductController::class, 'index'])->name('products.index');
+    Route::get('/products/{product}', [CustomerProductController::class, 'show'])->name('products.show');
+    Route::post('/products/{product}/buy-now', [CustomerProductController::class, 'buyNow'])->name('products.buy-now');
+
+    Route::get('/orders', [CustomerOrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}', [CustomerOrderController::class, 'show'])->name('orders.show');
+    Route::get('/orders/{order}/pay', [CustomerProductController::class, 'pay'])->name('orders.pay');
+    Route::post('/orders/{order}/verify', [CustomerProductController::class, 'verify'])->name('orders.verify');
+
+    Route::get('/helpline', [HelplineController::class, 'index'])->name('helpline');
 });

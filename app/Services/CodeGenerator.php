@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Customer;
 use App\Models\Loan;
+use App\Models\Order;
 use App\Models\ShopOwner;
 use Illuminate\Support\Facades\DB;
 
@@ -38,6 +39,16 @@ class CodeGenerator
             $year = now()->year;
 
             return "BPF{$year}".str_pad((string) ($count + 1), 6, '0', STR_PAD_LEFT);
+        });
+    }
+
+    public static function nextOrderNo(): string
+    {
+        return DB::transaction(function () {
+            $count = Order::query()->lockForUpdate()->count();
+            $year = now()->year;
+
+            return "ORD{$year}".str_pad((string) ($count + 1), 6, '0', STR_PAD_LEFT);
         });
     }
 }

@@ -30,6 +30,8 @@ class PaymentSettingController extends Controller
             'ifsc' => ['nullable', 'string', 'max:20'],
             'branch' => ['nullable', 'string', 'max:255'],
             'instructions' => ['nullable', 'string'],
+            'razorpay_key_id' => ['nullable', 'string', 'max:255'],
+            'razorpay_key_secret' => ['nullable', 'string', 'max:255'],
         ]);
 
         $settings = PaymentSetting::current();

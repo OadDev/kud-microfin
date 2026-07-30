@@ -16,6 +16,8 @@ class PaymentSetting extends Model
         'ifsc',
         'branch',
         'instructions',
+        'razorpay_key_id',
+        'razorpay_key_secret',
     ];
 
     /**
@@ -24,5 +26,10 @@ class PaymentSetting extends Model
     public static function current(): self
     {
         return static::query()->firstOrCreate([]);
+    }
+
+    public function razorpayEnabled(): bool
+    {
+        return filled($this->razorpay_key_id) && filled($this->razorpay_key_secret);
     }
 }

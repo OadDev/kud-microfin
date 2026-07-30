@@ -2,9 +2,12 @@
 
 namespace Database\Seeders;
 
+use App\Models\Banner;
+use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Loan;
 use App\Models\PaymentSubmission;
+use App\Models\Product;
 use App\Models\ShopOwner;
 use App\Models\User;
 use App\Services\CodeGenerator;
@@ -160,5 +163,29 @@ class DemoDataSeeder extends Seeder
 
             $loan->refreshStatus();
         }
+
+        $this->seedShopCatalog();
+    }
+
+    /**
+     * A handful of categories/products/banners so the Shop section and Home
+     * banners aren't empty during a demo walkthrough. No image files ship
+     * with the app, so products/banners here are left without images —
+     * the UI falls back to a placeholder icon.
+     */
+    protected function seedShopCatalog(): void
+    {
+        $electronics = Category::create(['name' => 'Electronics', 'is_active' => true]);
+        $household = Category::create(['name' => 'Household', 'is_active' => true]);
+        $mobiles = Category::create(['name' => 'Mobiles', 'is_active' => true]);
+
+        Product::create(['category_id' => $mobiles->id, 'name' => 'Smartphone 128GB', 'description' => 'Dual SIM, 6.5" display, 5000mAh battery.', 'price' => 12999, 'stock_quantity' => 25, 'is_active' => true]);
+        Product::create(['category_id' => $electronics->id, 'name' => 'LED Television 32"', 'description' => 'HD Ready Smart TV with built-in apps.', 'price' => 10999, 'stock_quantity' => 10, 'is_active' => true]);
+        Product::create(['category_id' => $household->id, 'name' => 'Mixer Grinder 750W', 'description' => '3-jar mixer grinder with 2-year warranty.', 'price' => 2499, 'stock_quantity' => 40, 'is_active' => true]);
+        Product::create(['category_id' => $household->id, 'name' => 'Pressure Cooker 5L', 'description' => 'Stainless steel, induction compatible.', 'price' => 1799, 'stock_quantity' => null, 'is_active' => true]);
+        Product::create(['category_id' => $electronics->id, 'name' => 'Bluetooth Speaker', 'description' => '10W portable speaker, 12-hour battery.', 'price' => 1299, 'stock_quantity' => 60, 'is_active' => true]);
+
+        Banner::create(['title' => 'Festive Offers — Up to 20% Off', 'image_path' => 'demo/banner-placeholder.png', 'sort_order' => 1, 'is_active' => true]);
+        Banner::create(['title' => 'New Arrivals in Electronics', 'image_path' => 'demo/banner-placeholder.png', 'sort_order' => 2, 'is_active' => true]);
     }
 }

@@ -36,6 +36,10 @@
         <a class="nav-link {{ ($active ?? '') === 'payment-verification' ? 'active' : '' }}" href="{{ route('admin.payment-verification.index') }}"><i class="fa-solid fa-magnifying-glass-dollar"></i> Payment Verification</a>
         <a class="nav-link {{ ($active ?? '') === 'payment-settings' ? 'active' : '' }}" href="{{ route('admin.payment-settings.edit') }}"><i class="fa-solid fa-gear"></i> Payment Settings</a>
         <a class="nav-link {{ ($active ?? '') === 'documents' ? 'active' : '' }}" href="{{ route('admin.documents.index') }}"><i class="fa-solid fa-file-lines"></i> Documents</a>
+        <a class="nav-link {{ ($active ?? '') === 'banners' ? 'active' : '' }}" href="{{ route('admin.banners.index') }}"><i class="fa-solid fa-images"></i> Home Banners</a>
+        <a class="nav-link {{ ($active ?? '') === 'categories' ? 'active' : '' }}" href="{{ route('admin.categories.index') }}"><i class="fa-solid fa-tags"></i> Categories</a>
+        <a class="nav-link {{ ($active ?? '') === 'products' ? 'active' : '' }}" href="{{ route('admin.products.index') }}"><i class="fa-solid fa-box"></i> Products</a>
+        <a class="nav-link {{ ($active ?? '') === 'orders' ? 'active' : '' }}" href="{{ route('admin.orders.index') }}"><i class="fa-solid fa-cart-shopping"></i> Orders</a>
       @else
         <a class="nav-link {{ ($active ?? '') === 'dashboard' ? 'active' : '' }}" href="{{ route('shopowner.dashboard') }}"><i class="fa-solid fa-gauge"></i> Dashboard</a>
         <a class="nav-link {{ ($active ?? '') === 'customers' ? 'active' : '' }}" href="{{ route('shopowner.customers.index') }}"><i class="fa-solid fa-users"></i> Customers</a>

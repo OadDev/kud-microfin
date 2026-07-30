@@ -32,9 +32,22 @@
       </div>
     </div>
     <div class="col-lg-6">
-      <div class="card-flat p-3">
+      <div class="card-flat p-3 mb-3">
         <div class="section-title mb-2"><i class="fa-solid fa-message me-2"></i>Payment Instructions</div>
         <textarea class="form-control" name="instructions" rows="6">{{ $settings->instructions }}</textarea>
+      </div>
+      <div class="card-flat p-3">
+        <div class="section-title mb-2"><i class="fa-solid fa-credit-card me-2"></i>Razorpay (Shop Checkout)</div>
+        <div class="small-note mb-2">Used only for the Product Shop's online checkout — not for EMI payments. Leave blank to offer Cash on Delivery only.</div>
+        <div class="mb-2"><label class="form-label">Key ID</label><input class="form-control" name="razorpay_key_id" value="{{ $settings->razorpay_key_id }}" placeholder="rzp_live_xxxxxxxx or rzp_test_xxxxxxxx"></div>
+        <div class="mb-2">
+          <label class="form-label">Key Secret</label>
+          <input type="password" class="form-control" name="razorpay_key_secret" value="{{ $settings->razorpay_key_secret }}" autocomplete="new-password">
+        </div>
+        <div class="small-note">
+          <i class="fa-solid fa-circle {{ $settings->razorpayEnabled() ? 'text-success' : 'text-danger' }}" style="font-size:8px;"></i>
+          Razorpay checkout is currently <strong>{{ $settings->razorpayEnabled() ? 'enabled' : 'disabled' }}</strong>.
+        </div>
         <div class="d-flex gap-2 mt-3">
           <button class="btn btn-primary-fin" type="submit"><i class="fa-solid fa-floppy-disk me-1"></i>Save Settings</button>
           <a class="btn btn-outline-fin" href="{{ route('customer.pay') }}" target="_blank"><i class="fa-solid fa-eye me-1"></i>Preview Customer Screen</a>

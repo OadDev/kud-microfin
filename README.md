@@ -12,13 +12,23 @@ application (server-rendered Blade views, MySQL, session auth).
   Active Loans, Payment Verification (approve/reject with reason), Payment Settings, Documents.
 - **Shop Owner**: own dashboard, own Customers, Create Customer & Loan, Active Loans, EMI List,
   Documents — scoped so a shop owner only ever sees their own customers/loans.
-- **Customer**: mobile-first panel (Home, Loan, Pay EMI, Documents, Profile) with OTP login,
-  manual payment submission (UPI/Bank/QR + screenshot upload) and live status tracking.
+- **Customer**: mobile-first panel (Home, Loan, Pay EMI, Shop, Documents, Profile, Helpline) with
+  OTP login, manual EMI payment submission (UPI/Bank/QR + screenshot upload) and live status
+  tracking.
 - **Loans & EMIs**: loan calculation (Total Payable = Principal + Interest + Fee, EMI = Total ÷
   Count), EMI schedule generation (weekly/monthly), EMI status derived live from the due date
   (Upcoming/Due Today/Overdue) rather than a cron job.
 - **Documents**: printable Welcome Letter / Loan Sanction Letter (Blade views with the BluePeak
   letterhead), signed-copy upload.
+- **Home Banners**: Admin-managed image carousel shown at the top of the Customer Home screen
+  (`Admin > Home Banners`).
+- **Product Shop**: Admin manages Categories and Products (`Admin > Categories` / `Products`);
+  customers browse and buy one item at a time ("Buy Now" — no multi-item cart) via Cash on
+  Delivery or Razorpay, independent of the loan/EMI system. Admin tracks purchases under
+  `Admin > Orders` (status: pending/confirmed/shipped/delivered/cancelled; COD orders can be
+  marked paid once cash is collected).
+- **Helpline**: a fixed support number shown to customers with a tap-to-call link
+  (`Customer > Helpline`, header phone icon).
 
 ### Deliberately not real yet (matches product decisions made during scoping)
 
@@ -26,8 +36,12 @@ application (server-rendered Blade views, MySQL, session auth).
   entered correctly, but it is not sent via SMS — it's flashed back to the login page instead
   (`App\Models\OtpCode`, `CustomerAuthController`). Swap in a real provider (e.g. MSG91, Twilio)
   by replacing that flash with an actual send call.
-- **No payment gateway**: all EMI payments are manual (UPI/QR/bank transfer + screenshot),
-  verified by Admin. This is a permanent product decision, not a placeholder.
+- **No EMI payment gateway**: all EMI payments are manual (UPI/QR/bank transfer + screenshot),
+  verified by Admin. This is a permanent product decision, not a placeholder — it does not apply
+  to the Product Shop, which does support real online payment via Razorpay (see below).
+- **Razorpay (Shop only)**: keys are entered by Admin under `Admin > Payment Settings` (stored in
+  the `payment_settings` row, not `.env`, so they can be changed without a redeploy) and are used
+  only for Product Shop checkout. Until real keys are set, only Cash on Delivery is offered.
 - **File storage** is local disk (`public/uploads` in dev, see "Deployment" below for why
   production doesn't use the usual `storage/app/public` symlink) — swap the `public` disk for
   `s3` in `config/filesystems.php` if you later move to cloud storage.

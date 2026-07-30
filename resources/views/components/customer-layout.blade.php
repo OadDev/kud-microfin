@@ -20,6 +20,7 @@
         <div class="fw-bold fs-5">{{ $user->name }}</div>
       </div>
       <div class="d-flex align-items-center gap-3">
+        <a href="{{ route('customer.helpline') }}" style="color:#fff;" title="Helpline"><i class="fa-solid fa-headset"></i></a>
         <a href="#" style="color:#fff;" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></a>
         <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
       </div>
@@ -33,6 +34,7 @@
     <a class="bn-item {{ ($active ?? '') === 'home' ? 'active' : '' }}" href="{{ route('customer.home') }}"><i class="fa-solid fa-house"></i>Home</a>
     <a class="bn-item {{ ($active ?? '') === 'loan' ? 'active' : '' }}" href="{{ route('customer.loan') }}"><i class="fa-solid fa-file-invoice-dollar"></i>Loan</a>
     <a class="bn-item {{ ($active ?? '') === 'pay' ? 'active' : '' }}" href="{{ route('customer.pay') }}"><i class="fa-solid fa-indian-rupee-sign"></i>Pay EMI</a>
+    <a class="bn-item {{ ($active ?? '') === 'products' ? 'active' : '' }}" href="{{ route('customer.products.index') }}"><i class="fa-solid fa-bag-shopping"></i>Shop</a>
     <a class="bn-item {{ ($active ?? '') === 'documents' ? 'active' : '' }}" href="{{ route('customer.documents') }}"><i class="fa-solid fa-file-lines"></i>Documents</a>
     <a class="bn-item {{ ($active ?? '') === 'profile' ? 'active' : '' }}" href="{{ route('customer.profile') }}"><i class="fa-solid fa-user"></i>Profile</a>
   </div>
