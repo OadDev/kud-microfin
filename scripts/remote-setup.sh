@@ -17,27 +17,41 @@ if [ ! -f .env ]; then
 fi
 
 # `ssh host "cmd"` runs a non-login shell, so the PATH entries that make
-# `php` available (added to .bash_profile/.bashrc by Hostinger's CloudLinux
-# PHP selector) never get loaded. Load them explicitly, then fall back to
-# common CloudLinux alt-php locations if `php` still isn't found.
+# the *right* `php` available (added to .bash_profile/.bashrc by hPanel's
+# PHP version selector) never get loaded. Load them explicitly, then check
+# every candidate's actual version -- the system default `php` on PATH is
+# often a much older PHP left over from the base OS (seen: 7.2.34) that's
+# unrelated to whatever version hPanel has this domain set to, so finding
+# *a* php is not enough; it has to satisfy composer.json's ^8.2 requirement.
 for profile in ~/.bash_profile ~/.bashrc ~/.profile; do
   [ -f "$profile" ] && source "$profile" 2>/dev/null || true
 done
 
+is_php_82_plus() {
+  "$1" -r 'exit((float) PHP_VERSION >= 8.2 ? 0 : 1);' >/dev/null 2>&1
+}
+
 PHP_BIN=""
-if command -v php >/dev/null 2>&1; then
-  PHP_BIN="php"
-else
-  for candidate in /usr/local/bin/php /usr/bin/php ~/bin/php /opt/alt/php*/usr/bin/php; do
-    if [ -x "$candidate" ]; then
-      PHP_BIN="$candidate"
-      break
-    fi
-  done
-fi
+for candidate in \
+  php8.3 php8.2 php83 php82 \
+  /usr/local/bin/php8.3 /usr/local/bin/php8.2 /usr/local/bin/php83 /usr/local/bin/php82 \
+  /usr/bin/php8.3 /usr/bin/php8.2 /usr/bin/php83 /usr/bin/php82 \
+  /opt/alt/php83/usr/bin/php /opt/alt/php82/usr/bin/php \
+  /opt/cpanel/ea-php83/root/usr/bin/php /opt/cpanel/ea-php82/root/usr/bin/php \
+  ~/bin/php php /usr/local/bin/php /usr/bin/php; do
+  resolved="$candidate"
+  case "$candidate" in
+    /*|~*) [ -x "$resolved" ] || continue ;;
+    *) command -v "$candidate" >/dev/null 2>&1 || continue ;;
+  esac
+  if is_php_82_plus "$resolved"; then
+    PHP_BIN="$resolved"
+    break
+  fi
+done
 
 if [ -z "$PHP_BIN" ]; then
-  echo "No php CLI binary found on PATH or in common Hostinger locations. Storage dirs and .env are set up, but APP_KEY generation and cache clearing were skipped. Find yours with 'which php' over an interactive SSH session and hardcode it in scripts/remote-setup.sh." >&2
+  echo "No PHP 8.2+ CLI binary found on PATH or in common Hostinger locations (the default 'php' on PATH, if any, is an incompatible older version). Storage dirs and .env are set up, but APP_KEY generation and cache clearing were skipped. Find the right binary with 'php -v' / 'which -a php' variants over an interactive SSH session, or check hPanel's PHP configuration for a CLI path, and hardcode it in scripts/remote-setup.sh." >&2
   exit 1
 fi
 
