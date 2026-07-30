@@ -3,6 +3,31 @@
 # safe to run on the very first deploy and every one after.
 set -e
 
+# `ssh host "cmd"` runs a non-login shell, so the PATH entries that make
+# `php` available (added to .bash_profile/.bashrc by Hostinger's CloudLinux
+# PHP selector) never get loaded. Load them explicitly, then fall back to
+# common CloudLinux alt-php locations if `php` still isn't found.
+for profile in ~/.bash_profile ~/.bashrc ~/.profile; do
+  [ -f "$profile" ] && source "$profile" 2>/dev/null || true
+done
+
+PHP_BIN=""
+if command -v php >/dev/null 2>&1; then
+  PHP_BIN="php"
+else
+  for candidate in /usr/local/bin/php /usr/bin/php ~/bin/php /opt/alt/php*/usr/bin/php; do
+    if [ -x "$candidate" ]; then
+      PHP_BIN="$candidate"
+      break
+    fi
+  done
+fi
+
+if [ -z "$PHP_BIN" ]; then
+  echo "No php CLI binary found on PATH or in common Hostinger locations. Find yours with 'which php' over an interactive SSH session and hardcode it in scripts/remote-setup.sh." >&2
+  exit 1
+fi
+
 cd "$1"
 
 mkdir -p storage/framework/cache/data storage/framework/sessions \
@@ -16,9 +41,9 @@ if [ ! -f .env ]; then
   cp .env.production.example .env
 fi
 if grep -q '^APP_KEY=$' .env; then
-  php artisan key:generate --force
+  "$PHP_BIN" artisan key:generate --force
 fi
 
-php artisan config:clear
-php artisan route:clear
-php artisan view:clear
+"$PHP_BIN" artisan config:clear
+"$PHP_BIN" artisan route:clear
+"$PHP_BIN" artisan view:clear
