@@ -32,6 +32,12 @@
   </div>
 </nav>
 
+@if($banners->isNotEmpty())
+<div class="container mt-3">
+  @include('partials.banner-carousel', ['banners' => $banners, 'carouselId' => 'mkBannerCarousel', 'bannerHeight' => '220px'])
+</div>
+@endif
+
 <header class="mk-hero text-center text-md-start">
   <div class="container">
     <div class="row align-items-center g-4">

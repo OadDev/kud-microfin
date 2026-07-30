@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -31,6 +32,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Hostinger (like most shared hosts) terminates HTTPS upstream and
+        // forwards to PHP over plain HTTP internally, so $request->isSecure()
+        // reports false unless the proxy is trusted -- without this,
+        // route()/url() silently generate http:// links (still reachable,
+        // but the wrong link Laravel itself signs/expects, and the kind of
+        // thing that reads as "buttons not working" once anything depends
+        // on the scheme matching). This app only ever runs on one fixed
+        // HTTPS domain in production, so just force the scheme outright
+        // rather than maintaining a trusted-proxy IP list.
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
     }
 }
