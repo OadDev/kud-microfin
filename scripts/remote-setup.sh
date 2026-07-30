@@ -59,6 +59,15 @@ if grep -q '^APP_KEY=$' .env; then
   "$PHP_BIN" artisan key:generate --force
 fi
 
+# The very first install's migrations run inside the /install wizard itself
+# (no DB is configured yet at this point in a first deploy). Every deploy
+# after that needs to pick up new migrations added since install -- run
+# them here, but only once the wizard has actually completed, so this never
+# races an as-yet-unconfigured database.
+if [ -f storage/app/installed.lock ]; then
+  "$PHP_BIN" artisan migrate --force
+fi
+
 "$PHP_BIN" artisan config:clear
 "$PHP_BIN" artisan route:clear
 "$PHP_BIN" artisan view:clear

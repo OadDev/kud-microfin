@@ -157,8 +157,10 @@ being run again; visiting it afterward just redirects to the login page.
 
 ### 3. Every deploy after that
 
-Just push. The workflow re-syncs code and clears caches; `.env`, uploads, and the installed
-lock stay untouched, so nothing about the running site resets.
+Just push. The workflow re-syncs code, runs any new migrations (`php artisan migrate --force` —
+only once `installed.lock` exists, so this never runs against an as-yet-unconfigured database),
+and clears caches; `.env`, uploads, and the installed lock stay untouched, so nothing about the
+running site resets.
 
 ### How the flat layout is hardened
 
