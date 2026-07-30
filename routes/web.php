@@ -23,6 +23,7 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EmiController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\LoanController;
+use App\Http\Controllers\MarketingController;
 use App\Http\Controllers\PublicRegistrationController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,11 +37,18 @@ Route::post('/install', [InstallController::class, 'store'])->name('install.stor
 
 /*
 |--------------------------------------------------------------------------
+| Public marketing site (the actual "/" homepage — not the login screen)
+|--------------------------------------------------------------------------
+*/
+Route::get('/', [MarketingController::class, 'index'])->name('marketing.home');
+
+/*
+|--------------------------------------------------------------------------
 | Guest / public routes
 |--------------------------------------------------------------------------
 */
 Route::middleware('guest')->group(function () {
-    Route::get('/', [AuthController::class, 'showLogin'])->name('login');
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
     Route::post('/demo-login/{role}', [AuthController::class, 'demoLogin'])->name('demo.login');
 
