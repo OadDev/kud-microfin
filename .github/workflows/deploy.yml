@@ -83,41 +83,29 @@ jobs:
               ;;
           esac
 
-      # Some Hostinger accounts' SSH security layer (Imunify360/CSF-style)
-      # rate-limits by *number of connections per deploy*, not just per
-      # minute -- so every step below is folded into as few separate SSH
-      # sessions as possible (2 total: one for rsync, one for bootstrap).
-      # mkdir happens inside rsync's own SSH session via --rsync-path,
-      # instead of a separate connection beforehand.
-      - name: Deploy over SSH (rsync, password auth)
+      # Observed pattern across many runs today: whichever SSH connection
+      # goes FIRST in a run always succeeds; a second one opened right
+      # after always fails instantly (exit 255, no output) -- Hostinger's
+      # SSH security layer (Imunify360/CSF-style) appears to allow only one
+      # new connection per deploy right now. Rather than fight that, do the
+      # whole deploy (file transfer + directory bootstrap + APP_KEY +
+      # cache clear) inside that single connection: pipe a tar of deploy/
+      # over stdin and run remote-setup.sh (passed inline, base64-encoded,
+      # so stdin is free for the tar stream) in the same remote command.
+      #
+      # Note: unlike the previous rsync --delete step, this doesn't prune
+      # files removed from the repo between deploys -- acceptable for now
+      # to get past the SSH restriction; revisit once the site is live.
+      - name: Deploy + bootstrap over a single SSH connection
         env:
           SSHPASS: ${{ secrets.HOSTINGER_SSH_PASSWORD }}
+          SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
+          SSH_USER: ${{ secrets.HOSTINGER_SSH_USERNAME }}
+          SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
+          TARGET_PATH: ${{ vars.HOSTINGER_TARGET_PATH }}
         run: |
           set -e
-          sshpass -e rsync -avz --delete \
-            -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} -o StrictHostKeyChecking=no" \
-            --rsync-path="mkdir -p '${{ vars.HOSTINGER_TARGET_PATH }}' && rsync" \
-            --exclude='.env' \
-            --exclude='uploads/' \
-            --exclude='storage/app/' \
-            --exclude='storage/framework/' \
-            --exclude='storage/logs/' \
-            deploy/ "${{ secrets.HOSTINGER_SSH_USERNAME }}@${{ secrets.HOSTINGER_SSH_HOST }}:${{ vars.HOSTINGER_TARGET_PATH }}/"
-
-      # Observed pattern across several runs: the rsync connection above
-      # always succeeds, and a second SSH connection opened less than a
-      # second later always fails instantly (exit 255, no output) -- the
-      # signature of a "max N new connections per window" throttle on
-      # Hostinger's side, not a total-connection-count block. Give it room
-      # to reset before opening the next connection.
-      - name: Pause between SSH connections
-        run: sleep 20
-
-      - name: Bootstrap runtime directories, .env (first deploy only), caches
-        env:
-          SSHPASS: ${{ secrets.HOSTINGER_SSH_PASSWORD }}
-        run: |
-          set -e
-          sshpass -e ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} -o StrictHostKeyChecking=no \
-            "${{ secrets.HOSTINGER_SSH_USERNAME }}@${{ secrets.HOSTINGER_SSH_HOST }}" \
-            "bash -s -- '${{ vars.HOSTINGER_TARGET_PATH }}'" < scripts/remote-setup.sh
+          tar czf deploy.tar.gz -C deploy .
+          REMOTE_SETUP_B64=$(base64 -w0 scripts/remote-setup.sh)
+          REMOTE_CMD="set -e; mkdir -p '$TARGET_PATH'; cd '$TARGET_PATH'; tar xzf -; echo $REMOTE_SETUP_B64 | base64 -d | bash -s -- '$TARGET_PATH'"
+          sshpass -e ssh -p "$SSH_PORT" -o StrictHostKeyChecking=no "$SSH_USER@$SSH_HOST" "$REMOTE_CMD" < deploy.tar.gz
