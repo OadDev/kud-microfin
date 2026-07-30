@@ -83,6 +83,15 @@ jobs:
               ;;
           esac
 
+      - name: Ensure target directory exists
+        env:
+          SSHPASS: ${{ secrets.HOSTINGER_SSH_PASSWORD }}
+        run: |
+          set -e
+          sshpass -e ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} -o StrictHostKeyChecking=no \
+            "${{ secrets.HOSTINGER_SSH_USERNAME }}@${{ secrets.HOSTINGER_SSH_HOST }}" \
+            "mkdir -p '${{ vars.HOSTINGER_TARGET_PATH }}'"
+
       - name: Deploy over SSH (rsync, password auth)
         env:
           SSHPASS: ${{ secrets.HOSTINGER_SSH_PASSWORD }}
