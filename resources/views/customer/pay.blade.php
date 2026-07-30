@@ -30,7 +30,7 @@
     <div class="section-title mb-2">Payment Details</div>
     <div class="qr-box mb-3">
       @if($settings->qr_path)
-        <img src="{{ asset('storage/'.$settings->qr_path) }}" alt="Payment QR code">
+        <img src="{{ Illuminate\Support\Facades\Storage::disk('public')->url($settings->qr_path) }}" alt="Payment QR code">
       @endif
     </div>
     <div class="copy-chip mb-2" onclick="copyToClipboard('{{ $settings->upi_id }}')"><span><i class="fa-solid fa-at me-1"></i>{{ $settings->upi_id }}</span><i class="fa-solid fa-copy"></i></div>

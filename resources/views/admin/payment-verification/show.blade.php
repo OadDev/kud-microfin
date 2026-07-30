@@ -4,7 +4,7 @@
 <div class="card-flat p-3 p-md-4" style="max-width:560px;">
   <div class="text-center mb-3">
     @if(\Illuminate\Support\Facades\Storage::disk('public')->exists($p->screenshot_path))
-      <img src="{{ asset('storage/'.$p->screenshot_path) }}" alt="Payment screenshot" class="img-fluid rounded" style="max-height:280px;">
+      <img src="{{ Illuminate\Support\Facades\Storage::disk('public')->url($p->screenshot_path) }}" alt="Payment screenshot" class="img-fluid rounded" style="max-height:280px;">
     @else
       <div class="screenshot-thumb mx-auto d-flex align-items-center justify-content-center" style="width:120px;height:120px;">
         <i class="fa-solid fa-image fa-2x text-primary"></i>

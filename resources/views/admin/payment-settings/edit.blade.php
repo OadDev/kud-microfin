@@ -18,7 +18,7 @@
         <div class="mb-2"><label class="form-label">QR Code Upload</label><input type="file" class="form-control" name="qr" accept="image/*"></div>
         <div class="qr-box">
           @if($settings->qr_path)
-            <img src="{{ asset('storage/'.$settings->qr_path) }}" alt="Payment QR code">
+            <img src="{{ Illuminate\Support\Facades\Storage::disk('public')->url($settings->qr_path) }}" alt="Payment QR code">
           @endif
         </div>
       </div>

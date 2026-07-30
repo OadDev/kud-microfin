@@ -1,3 +1,29 @@
+# --------------------------------------------------------------------------
+# BluePeak Fintech hardening
+# No-op on a standard Laravel deploy where only this public/ folder is web
+# root. Required when the whole app is deployed flat into public_html (this
+# file becomes the doc-root .htaccess), so app code, .env, vendor/ etc. sit
+# alongside index.php and would otherwise be directly downloadable.
+# --------------------------------------------------------------------------
+<FilesMatch "^\.">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+<FilesMatch "^(composer\.(json|lock)|package(-lock)?\.json|artisan|phpunit\.xml|README\.md|CHANGELOG\.md)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes

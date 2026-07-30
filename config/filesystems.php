@@ -38,10 +38,16 @@ return [
             'report' => false,
         ],
 
+        // Deliberately NOT storage_path('app/public') via a public/storage
+        // symlink: when the whole app is deployed flat into public_html
+        // (see README "Deployment" section), a symlink named "storage" at
+        // the web root would collide with the real app-internals storage/
+        // directory sitting right next to it. Writing straight into
+        // public/uploads sidesteps that entirely and needs no symlink.
         'public' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
+            'root' => public_path('uploads'),
+            'url' => env('APP_URL').'/uploads',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
@@ -62,19 +68,7 @@ return [
 
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Symbolic Links
-    |--------------------------------------------------------------------------
-    |
-    | Here you may configure the symbolic links that will be created when the
-    | `storage:link` Artisan command is executed. The array keys should be
-    | the locations of the links and the values should be their targets.
-    |
-    */
-
-    'links' => [
-        public_path('storage') => storage_path('app/public'),
-    ],
+    // No 'links' entry / no `storage:link` needed — the 'public' disk above
+    // writes directly into public/uploads instead of a symlinked path.
 
 ];

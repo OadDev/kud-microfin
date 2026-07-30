@@ -14,9 +14,18 @@ use App\Http\Controllers\CustomerPanel\ProfileController as CustomerProfileContr
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EmiController;
+use App\Http\Controllers\InstallController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\PublicRegistrationController;
 use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Setup wizard (first-run only — see EnsureAppIsInstalled middleware)
+|--------------------------------------------------------------------------
+*/
+Route::get('/install', [InstallController::class, 'show'])->name('install.show');
+Route::post('/install', [InstallController::class, 'store'])->name('install.store');
 
 /*
 |--------------------------------------------------------------------------

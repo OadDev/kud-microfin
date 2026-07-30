@@ -1,0 +1,94 @@
+name: Deploy to Hostinger
+
+# Adjust this branch list once your git flow settles (e.g. just "main").
+on:
+  push:
+    branches:
+      - main
+      - claude/bold-hawking-ptm14i
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: mbstring, pdo_mysql, openssl, tokenizer, ctype, json, fileinfo, curl
+          tools: composer
+          coverage: none
+
+      - name: Install PHP dependencies (production only)
+        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+
+      - name: Build deploy/ (merge public/ up, patch index.php, harden vendor/)
+        run: |
+          set -e
+          rm -rf deploy
+          mkdir deploy
+
+          # Copy everything except VCS/dev-only paths and anything that must
+          # never leave the CI runner (.env is never present here anyway).
+          rsync -a \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='deploy' \
+            --exclude='scripts' \
+            --exclude='tests' \
+            --exclude='prototype' \
+            --exclude='.env' \
+            --exclude='.env.example' \
+            --exclude='.editorconfig' \
+            --exclude='.gitattributes' \
+            --exclude='.styleci.yml' \
+            --exclude='.phpunit.result.cache' \
+            --exclude='phpunit.xml' \
+            ./ deploy/
+
+          # Merge public/*'s contents up to the deploy root (this becomes
+          # public_html) and drop the now-empty public/ directory.
+          rsync -a deploy/public/ deploy/
+          rm -rf deploy/public
+
+          # index.php now lives next to vendor/, bootstrap/ and storage/
+          # instead of one level above them.
+          sed -i "s#__DIR__.'/../vendor/autoload.php'#__DIR__.'/vendor/autoload.php'#" deploy/index.php
+          sed -i "s#__DIR__.'/../bootstrap/app.php'#__DIR__.'/bootstrap/app.php'#" deploy/index.php
+          sed -i "s#__DIR__.'/../storage/framework/maintenance.php'#__DIR__.'/storage/framework/maintenance.php'#" deploy/index.php
+
+          # vendor/ isn't in git, so it needs its own deny-all .htaccess too.
+          cp storage/.htaccess deploy/vendor/.htaccess
+
+      - name: Install sshpass
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq sshpass rsync
+
+      - name: Deploy over SSH (rsync, password auth)
+        env:
+          SSHPASS: ${{ secrets.HOSTINGER_SSH_PASSWORD }}
+        run: |
+          set -e
+          sshpass -e rsync -avz --delete \
+            -e "ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} -o StrictHostKeyChecking=no" \
+            --exclude='.env' \
+            --exclude='uploads/' \
+            --exclude='storage/app/' \
+            --exclude='storage/framework/' \
+            --exclude='storage/logs/' \
+            deploy/ "${{ secrets.HOSTINGER_SSH_USERNAME }}@${{ secrets.HOSTINGER_SSH_HOST }}:${{ vars.HOSTINGER_TARGET_PATH }}/"
+
+      - name: Bootstrap runtime directories, .env (first deploy only), caches
+        env:
+          SSHPASS: ${{ secrets.HOSTINGER_SSH_PASSWORD }}
+        run: |
+          set -e
+          sshpass -e scp -P ${{ secrets.HOSTINGER_SSH_PORT }} -o StrictHostKeyChecking=no \
+            scripts/remote-setup.sh "${{ secrets.HOSTINGER_SSH_USERNAME }}@${{ secrets.HOSTINGER_SSH_HOST }}:~/remote-setup.sh"
+
+          sshpass -e ssh -p ${{ secrets.HOSTINGER_SSH_PORT }} -o StrictHostKeyChecking=no \
+            "${{ secrets.HOSTINGER_SSH_USERNAME }}@${{ secrets.HOSTINGER_SSH_HOST }}" \
+            "bash ~/remote-setup.sh '${{ vars.HOSTINGER_TARGET_PATH }}' && rm -f ~/remote-setup.sh"

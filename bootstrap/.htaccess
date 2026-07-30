@@ -1,0 +1,10 @@
+# BluePeak Fintech: block all direct web access to this directory.
+# Only relevant when the whole app is deployed flat into public_html
+# (see public/.htaccess) — this folder must never be served directly.
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>
