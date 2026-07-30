@@ -3,6 +3,19 @@
 # safe to run on the very first deploy and every one after.
 set -e
 
+cd "$1"
+
+mkdir -p storage/framework/cache/data storage/framework/sessions \
+         storage/framework/testing storage/framework/views \
+         storage/logs storage/app/public storage/app/private uploads
+chmod -R 775 storage bootstrap/cache uploads
+
+# First deploy only: bootstrap .env from the committed stub. Never touched
+# again after this, so it's safe even if the php-dependent steps below fail.
+if [ ! -f .env ]; then
+  cp .env.production.example .env
+fi
+
 # `ssh host "cmd"` runs a non-login shell, so the PATH entries that make
 # `php` available (added to .bash_profile/.bashrc by Hostinger's CloudLinux
 # PHP selector) never get loaded. Load them explicitly, then fall back to
@@ -24,22 +37,10 @@ else
 fi
 
 if [ -z "$PHP_BIN" ]; then
-  echo "No php CLI binary found on PATH or in common Hostinger locations. Find yours with 'which php' over an interactive SSH session and hardcode it in scripts/remote-setup.sh." >&2
+  echo "No php CLI binary found on PATH or in common Hostinger locations. Storage dirs and .env are set up, but APP_KEY generation and cache clearing were skipped. Find yours with 'which php' over an interactive SSH session and hardcode it in scripts/remote-setup.sh." >&2
   exit 1
 fi
 
-cd "$1"
-
-mkdir -p storage/framework/cache/data storage/framework/sessions \
-         storage/framework/testing storage/framework/views \
-         storage/logs storage/app/public storage/app/private uploads
-chmod -R 775 storage bootstrap/cache uploads
-
-# First deploy only: bootstrap .env from the committed stub and generate a
-# fresh per-site APP_KEY. Never touched again after this.
-if [ ! -f .env ]; then
-  cp .env.production.example .env
-fi
 if grep -q '^APP_KEY=$' .env; then
   "$PHP_BIN" artisan key:generate --force
 fi
