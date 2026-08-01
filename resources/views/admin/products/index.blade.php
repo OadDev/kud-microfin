@@ -10,7 +10,7 @@
 
 <div class="card-flat p-0 table-responsive-fin">
   <table class="table table-fin mb-0">
-    <thead><tr><th></th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
+    <thead><tr><th></th><th>Name</th><th>Brand</th><th>Category</th><th>Price</th><th>Down Payment</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
     <tbody>
     @forelse($products as $p)
       <tr>
@@ -22,8 +22,10 @@
           @endif
         </td>
         <td class="fw-semibold">{{ $p->name }}</td>
+        <td>{{ $p->brand ?? '-' }}</td>
         <td>{{ $p->category?->name ?? '-' }}</td>
         <td>₹{{ number_format($p->price, 2) }}</td>
+        <td>{{ $p->financeable() ? '₹'.number_format($p->down_payment, 2) : '-' }}</td>
         <td>{{ $p->stock_quantity === null ? 'Unlimited' : $p->stock_quantity }}</td>
         <td><x-status-badge :status="$p->is_active ? 'Active' : 'Inactive'" /></td>
         <td class="d-flex gap-2">
@@ -53,11 +55,43 @@
                       @endforeach
                     </select>
                   </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Brand</label>
+                    <select class="form-select" name="brand">
+                      <option value="">— None —</option>
+                      @foreach($brands as $b)
+                        <option value="{{ $b }}" {{ $p->brand === $b ? 'selected' : '' }}>{{ $b }}</option>
+                      @endforeach
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Network</label>
+                    <select class="form-select" name="network_type">
+                      <option value="">— None —</option>
+                      @foreach(['3G'=>'3G','4G'=>'4G','5G'=>'5G','4G_5G'=>'4G & 5G'] as $val=>$label)
+                        <option value="{{ $val }}" {{ $p->network_type === $val ? 'selected' : '' }}>{{ $label }}</option>
+                      @endforeach
+                    </select>
+                  </div>
+                  <div class="col-md-4"><label class="form-label">Storage</label><input class="form-control" name="storage" value="{{ $p->storage }}" placeholder="e.g. 128GB"></div>
+                  <div class="col-md-4"><label class="form-label">RAM</label><input class="form-control" name="ram" value="{{ $p->ram }}" placeholder="e.g. 6GB"></div>
+                  <div class="col-md-4"><label class="form-label">Stock Quantity (blank = unlimited)</label><input type="number" min="0" class="form-control" name="stock_quantity" value="{{ $p->stock_quantity }}"></div>
                   <div class="col-md-6"><label class="form-label">Price (₹)</label><input type="number" step="0.01" min="0" class="form-control" name="price" value="{{ $p->price }}" required></div>
-                  <div class="col-md-6"><label class="form-label">Stock Quantity (leave blank = unlimited)</label><input type="number" min="0" class="form-control" name="stock_quantity" value="{{ $p->stock_quantity }}"></div>
+                  <div class="col-md-6"><label class="form-label">Down Payment (₹, optional — enables EMI financing)</label><input type="number" step="0.01" min="0" class="form-control" name="down_payment" value="{{ $p->down_payment }}"></div>
                   <div class="col-12"><label class="form-label">Description</label><textarea class="form-control" name="description" rows="3">{{ $p->description }}</textarea></div>
-                  <div class="col-md-8"><label class="form-label">Image (leave blank to keep current)</label><input type="file" class="form-control" name="image" accept="image/*"></div>
+                  <div class="col-md-8">
+                    <label class="form-label">Photos (up to 4, leave blank to keep current)</label>
+                    <input type="file" class="form-control" name="images[]" accept="image/*" multiple>
+                    @if($p->images->isNotEmpty())
+                      <div class="d-flex gap-1 mt-2">
+                        @foreach($p->images as $img)
+                          <img src="{{ Illuminate\Support\Facades\Storage::disk('public')->url($img->path) }}" class="screenshot-thumb" alt="">
+                        @endforeach
+                      </div>
+                    @endif
+                  </div>
                   <div class="col-md-4 d-flex align-items-end"><div class="form-check"><input class="form-check-input" type="checkbox" name="is_active" value="1" id="prodActive{{ $p->id }}" {{ $p->is_active ? 'checked' : '' }}><label class="form-check-label" for="prodActive{{ $p->id }}">Active</label></div></div>
+                  <div class="col-12"><label class="form-label">Video Link (optional — YouTube, etc.)</label><input type="url" class="form-control" name="video_url" value="{{ $p->video_url }}" placeholder="https://..."></div>
                 </div>
               </div>
               <div class="modal-footer">
@@ -69,7 +103,7 @@
         </div>
       </div>
     @empty
-      <tr><td colspan="7" class="text-center text-muted-fin py-3">No products yet.</td></tr>
+      <tr><td colspan="9" class="text-center text-muted-fin py-3">No products yet.</td></tr>
     @endforelse
     </tbody>
   </table>
@@ -93,11 +127,33 @@
                 @endforeach
               </select>
             </div>
+            <div class="col-md-6">
+              <label class="form-label">Brand</label>
+              <select class="form-select" name="brand">
+                <option value="">— None —</option>
+                @foreach($brands as $b)
+                  <option value="{{ $b }}">{{ $b }}</option>
+                @endforeach
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Network</label>
+              <select class="form-select" name="network_type">
+                <option value="">— None —</option>
+                @foreach(['3G'=>'3G','4G'=>'4G','5G'=>'5G','4G_5G'=>'4G & 5G'] as $val=>$label)
+                  <option value="{{ $val }}">{{ $label }}</option>
+                @endforeach
+              </select>
+            </div>
+            <div class="col-md-4"><label class="form-label">Storage</label><input class="form-control" name="storage" value="{{ old('storage') }}" placeholder="e.g. 128GB"></div>
+            <div class="col-md-4"><label class="form-label">RAM</label><input class="form-control" name="ram" value="{{ old('ram') }}" placeholder="e.g. 6GB"></div>
+            <div class="col-md-4"><label class="form-label">Stock Quantity (blank = unlimited)</label><input type="number" min="0" class="form-control" name="stock_quantity" value="{{ old('stock_quantity') }}"></div>
             <div class="col-md-6"><label class="form-label">Price (₹)</label><input type="number" step="0.01" min="0" class="form-control" name="price" value="{{ old('price') }}" required></div>
-            <div class="col-md-6"><label class="form-label">Stock Quantity (leave blank = unlimited)</label><input type="number" min="0" class="form-control" name="stock_quantity" value="{{ old('stock_quantity') }}"></div>
+            <div class="col-md-6"><label class="form-label">Down Payment (₹, optional — enables EMI financing)</label><input type="number" step="0.01" min="0" class="form-control" name="down_payment" value="{{ old('down_payment') }}"></div>
             <div class="col-12"><label class="form-label">Description</label><textarea class="form-control" name="description" rows="3">{{ old('description') }}</textarea></div>
-            <div class="col-md-8"><label class="form-label">Image</label><input type="file" class="form-control" name="image" accept="image/*"></div>
+            <div class="col-md-8"><label class="form-label">Photos (up to 4)</label><input type="file" class="form-control" name="images[]" accept="image/*" multiple></div>
             <div class="col-md-4 d-flex align-items-end"><div class="form-check"><input class="form-check-input" type="checkbox" name="is_active" value="1" id="prodActiveNew" checked><label class="form-check-label" for="prodActiveNew">Active</label></div></div>
+            <div class="col-12"><label class="form-label">Video Link (optional — YouTube, etc.)</label><input type="url" class="form-control" name="video_url" value="{{ old('video_url') }}" placeholder="https://..."></div>
           </div>
         </div>
         <div class="modal-footer">

@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\EmiCalculatorController;
+use App\Http\Controllers\Admin\LoanApprovalController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\PaymentSettingController;
 use App\Http\Controllers\Admin\PaymentVerificationController;
@@ -10,7 +12,9 @@ use App\Http\Controllers\Admin\ShopOwnerController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CustomerPanel\CartController;
 use App\Http\Controllers\CustomerPanel\DocumentController as CustomerDocumentController;
+use App\Http\Controllers\CustomerPanel\FavouriteController;
 use App\Http\Controllers\CustomerPanel\HelplineController;
 use App\Http\Controllers\CustomerPanel\HomeController as CustomerHomeController;
 use App\Http\Controllers\CustomerPanel\LoanController as CustomerLoanController;
@@ -25,6 +29,7 @@ use App\Http\Controllers\InstallController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\MarketingController;
 use App\Http\Controllers\PublicRegistrationController;
+use App\Http\Controllers\QuickLoginController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -57,6 +62,22 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/register/shop-owner', [PublicRegistrationController::class, 'create'])->name('shop-owner.register');
     Route::post('/register/shop-owner', [PublicRegistrationController::class, 'store'])->name('shop-owner.register.submit');
+
+    // Quick PIN login (identifies the user via a per-device cookie set
+    // during setup, so this stays inside the guest group).
+    Route::post('/quick-login/verify', [QuickLoginController::class, 'verifyPin'])->name('quick-login.verify');
+});
+
+// "Forget this device" just clears a cookie -- useful both from the login
+// screen (guest) and from an already-authenticated user's own profile, so
+// it deliberately carries no auth-state middleware.
+Route::post('/quick-login/forget', [QuickLoginController::class, 'forget'])->name('quick-login.forget');
+
+Route::middleware('auth')->prefix('quick-login')->name('quick-login.')->group(function () {
+    Route::get('/setup', [QuickLoginController::class, 'setupPrompt'])->name('setup');
+    Route::post('/setup', [QuickLoginController::class, 'storePin'])->name('setup.store');
+    Route::post('/skip', [QuickLoginController::class, 'skip'])->name('skip');
+    Route::post('/disable', [QuickLoginController::class, 'disable'])->name('disable');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
@@ -67,7 +88,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
 
     Route::get('/loans/{loan}/documents/{type}', [DocumentController::class, 'show'])
-        ->whereIn('type', ['welcome_letter', 'sanction_letter'])
+        ->whereIn('type', ['welcome_letter', 'sanction_letter', 'noc'])
         ->name('documents.show');
 });
 
@@ -91,6 +112,7 @@ Route::middleware(['auth', 'role:admin,shop_owner'])->group(function () {
     // Active loans
     Route::get('/admin/active-loans', [LoanController::class, 'index'])->name('admin.loans.index');
     Route::get('/shop-owner/active-loans', [LoanController::class, 'index'])->name('shopowner.loans.index');
+    Route::post('/loans/{loan}/foreclose', [LoanController::class, 'foreclose'])->name('loans.foreclose');
 
     // Shop Owner's own EMI list (all EMIs across their customers)
     Route::get('/shop-owner/emi-list', [EmiController::class, 'index'])->name('shopowner.emis.index');
@@ -99,7 +121,7 @@ Route::middleware(['auth', 'role:admin,shop_owner'])->group(function () {
     Route::get('/admin/documents', [DocumentController::class, 'index'])->name('admin.documents.index');
     Route::get('/shop-owner/documents', [DocumentController::class, 'index'])->name('shopowner.documents.index');
     Route::post('/loans/{loan}/documents/{type}/signed', [DocumentController::class, 'storeSigned'])
-        ->whereIn('type', ['welcome_letter', 'sanction_letter'])
+        ->whereIn('type', ['welcome_letter', 'sanction_letter', 'noc'])
         ->name('documents.signed.store');
 });
 
@@ -115,6 +137,13 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/shop-owners/{shopOwner}/approve', [ShopOwnerController::class, 'approve'])->name('shop-owners.approve');
     Route::post('/shop-owners/{shopOwner}/reject', [ShopOwnerController::class, 'reject'])->name('shop-owners.reject');
     Route::post('/shop-owners/{shopOwner}/suspend', [ShopOwnerController::class, 'suspend'])->name('shop-owners.suspend');
+
+    Route::get('/loan-approvals', [LoanApprovalController::class, 'index'])->name('loan-approvals.index');
+    Route::get('/loan-approvals/{loan}', [LoanApprovalController::class, 'show'])->name('loan-approvals.show');
+    Route::post('/loan-approvals/{loan}/approve', [LoanApprovalController::class, 'approve'])->name('loan-approvals.approve');
+    Route::post('/loan-approvals/{loan}/reject', [LoanApprovalController::class, 'reject'])->name('loan-approvals.reject');
+
+    Route::get('/emi-calculator', [EmiCalculatorController::class, 'index'])->name('emi-calculator');
 
     Route::get('/payment-verification', [PaymentVerificationController::class, 'index'])->name('payment-verification.index');
     Route::get('/payment-verification/{paymentSubmission}', [PaymentVerificationController::class, 'show'])->name('payment-verification.show');
@@ -160,11 +189,20 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::post('/pay', [CustomerPaymentController::class, 'store'])->name('pay.store');
     Route::get('/documents', [CustomerDocumentController::class, 'index'])->name('documents');
     Route::get('/profile', [CustomerProfileController::class, 'index'])->name('profile');
+    Route::post('/profile/photo', [CustomerProfileController::class, 'updatePhoto'])->name('profile.photo');
 
-    // Products / Buy Now / Orders
+    // Products (browse, search/filter) + Cart + Favourites + Orders
     Route::get('/products', [CustomerProductController::class, 'index'])->name('products.index');
     Route::get('/products/{product}', [CustomerProductController::class, 'show'])->name('products.show');
-    Route::post('/products/{product}/buy-now', [CustomerProductController::class, 'buyNow'])->name('products.buy-now');
+
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+    Route::post('/cart/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
+    Route::post('/cart/items/{cartItem}', [CartController::class, 'updateQuantity'])->name('cart.update');
+    Route::delete('/cart/items/{cartItem}', [CartController::class, 'remove'])->name('cart.remove');
+    Route::post('/cart/{product}', [CartController::class, 'add'])->name('cart.add');
+
+    Route::post('/favourites/{product}/toggle', [FavouriteController::class, 'toggle'])->name('favourites.toggle');
+    Route::get('/favourites', [FavouriteController::class, 'index'])->name('favourites.index');
 
     Route::get('/orders', [CustomerOrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [CustomerOrderController::class, 'show'])->name('orders.show');

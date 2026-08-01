@@ -4,16 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
     protected $fillable = [
         'order_no',
         'customer_id',
-        'product_id',
-        'quantity',
-        'unit_price',
+        'loan_id',
         'total_amount',
+        'down_payment_amount',
         'delivery_address',
         'payment_method',
         'payment_status',
@@ -26,8 +26,8 @@ class Order extends Model
     protected function casts(): array
     {
         return [
-            'unit_price' => 'decimal:2',
             'total_amount' => 'decimal:2',
+            'down_payment_amount' => 'decimal:2',
         ];
     }
 
@@ -36,8 +36,13 @@ class Order extends Model
         return $this->belongsTo(Customer::class);
     }
 
-    public function product(): BelongsTo
+    public function loan(): BelongsTo
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Loan::class);
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
     }
 }

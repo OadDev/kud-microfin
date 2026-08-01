@@ -24,22 +24,29 @@ class DashboardController extends Controller
             ? Customer::with('user')->latest('id')->take(5)->get()
             : Customer::with('user')->where('shop_owner_id', $user->shopOwner->id)->latest('id')->take(5)->get();
 
-        $upcomingEmis = $loans->flatMap(function (Loan $loan) {
+        // Pending-approval loans have a full EMI schedule generated for
+        // Admin to review, but aren't a real financial obligation yet --
+        // exclude them (and rejected ones) from money stats and the
+        // upcoming-EMI list.
+        $financialLoans = $loans->whereNotIn('status', ['pending', 'rejected']);
+
+        $upcomingEmis = $financialLoans->flatMap(function (Loan $loan) {
             return $loan->emis->filter(fn ($emi) => in_array($emi->displayStatus(), ['Upcoming', 'Due Today']))
                 ->map(fn ($emi) => (object) ['emi' => $emi, 'loan' => $loan]);
         })->sortBy(fn ($row) => $row->emi->due_date)->take(6);
 
-        $emiCollected = $loans->sum(fn (Loan $loan) => $loan->amountPaid());
-        $totalOutstanding = $loans->sum(fn (Loan $loan) => $loan->outstanding());
-        $overdueEmis = $loans->sum(fn (Loan $loan) => $loan->emis->filter(fn ($e) => $e->displayStatus() === 'Overdue')->count());
+        $emiCollected = $financialLoans->sum(fn (Loan $loan) => $loan->amountPaid());
+        $totalOutstanding = $financialLoans->sum(fn (Loan $loan) => $loan->outstanding());
+        $overdueEmis = $financialLoans->sum(fn (Loan $loan) => $loan->emis->filter(fn ($e) => $e->displayStatus() === 'Overdue')->count());
         $activeLoans = $loans->whereIn('status', ['active', 'overdue'])->count();
+        $pendingApprovals = $loans->where('status', 'pending')->count();
 
         $chartLabels = [];
         $chartData = [];
         for ($i = 5; $i >= 0; $i--) {
             $month = now()->subMonthsNoOverflow($i);
             $chartLabels[] = $month->format('M');
-            $chartData[] = (int) $loans->flatMap->emis
+            $chartData[] = (int) $financialLoans->flatMap->emis
                 ->where('status', 'paid')
                 ->filter(fn ($e) => $e->payment_date && $e->payment_date->isSameMonth($month) && $e->payment_date->isSameYear($month))
                 ->sum('amount');
@@ -58,6 +65,7 @@ class DashboardController extends Controller
                 'emi_collected' => $emiCollected,
                 'pending_verifications' => $pendingVerifications->count(),
                 'overdue_emis' => $overdueEmis,
+                'pending_loan_approvals' => $pendingApprovals,
             ];
 
             return view('shared.dashboard', [
@@ -78,9 +86,10 @@ class DashboardController extends Controller
             'total_customers' => Customer::where('shop_owner_id', $user->shopOwner->id)->count(),
             'active_loans' => $activeLoans,
             'emi_collected' => $emiCollected,
-            'pending_emi' => $loans->sum(fn (Loan $loan) => $loan->emis->filter(fn ($e) => in_array($e->displayStatus(), ['Upcoming', 'Due Today']))->count()),
+            'pending_emi' => $financialLoans->sum(fn (Loan $loan) => $loan->emis->filter(fn ($e) => in_array($e->displayStatus(), ['Upcoming', 'Due Today']))->count()),
             'overdue_emi' => $overdueEmis,
             'pending_documents' => $pendingDocs,
+            'pending_loan_approvals' => $pendingApprovals,
         ];
 
         return view('shared.dashboard', [

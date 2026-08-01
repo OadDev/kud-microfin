@@ -11,15 +11,22 @@
   </div>
 
   <div class="dc-row"><span class="text-muted-fin">Customer</span><span>{{ $order->customer->user->name }} ({{ $order->customer->user->mobile }})</span></div>
-  <div class="dc-row"><span class="text-muted-fin">Product</span><span>{{ $order->product->name }}</span></div>
-  <div class="dc-row"><span class="text-muted-fin">Quantity</span><span>{{ $order->quantity }}</span></div>
-  <div class="dc-row"><span class="text-muted-fin">Unit Price</span><span>₹{{ number_format($order->unit_price, 2) }}</span></div>
+  @foreach($order->items as $item)
+    <div class="dc-row"><span class="text-muted-fin">{{ $item->product->name ?? 'Product' }}</span><span>{{ $item->quantity }} × ₹{{ number_format($item->unit_price, 2) }}</span></div>
+  @endforeach
+  @if($order->down_payment_amount)
+    <div class="dc-row"><span class="text-muted-fin">Down Payment</span><span>₹{{ number_format($order->down_payment_amount, 2) }}</span></div>
+  @endif
   <div class="dc-row"><span class="text-muted-fin">Total Amount</span><span class="fw-bold">₹{{ number_format($order->total_amount, 2) }}</span></div>
-  <div class="dc-row"><span class="text-muted-fin">Payment Method</span><span>{{ strtoupper($order->payment_method) }}</span></div>
+  <div class="dc-row"><span class="text-muted-fin">Payment Method</span><span>{{ $order->payment_method === 'emi_financing' ? 'EMI Financing' : strtoupper($order->payment_method) }}</span></div>
   <div class="dc-row"><span class="text-muted-fin">Payment Status</span><x-status-badge :status="ucfirst($order->payment_status)" /></div>
   <div class="dc-row"><span class="text-muted-fin">Delivery Address</span><span class="text-end" style="max-width:60%;">{{ $order->delivery_address }}</span></div>
   @if($order->razorpay_payment_id)
     <div class="dc-row"><span class="text-muted-fin">Razorpay Payment ID</span><span>{{ $order->razorpay_payment_id }}</span></div>
+  @endif
+
+  @if($order->loan)
+    <div class="dc-row"><span class="text-muted-fin">Financing Loan</span><span><a href="{{ route('admin.loan-approvals.show', $order->loan) }}">{{ $order->loan->loan_account_no }} — {{ ucfirst($order->loan->status) }}</a></span></div>
   @endif
 
   <hr>

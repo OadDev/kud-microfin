@@ -151,7 +151,7 @@ class CustomerController extends Controller
                 'late_fee' => $data['late_fee'] ?? 200,
                 'start_date' => $data['start_date'],
                 'first_due_date' => $data['first_due_date'],
-                'status' => 'active',
+                'status' => 'pending',
             ]);
 
             EmiScheduleService::generate($loan);

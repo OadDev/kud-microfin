@@ -15,14 +15,14 @@ class OrderController extends Controller
 
         return view('customer.orders.index', [
             'title' => 'My Orders', 'active' => 'products',
-            'orders' => $customer->orders()->with('product')->latest('id')->get(),
+            'orders' => $customer->orders()->with('items.product')->latest('id')->get(),
         ]);
     }
 
     public function show(Request $request, Order $order): View
     {
         abort_unless($order->customer_id === $request->user()->customer->id, 403);
-        $order->load('product');
+        $order->load('items.product', 'loan');
 
         return view('customer.orders.show', [
             'title' => 'Order '.$order->order_no, 'active' => 'products',

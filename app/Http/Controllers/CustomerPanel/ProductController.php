@@ -3,16 +3,15 @@
 namespace App\Http\Controllers\CustomerPanel;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Models\Category;
 use App\Models\Order;
 use App\Models\PaymentSetting;
 use App\Models\Product;
-use App\Services\CodeGenerator;
 use App\Services\RazorpayService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class ProductController extends Controller
@@ -27,76 +26,58 @@ class ProductController extends Controller
         if ($search = $request->query('search')) {
             $query->where('name', 'like', "%{$search}%");
         }
+        if ($brand = $request->query('brand')) {
+            $query->where('brand', $brand);
+        }
+        if ($storage = $request->query('storage')) {
+            $query->where('storage', $storage);
+        }
+        if ($ram = $request->query('ram')) {
+            $query->where('ram', $ram);
+        }
+        if ($network = $request->query('network')) {
+            $query->where('network_type', $network);
+        }
+        if ($priceMax = $request->query('price_max')) {
+            $query->where('price', '<=', (float) $priceMax);
+        }
+        if ($request->query('financeable')) {
+            $query->whereNotNull('down_payment');
+        }
+
+        $products = $query->orderBy('name')->get();
+
+        if ($downMax = $request->query('down_payment_max')) {
+            $products = $products->filter(fn (Product $p) => $p->down_payment !== null && (float) $p->down_payment <= (float) $downMax);
+        }
+        if ($emiMax = $request->query('emi_max')) {
+            $products = $products->filter(fn (Product $p) => $p->referenceMonthlyEmi() !== null && $p->referenceMonthlyEmi() <= (float) $emiMax);
+        }
 
         return view('customer.products.index', [
             'title' => 'Shop', 'active' => 'products',
-            'products' => $query->orderBy('name')->get(),
+            'products' => $products->values(),
             'categories' => Category::where('is_active', true)->orderBy('name')->get(),
-            'selectedCategory' => $categoryId,
-            'search' => $search ?? '',
+            'brands' => AdminProductController::BRANDS,
+            'storages' => Product::whereNotNull('storage')->distinct()->orderBy('storage')->pluck('storage'),
+            'rams' => Product::whereNotNull('ram')->distinct()->orderBy('ram')->pluck('ram'),
+            'filters' => $request->only(['category', 'search', 'brand', 'storage', 'ram', 'network', 'price_max', 'down_payment_max', 'emi_max', 'financeable']),
+            'favouriteIds' => $request->user()->customer->favourites()->pluck('product_id')->all(),
         ]);
     }
 
     public function show(Product $product): View
     {
         abort_unless($product->is_active, 404);
+        $product->load('images', 'category');
 
         return view('customer.products.show', [
             'title' => $product->name, 'active' => 'products',
             'product' => $product,
             'razorpayEnabled' => PaymentSetting::current()->razorpayEnabled(),
+            'inCart' => request()->user()->customer->cartItems()->where('product_id', $product->id)->exists(),
+            'isFavourite' => request()->user()->customer->favourites()->where('product_id', $product->id)->exists(),
         ]);
-    }
-
-    public function buyNow(Request $request, Product $product): RedirectResponse
-    {
-        abort_unless($product->is_active, 404);
-
-        $data = $request->validate([
-            'quantity' => ['required', 'integer', 'min:1'],
-            'delivery_address' => ['required', 'string', 'max:1000'],
-            'payment_method' => ['required', 'in:cod,razorpay'],
-        ]);
-
-        if ($product->stock_quantity !== null && $data['quantity'] > $product->stock_quantity) {
-            return back()->withInput()->with('error', 'Only '.$product->stock_quantity.' unit(s) left in stock.');
-        }
-
-        if ($data['payment_method'] === 'razorpay' && ! PaymentSetting::current()->razorpayEnabled()) {
-            return back()->withInput()->with('error', 'Online payment is not available right now — please choose Cash on Delivery.');
-        }
-
-        $customer = $request->user()->customer;
-        $totalAmount = $product->price * $data['quantity'];
-
-        $order = DB::transaction(function () use ($product, $customer, $data, $totalAmount) {
-            $order = Order::create([
-                'order_no' => CodeGenerator::nextOrderNo(),
-                'customer_id' => $customer->id,
-                'product_id' => $product->id,
-                'quantity' => $data['quantity'],
-                'unit_price' => $product->price,
-                'total_amount' => $totalAmount,
-                'delivery_address' => $data['delivery_address'],
-                'payment_method' => $data['payment_method'],
-                'payment_status' => 'pending',
-                'status' => 'pending',
-            ]);
-
-            if ($product->stock_quantity !== null) {
-                $product->decrement('stock_quantity', $data['quantity']);
-            }
-
-            return $order;
-        });
-
-        if ($data['payment_method'] === 'cod') {
-            return redirect()->route('customer.orders.show', $order)
-                ->with('success', 'Order placed successfully! Pay cash on delivery.');
-        }
-
-        // Razorpay: hand off to the checkout page, which opens Checkout.js.
-        return redirect()->route('customer.orders.pay', $order);
     }
 
     public function pay(Order $order, RazorpayService $razorpay): View|RedirectResponse
@@ -105,6 +86,7 @@ class ProductController extends Controller
         abort_unless($order->payment_method === 'razorpay', 404);
         abort_if($order->payment_status === 'paid', 404);
 
+        $order->load('items.product');
         $settings = PaymentSetting::current();
 
         if (! $order->razorpay_order_id) {

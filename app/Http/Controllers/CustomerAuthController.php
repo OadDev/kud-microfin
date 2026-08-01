@@ -57,6 +57,10 @@ class CustomerAuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
+        if (! $user->hasPinEnabled()) {
+            return redirect()->route('quick-login.setup');
+        }
+
         return redirect()->route('customer.home');
     }
 }

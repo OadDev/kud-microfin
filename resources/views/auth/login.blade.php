@@ -10,7 +10,24 @@
       <div class="page-sub">Microfinance Management Platform</div>
     </div>
 
-    @if($mode === 'password')
+    @if($quickLoginUser)
+      <form method="POST" action="{{ route('quick-login.verify') }}">
+        @csrf
+        <input type="hidden" name="user_id" value="{{ $quickLoginUser->id }}">
+        <div class="text-center mb-3">
+          <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center mx-auto mb-2" style="width:56px;height:56px;font-size:1.4rem;"><i class="fa-solid fa-user"></i></div>
+          <div class="fw-semibold">Welcome back, {{ $quickLoginUser->name }}</div>
+        </div>
+        <label class="form-label">Enter your PIN</label>
+        <input type="password" inputmode="numeric" name="pin" maxlength="6" class="form-control otp-box mb-1 @error('pin') is-invalid @enderror" placeholder="••••" autofocus>
+        @error('pin')<div class="invalid-feedback">{{ $message }}</div>@enderror
+        <button class="btn btn-primary-fin w-100 mt-3 mb-2" type="submit"><i class="fa-solid fa-unlock me-1"></i> Unlock</button>
+      </form>
+      <form method="POST" action="{{ route('quick-login.forget') }}">
+        @csrf
+        <button class="btn btn-link w-100 small-note" type="submit">Not you? Use a different account</button>
+      </form>
+    @elseif($mode === 'password')
       <form method="POST" action="{{ route('login.submit') }}">
         @csrf
         <div class="mb-3">

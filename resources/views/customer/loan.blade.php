@@ -1,7 +1,25 @@
 @php $outstanding = $loan ? $loan->outstanding() : 0; @endphp
 <x-customer-layout :title="$title" :active="$active">
 
-@if($loan)
+@if($loan?->status === 'pending')
+<div class="card-flat p-4 text-center mb-3">
+  <i class="fa-solid fa-hourglass-half text-warning" style="font-size:2.4rem;"></i>
+  <h6 class="fw-bold mt-3">Loan Application Under Review</h6>
+  <div class="small-note">Your loan is being reviewed by our team. You'll be notified once it's approved.</div>
+</div>
+@elseif($loan?->status === 'rejected')
+<div class="card-flat p-4 text-center mb-3">
+  <i class="fa-solid fa-circle-xmark text-danger" style="font-size:2.4rem;"></i>
+  <h6 class="fw-bold mt-3">Loan Application Rejected</h6>
+  @if($loan->reject_reason)<div class="small-note">Reason: {{ $loan->reject_reason }}</div>@endif
+  <div class="small-note mt-1">Contact your Shop Owner or our Helpline for more details.</div>
+</div>
+@endif
+
+@if($loan && !in_array($loan->status, ['pending', 'rejected']))
+@if($loan->status === 'foreclosed')
+  <div class="alert alert-info mb-3" style="font-size:.85rem;"><i class="fa-solid fa-circle-check me-1"></i>This loan was foreclosed on {{ $loan->foreclosed_at->format('d/m/Y') }} — fully settled.</div>
+@endif
 <div class="card-flat p-3 mb-3">
   <div class="section-title mb-2">Loan Details</div>
   <div class="dc-row"><span class="text-muted-fin">Loan Account No.</span><span class="fw-semibold">{{ $loan->loan_account_no }}</span></div>
@@ -27,7 +45,7 @@
     </div>
   @endforeach
 </div>
-@else
+@elseif(! $loan)
 <div class="card-flat p-4 text-center"><div class="small-note">No loan found on your account.</div></div>
 @endif
 </x-customer-layout>

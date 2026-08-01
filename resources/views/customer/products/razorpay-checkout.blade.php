@@ -3,7 +3,9 @@
 <div class="card-flat p-3 mb-3">
   <div class="section-title mb-2">Order Summary</div>
   <div class="dc-row"><span class="text-muted-fin">Order No.</span><span>{{ $order->order_no }}</span></div>
-  <div class="dc-row"><span class="text-muted-fin">Product</span><span>{{ $order->product->name }} × {{ $order->quantity }}</span></div>
+  @foreach($order->items as $item)
+    <div class="dc-row"><span class="text-muted-fin">{{ $item->product->name ?? 'Product' }}</span><span>× {{ $item->quantity }}</span></div>
+  @endforeach
   <div class="dc-row"><span class="text-muted-fin fw-semibold">Amount to Pay</span><span class="fw-bold">₹{{ number_format($order->total_amount, 2) }}</span></div>
 </div>
 

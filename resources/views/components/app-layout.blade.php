@@ -33,6 +33,9 @@
         <a class="nav-link {{ ($active ?? '') === 'customers' ? 'active' : '' }}" href="{{ route('admin.customers.index') }}"><i class="fa-solid fa-users"></i> Customers</a>
         <a class="nav-link {{ ($active ?? '') === 'create-customer' ? 'active' : '' }}" href="{{ route('admin.customers.create') }}"><i class="fa-solid fa-user-plus"></i> Create Customer</a>
         <a class="nav-link {{ ($active ?? '') === 'active-loans' ? 'active' : '' }}" href="{{ route('admin.loans.index') }}"><i class="fa-solid fa-file-invoice-dollar"></i> Active Loans</a>
+        <a class="nav-link {{ ($active ?? '') === 'overdue-customers' ? 'active' : '' }}" href="{{ route('admin.customers.index', ['status' => 'overdue']) }}"><i class="fa-solid fa-triangle-exclamation"></i> Overdue Customers</a>
+        <a class="nav-link {{ ($active ?? '') === 'loan-approvals' ? 'active' : '' }}" href="{{ route('admin.loan-approvals.index') }}"><i class="fa-solid fa-file-signature"></i> Loan Approvals</a>
+        <a class="nav-link {{ ($active ?? '') === 'emi-calculator' ? 'active' : '' }}" href="{{ route('admin.emi-calculator') }}"><i class="fa-solid fa-calculator"></i> EMI Calculator</a>
         <a class="nav-link {{ ($active ?? '') === 'payment-verification' ? 'active' : '' }}" href="{{ route('admin.payment-verification.index') }}"><i class="fa-solid fa-magnifying-glass-dollar"></i> Payment Verification</a>
         <a class="nav-link {{ ($active ?? '') === 'payment-settings' ? 'active' : '' }}" href="{{ route('admin.payment-settings.edit') }}"><i class="fa-solid fa-gear"></i> Payment Settings</a>
         <a class="nav-link {{ ($active ?? '') === 'documents' ? 'active' : '' }}" href="{{ route('admin.documents.index') }}"><i class="fa-solid fa-file-lines"></i> Documents</a>

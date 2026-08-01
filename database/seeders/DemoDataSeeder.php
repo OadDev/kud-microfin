@@ -180,6 +180,7 @@ class DemoDataSeeder extends Seeder
         $mobiles = Category::create(['name' => 'Mobiles', 'is_active' => true]);
 
         Product::create(['category_id' => $mobiles->id, 'name' => 'Smartphone 128GB', 'description' => 'Dual SIM, 6.5" display, 5000mAh battery.', 'price' => 12999, 'stock_quantity' => 25, 'is_active' => true]);
+        Product::create(['category_id' => $mobiles->id, 'brand' => 'Samsung', 'name' => 'Galaxy M14 5G', 'description' => '6.6" display, 50MP camera, 6000mAh battery.', 'price' => 15999, 'down_payment' => 2999, 'storage' => '128GB', 'ram' => '6GB', 'network_type' => '5G', 'stock_quantity' => 15, 'is_active' => true]);
         Product::create(['category_id' => $electronics->id, 'name' => 'LED Television 32"', 'description' => 'HD Ready Smart TV with built-in apps.', 'price' => 10999, 'stock_quantity' => 10, 'is_active' => true]);
         Product::create(['category_id' => $household->id, 'name' => 'Mixer Grinder 750W', 'description' => '3-jar mixer grinder with 2-year warranty.', 'price' => 2499, 'stock_quantity' => 40, 'is_active' => true]);
         Product::create(['category_id' => $household->id, 'name' => 'Pressure Cooker 5L', 'description' => 'Stainless steel, induction compatible.', 'price' => 1799, 'stock_quantity' => null, 'is_active' => true]);

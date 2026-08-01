@@ -12,26 +12,28 @@ use Illuminate\View\View;
 
 class ProductController extends Controller
 {
+    /** Fixed brand list requested for the Shop's filter sidebar. */
+    const BRANDS = ['Apple', 'Samsung', 'Xiaomi', 'Vivo', 'Oppo', 'Realme', 'Motorola', 'Infinix', 'Tecno', 'Poco'];
+
     public function index(): View
     {
         return view('admin.products.index', [
             'title' => 'Products', 'active' => 'products',
-            'products' => Product::with('category')->orderByDesc('id')->get(),
+            'products' => Product::with('category', 'images')->orderByDesc('id')->get(),
             'categories' => Category::orderBy('name')->get(),
+            'brands' => self::BRANDS,
         ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
         $data = $this->validated($request);
-
-        if ($request->hasFile('image')) {
-            $data['image_path'] = $request->file('image')->store('products', 'public');
-        }
-        unset($data['image']);
+        $images = $data['images'] ?? [];
+        unset($data['images']);
         $data['is_active'] = $request->boolean('is_active');
 
-        Product::create($data);
+        $product = Product::create($data);
+        $this->syncImages($product, $images);
 
         return back()->with('success', 'Product added successfully.');
     }
@@ -39,27 +41,28 @@ class ProductController extends Controller
     public function update(Request $request, Product $product): RedirectResponse
     {
         $data = $this->validated($request);
-
-        if ($request->hasFile('image')) {
-            if ($product->image_path) {
-                Storage::disk('public')->delete($product->image_path);
-            }
-            $data['image_path'] = $request->file('image')->store('products', 'public');
-        }
-        unset($data['image']);
+        $images = $data['images'] ?? [];
+        unset($data['images']);
         $data['is_active'] = $request->boolean('is_active');
 
         $product->update($data);
+
+        if (! empty($images)) {
+            $this->syncImages($product, $images);
+        }
 
         return back()->with('success', 'Product updated successfully.');
     }
 
     public function destroy(Product $product): RedirectResponse
     {
-        if ($product->orders()->exists()) {
+        if ($product->orderItems()->exists()) {
             return back()->with('error', 'Cannot delete a product that already has orders. Mark it inactive instead.');
         }
 
+        foreach ($product->images as $image) {
+            Storage::disk('public')->delete($image->path);
+        }
         if ($product->image_path) {
             Storage::disk('public')->delete($product->image_path);
         }
@@ -68,15 +71,49 @@ class ProductController extends Controller
         return back()->with('success', 'Product removed successfully.');
     }
 
+    /**
+     * Replaces the product's image set (max 4) and keeps image_path in
+     * sync as the first one, since older views/order records reference
+     * that single column directly.
+     */
+    protected function syncImages(Product $product, array $images): void
+    {
+        foreach ($product->images as $existing) {
+            Storage::disk('public')->delete($existing->path);
+        }
+        $product->images()->delete();
+
+        $paths = [];
+        foreach (array_slice($images, 0, 4) as $i => $file) {
+            $path = $file->store('products', 'public');
+            $paths[] = $path;
+            $product->images()->create(['path' => $path, 'sort_order' => $i]);
+        }
+
+        if ($paths) {
+            if ($product->image_path && ! in_array($product->image_path, $paths, true)) {
+                Storage::disk('public')->delete($product->image_path);
+            }
+            $product->update(['image_path' => $paths[0]]);
+        }
+    }
+
     protected function validated(Request $request): array
     {
         return $request->validate([
             'category_id' => ['nullable', 'exists:categories,id'],
+            'brand' => ['nullable', 'string', 'max:255'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'price' => ['required', 'numeric', 'min:0'],
+            'down_payment' => ['nullable', 'numeric', 'min:0', 'lt:price'],
+            'storage' => ['nullable', 'string', 'max:50'],
+            'ram' => ['nullable', 'string', 'max:50'],
+            'network_type' => ['nullable', 'in:3G,4G,5G,4G_5G'],
             'stock_quantity' => ['nullable', 'integer', 'min:0'],
-            'image' => ['nullable', 'image', 'max:4096'],
+            'images' => ['nullable', 'array', 'max:4'],
+            'images.*' => ['image', 'max:4096'],
+            'video_url' => ['nullable', 'url', 'max:255'],
             'is_active' => ['nullable', 'boolean'],
         ]);
     }

@@ -12,7 +12,7 @@ class OrderController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = Order::with(['customer.user', 'product'])->latest('id');
+        $query = Order::with(['customer.user', 'items.product'])->latest('id');
 
         if ($status = $request->query('status')) {
             $query->where('status', $status);
@@ -27,7 +27,7 @@ class OrderController extends Controller
 
     public function show(Order $order): View
     {
-        $order->load(['customer.user', 'product']);
+        $order->load(['customer.user', 'items.product', 'loan']);
 
         return view('admin.orders.show', [
             'title' => 'Order '.$order->order_no, 'active' => 'orders',

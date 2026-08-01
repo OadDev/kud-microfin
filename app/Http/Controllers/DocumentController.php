@@ -30,6 +30,10 @@ class DocumentController extends Controller
     {
         $this->authorizeAccess($request, $loan);
 
+        if ($type === 'noc') {
+            abort_unless(in_array($loan->status, ['closed', 'foreclosed'], true), 404, 'A No Objection Certificate is only available once the loan is fully closed.');
+        }
+
         $document = Document::firstOrCreate(
             ['loan_id' => $loan->id, 'type' => $type],
             ['generated_at' => now()]
@@ -40,7 +44,13 @@ class DocumentController extends Controller
 
         $loan->load('customer.user', 'customer.shopOwner', 'shopOwner.user');
 
-        return view('documents.'.($type === 'welcome_letter' ? 'welcome-letter' : 'sanction-letter'), [
+        $view = match ($type) {
+            'welcome_letter' => 'welcome-letter',
+            'noc' => 'noc',
+            default => 'sanction-letter',
+        };
+
+        return view('documents.'.$view, [
             'loan' => $loan,
             'document' => $document,
             'canUploadSigned' => $request->user()->isAdmin() || $request->user()->isShopOwner(),

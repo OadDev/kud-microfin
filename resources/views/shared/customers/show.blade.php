@@ -22,6 +22,22 @@
     </div>
     <x-status-badge :status="ucfirst($loan?->status ?? 'active')" />
   </div>
+
+  @if($loan?->status === 'pending')
+    <div class="alert alert-warning mt-3 mb-0" style="font-size:.85rem;"><i class="fa-solid fa-hourglass-half me-1"></i>This loan is awaiting Admin approval.</div>
+  @elseif($loan?->status === 'rejected')
+    <div class="alert alert-danger mt-3 mb-0" style="font-size:.85rem;"><i class="fa-solid fa-xmark me-1"></i>This loan was rejected.@if($loan->reject_reason) Reason: {{ $loan->reject_reason }}@endif</div>
+  @elseif($loan?->status === 'foreclosed')
+    <div class="alert alert-info mt-3 mb-0" style="font-size:.85rem;"><i class="fa-solid fa-circle-check me-1"></i>This loan was foreclosed on {{ $loan->foreclosed_at->format('d/m/Y') }} (₹{{ number_format($loan->foreclosure_amount, 2) }} settled).</div>
+  @endif
+
+  @if($loan && in_array($loan->status, ['active', 'overdue']))
+    <form method="POST" action="{{ route('loans.foreclose', $loan) }}" class="mt-3">
+      @csrf
+      <button class="btn btn-outline-fin btn-sm" type="submit" data-confirm="Foreclose this loan? The customer will need to pay the full outstanding balance of ₹{{ number_format($loan->foreclosureQuote(), 2) }} now, and the loan will close immediately." data-confirm-class="btn-primary-fin"><i class="fa-solid fa-flag-checkered me-1"></i>Foreclose Loan (₹{{ number_format($loan->foreclosureQuote(), 2) }})</button>
+    </form>
+  @endif
+
   <div class="row g-3 mt-1">
     <div class="col-6 col-md-3"><div class="small-note">Principal Amount</div><div class="fw-bold">₹{{ number_format($loan?->principal ?? 0) }}</div></div>
     <div class="col-6 col-md-3"><div class="small-note">Total Payable</div><div class="fw-bold">₹{{ number_format($loan?->total_payable ?? 0) }}</div></div>
@@ -119,6 +135,11 @@
   <div class="row g-3">
     <x-document-card label="Welcome Letter" icon="fa-envelope-open-text" :loan="$loan" type="welcome_letter" :previewable="true" />
     <x-document-card label="Loan Sanction Letter" icon="fa-file-signature" :loan="$loan" type="sanction_letter" :previewable="true" />
+    @if($loan && in_array($loan->status, ['closed', 'foreclosed']))
+      <x-document-card label="No Objection Certificate (NOC)" icon="fa-file-shield" :loan="$loan" type="noc" :previewable="true" />
+    @else
+      <x-document-card label="No Objection Certificate (NOC)" icon="fa-file-shield" />
+    @endif
     <x-document-card label="EMI Schedule" icon="fa-calendar-check" />
     <x-document-card label="Payment Receipts" icon="fa-receipt" />
     <x-document-card label="Customer Statement" icon="fa-file-lines" />

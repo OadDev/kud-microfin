@@ -28,11 +28,11 @@
       <tr>
         <td class="fw-semibold">{{ $o->order_no }}</td>
         <td>{{ $o->customer->user->name }}</td>
-        <td>{{ $o->product->name }}</td>
-        <td>{{ $o->quantity }}</td>
+        <td>{{ $o->items->pluck('product.name')->filter()->join(', ') ?: '-' }}</td>
+        <td>{{ $o->items->sum('quantity') }}</td>
         <td>₹{{ number_format($o->total_amount, 2) }}</td>
         <td>
-          {{ strtoupper($o->payment_method) }}
+          {{ $o->payment_method === 'emi_financing' ? 'EMI FINANCING' : strtoupper($o->payment_method) }}
           <x-status-badge :status="ucfirst($o->payment_status)" />
         </td>
         <td><x-status-badge :status="ucfirst($o->status)" /></td>
@@ -50,9 +50,9 @@
   @forelse($orders as $o)
     <div class="data-card">
       <div class="dc-head"><div><div class="fw-bold">{{ $o->order_no }}</div><div class="small-note">{{ $o->customer->user->name }}</div></div><x-status-badge :status="ucfirst($o->status)" /></div>
-      <div class="dc-row"><span class="dc-label">Product</span><span>{{ $o->product->name }} × {{ $o->quantity }}</span></div>
+      <div class="dc-row"><span class="dc-label">Product</span><span>{{ $o->items->pluck('product.name')->filter()->join(', ') ?: '-' }}</span></div>
       <div class="dc-row"><span class="dc-label">Amount</span><span>₹{{ number_format($o->total_amount, 2) }}</span></div>
-      <div class="dc-row"><span class="dc-label">Payment</span><span>{{ strtoupper($o->payment_method) }} · {{ ucfirst($o->payment_status) }}</span></div>
+      <div class="dc-row"><span class="dc-label">Payment</span><span>{{ $o->payment_method === 'emi_financing' ? 'EMI FINANCING' : strtoupper($o->payment_method) }} · {{ ucfirst($o->payment_status) }}</span></div>
       <a class="btn btn-sm btn-outline-fin w-100 mt-2" href="{{ route('admin.orders.show', $o) }}">View &amp; Update</a>
     </div>
   @empty

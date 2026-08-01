@@ -27,6 +27,13 @@ class Loan extends Model
         'start_date',
         'first_due_date',
         'status',
+        'loan_type',
+        'order_id',
+        'approved_by',
+        'approved_at',
+        'reject_reason',
+        'foreclosed_at',
+        'foreclosure_amount',
     ];
 
     protected function casts(): array
@@ -40,6 +47,9 @@ class Loan extends Model
             'late_fee' => 'decimal:2',
             'start_date' => 'date',
             'first_due_date' => 'date',
+            'approved_at' => 'datetime',
+            'foreclosed_at' => 'datetime',
+            'foreclosure_amount' => 'decimal:2',
         ];
     }
 
@@ -51,6 +61,16 @@ class Loan extends Model
     public function shopOwner(): BelongsTo
     {
         return $this->belongsTo(ShopOwner::class);
+    }
+
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    public function approvedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 
     public function emis(): HasMany
@@ -94,9 +114,15 @@ class Loan extends Model
     /**
      * Recompute the loan's overall status from its EMIs. Called after any
      * payment approval/rejection so lists stay consistent without a cron.
+     * Only ever moves a loan between active/overdue/closed -- pending,
+     * rejected and foreclosed are lifecycle stages this never touches.
      */
     public function refreshStatus(): void
     {
+        if (! in_array($this->status, ['active', 'overdue', 'closed'], true)) {
+            return;
+        }
+
         $this->loadMissing('emis');
 
         if ($this->emis->every(fn (Emi $emi) => $emi->status === 'paid')) {
@@ -108,5 +134,36 @@ class Loan extends Model
         }
 
         $this->save();
+    }
+
+    /**
+     * What the customer would need to pay right now to close the loan
+     * immediately instead of continuing the scheduled EMIs. This app's
+     * loans are a flat total_payable split evenly across EMIs (not a
+     * reducing balance with separately accruing interest), so there's no
+     * unearned-interest portion to waive -- foreclosure is simply "pay the
+     * remaining outstanding balance today."
+     */
+    public function foreclosureQuote(): float
+    {
+        return $this->outstanding();
+    }
+
+    /**
+     * Settle all remaining EMIs at once and close the loan early.
+     */
+    public function foreclose(): void
+    {
+        $amount = $this->foreclosureQuote();
+
+        $this->emis()->where('status', '!=', 'paid')->get()->each(function (Emi $emi) {
+            $emi->update(['status' => 'paid', 'payment_date' => now()]);
+        });
+
+        $this->update([
+            'status' => 'foreclosed',
+            'foreclosed_at' => now(),
+            'foreclosure_amount' => $amount,
+        ]);
     }
 }
