@@ -36,6 +36,13 @@ class DashboardController extends Controller
         })->sortBy(fn ($row) => $row->emi->due_date)->take(6);
 
         $emiCollected = $financialLoans->sum(fn (Loan $loan) => $loan->amountPaid());
+
+        $emisCollectedToday = $financialLoans->flatMap(function (Loan $loan) {
+            return $loan->emis->filter(fn ($emi) => $emi->status === 'paid' && $emi->payment_date && $emi->payment_date->isToday())
+                ->map(fn ($emi) => (object) ['emi' => $emi, 'loan' => $loan]);
+        })->sortByDesc(fn ($row) => $row->emi->updated_at);
+        $emiCollectedTodayAmount = $emisCollectedToday->sum(fn ($row) => (float) $row->emi->amount);
+
         $totalOutstanding = $financialLoans->sum(fn (Loan $loan) => $loan->outstanding());
         $overdueEmis = $financialLoans->sum(fn (Loan $loan) => $loan->emis->filter(fn ($e) => $e->displayStatus() === 'Overdue')->count());
         $activeLoans = $loans->whereIn('status', ['active', 'overdue'])->count();
@@ -66,12 +73,14 @@ class DashboardController extends Controller
                 'pending_verifications' => $pendingVerifications->count(),
                 'overdue_emis' => $overdueEmis,
                 'pending_loan_approvals' => $pendingApprovals,
+                'emi_collected_today' => $emiCollectedTodayAmount,
             ];
 
             return view('shared.dashboard', [
                 'title' => 'Dashboard', 'active' => 'dashboard', 'isAdmin' => true,
                 'stats' => $stats, 'customers' => $customers, 'upcomingEmis' => $upcomingEmis,
                 'pendingVerifications' => $pendingVerifications,
+                'emisCollectedToday' => $emisCollectedToday,
                 'chartLabels' => $chartLabels, 'chartData' => $chartData,
             ]);
         }

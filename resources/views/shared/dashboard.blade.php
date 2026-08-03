@@ -9,6 +9,7 @@
       ['label' => 'Active Loans', 'value' => $stats['active_loans'], 'icon' => 'fa-file-invoice-dollar', 'color' => 'var(--green)', 'bg' => 'var(--green-bg)'],
       ['label' => 'Total Outstanding', 'value' => '₹'.number_format($stats['total_outstanding']), 'icon' => 'fa-indian-rupee-sign', 'color' => 'var(--red)', 'bg' => 'var(--red-bg)'],
       ['label' => 'EMI Collected', 'value' => '₹'.number_format($stats['emi_collected']), 'icon' => 'fa-sack-dollar', 'color' => 'var(--green)', 'bg' => 'var(--green-bg)'],
+      ['label' => "Collected Today", 'value' => '₹'.number_format($stats['emi_collected_today']), 'icon' => 'fa-calendar-check', 'color' => 'var(--green)', 'bg' => 'var(--green-bg)'],
       ['label' => 'Pending Verifications', 'value' => $stats['pending_verifications'], 'icon' => 'fa-magnifying-glass-dollar', 'color' => 'var(--orange)', 'bg' => 'var(--orange-bg)'],
       ['label' => 'Overdue EMIs', 'value' => $stats['overdue_emis'], 'icon' => 'fa-triangle-exclamation', 'color' => 'var(--red)', 'bg' => 'var(--red-bg)'],
     ];
@@ -98,6 +99,25 @@
         </div>
       @empty
         <div class="small-note">No pending verifications.</div>
+      @endforelse
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card-flat p-3 h-100">
+      <div class="section-title mb-2 d-flex justify-content-between align-items-center">
+        <span><i class="fa-solid fa-calendar-check me-2"></i>EMI Collections Today</span>
+        <span class="fw-bold text-primary">₹{{ number_format($stats['emi_collected_today']) }}</span>
+      </div>
+      @forelse($emisCollectedToday as $row)
+        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+          <div class="min-w-0">
+            <div class="fw-semibold text-truncate">{{ $row->loan->customer->user->name }}</div>
+            <div class="small-note">EMI #{{ $row->emi->emi_number }} · {{ $row->loan->loan_account_no }} · {{ $row->emi->updated_at->format('h:i A') }}</div>
+          </div>
+          <span class="fw-semibold">₹{{ number_format($row->emi->amount) }}</span>
+        </div>
+      @empty
+        <div class="small-note">No EMIs collected yet today.</div>
       @endforelse
     </div>
   </div>

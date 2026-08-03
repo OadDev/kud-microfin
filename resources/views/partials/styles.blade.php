@@ -108,6 +108,26 @@ a{text-decoration:none;}
 .qtile span{display:block; font-size:.7rem; margin-top:4px; color:var(--text);}
 .doc-card{background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:12px; box-shadow:var(--shadow);}
 
+.filters-overlay{position:fixed; inset:0; background:var(--card); z-index:2000; display:flex; flex-direction:column;}
+.filters-overlay.d-none{display:none;}
+.filters-header{display:flex; justify-content:space-between; align-items:center; padding:16px; border-bottom:1px solid var(--border); flex-shrink:0;}
+.filters-header .fw-bold{font-size:1.05rem; color:var(--text);}
+.filters-body{flex:1; display:flex; overflow:hidden;}
+.filters-nav{width:36%; background:var(--bg); overflow-y:auto; flex-shrink:0;}
+.filters-nav-item{padding:16px 10px; font-size:.82rem; color:var(--muted); border-bottom:1px solid var(--border); cursor:pointer; border-left:3px solid transparent;}
+.filters-nav-item.active{background:var(--card); color:var(--primary); font-weight:700; border-left-color:var(--primary);}
+.filters-options{flex:1; overflow-y:auto; padding:4px 16px;}
+.filter-panel.d-none{display:none !important;}
+.filter-option{position:relative; display:flex; align-items:center; gap:10px; padding:14px 2px; border-bottom:1px solid var(--border); cursor:pointer; margin:0;}
+.filter-option input{position:absolute; opacity:0; width:0; height:0;}
+.filter-option .filter-check{width:14px; color:var(--muted); opacity:.25; flex-shrink:0;}
+.filter-option input:checked ~ .filter-check{opacity:1; color:var(--primary);}
+.filter-option .filter-label{font-size:.88rem;}
+.filters-footer{display:flex; border-top:1px solid var(--border); flex-shrink:0;}
+.filters-footer button{flex:1; padding:15px; border:none; background:none; font-weight:600; font-size:.9rem;}
+.filters-footer .btn-close-filters{color:var(--muted); border-right:1px solid var(--border);}
+.filters-footer .btn-apply-filters{color:var(--primary);}
+
 .copy-chip{cursor:pointer; border:1px dashed var(--border); border-radius:8px; padding:6px 10px; display:flex; justify-content:space-between; align-items:center; font-size:.85rem;}
 .qr-box{width:150px;height:150px;background:repeating-linear-gradient(45deg,#333,#333 6px,#fff 6px,#fff 12px); border:6px solid #fff; border-radius:8px; margin:0 auto;}
 .qr-box img{width:100%;height:100%;object-fit:contain;background:#fff;}
