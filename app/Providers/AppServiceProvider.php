@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -44,5 +46,17 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
         }
+
+        // Cart badge needs to be available in the customer shell's header on
+        // every page (not just Shop), so it's a composer rather than
+        // something each CustomerPanel controller has to remember to pass.
+        View::composer('components.customer-layout', function ($view) {
+            $user = Auth::user();
+            $cartCount = 0;
+            if ($user && $user->role === 'customer' && $user->customer) {
+                $cartCount = (int) $user->customer->cartItems()->sum('quantity');
+            }
+            $view->with('cartCount', $cartCount);
+        });
     }
 }

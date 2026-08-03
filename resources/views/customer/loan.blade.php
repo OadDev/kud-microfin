@@ -1,5 +1,5 @@
 @php $outstanding = $loan ? $loan->outstanding() : 0; @endphp
-<x-customer-layout :title="$title" :active="$active">
+<x-customer-layout :title="$title" :active="$active" pageTitle="My Loan">
 
 @if($loan?->status === 'pending')
 <div class="card-flat p-4 text-center mb-3">

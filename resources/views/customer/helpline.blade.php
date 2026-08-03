@@ -1,4 +1,4 @@
-<x-customer-layout :title="$title" active="helpline">
+<x-customer-layout :title="$title" active="helpline" pageTitle="Helpline" backUrl="{{ route('customer.home') }}">
 
 <div class="card-flat p-4 text-center">
   <i class="fa-solid fa-headset text-primary" style="font-size:2.6rem;"></i>

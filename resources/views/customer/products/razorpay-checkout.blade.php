@@ -1,4 +1,4 @@
-<x-customer-layout :title="$title" active="products">
+<x-customer-layout :title="$title" active="products" pageTitle="Complete Payment" backUrl="{{ route('customer.orders.show', $order) }}">
 
 <div class="card-flat p-3 mb-3">
   <div class="section-title mb-2">Order Summary</div>

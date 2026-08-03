@@ -1,4 +1,4 @@
-<x-customer-layout :title="$title" :active="$active">
+<x-customer-layout :title="$title" :active="$active" pageTitle="My Profile">
 <div class="card-flat p-3 mb-3 text-center">
   <label for="photoInput" style="cursor:pointer;">
     @if($customer->photo_path)

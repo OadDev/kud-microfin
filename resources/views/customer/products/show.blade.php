@@ -1,5 +1,4 @@
-<x-customer-layout :title="$title" active="products">
-<a class="btn btn-sm btn-outline-fin mb-3" href="{{ route('customer.products.index') }}"><i class="fa-solid fa-arrow-left me-1"></i>Back to Shop</a>
+<x-customer-layout :title="$title" active="products" pageTitle="{{ $product->name }}" backUrl="{{ route('customer.products.index') }}">
 
 <div class="card-flat p-0 overflow-hidden mb-3">
   @if($product->images->isNotEmpty())

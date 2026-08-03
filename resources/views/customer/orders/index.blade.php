@@ -1,5 +1,4 @@
-<x-customer-layout :title="$title" active="products">
-<a class="btn btn-sm btn-outline-fin mb-3" href="{{ route('customer.products.index') }}"><i class="fa-solid fa-arrow-left me-1"></i>Back to Shop</a>
+<x-customer-layout :title="$title" active="products" pageTitle="My Orders" backUrl="{{ route('customer.products.index') }}">
 
 @forelse($orders as $o)
   <a href="{{ route('customer.orders.show', $o) }}" class="card-flat p-3 mb-2 d-block" style="color:inherit;">

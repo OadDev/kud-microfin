@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>{{ $title ?? 'BluePeak Fintech' }}</title>
 <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
 <meta name="theme-color" content="#0c2053">
@@ -14,17 +14,38 @@
 <body>
 <div id="customerApp">
   <div class="cust-header">
-    <div class="d-flex justify-content-between align-items-start">
-      <div>
-        <div style="font-size:.8rem;opacity:.85;">Welcome back,</div>
-        <div class="fw-bold fs-5">{{ $user->name }}</div>
+    <div class="cust-header-top">
+      <div class="min-w-0">
+        <div class="cust-greeting">Welcome back,</div>
+        <div class="cust-username">{{ $user->name }}</div>
       </div>
-      <div class="d-flex align-items-center gap-3">
-        <a href="{{ route('customer.helpline') }}" style="color:#fff;" title="Helpline"><i class="fa-solid fa-headset"></i></a>
-        <a href="#" style="color:#fff;" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></a>
+      <div class="cust-header-actions">
+        <a href="{{ route('customer.cart.index') }}" class="icon-btn" title="Cart">
+          <i class="fa-solid fa-cart-shopping"></i>
+          @if(($cartCount ?? 0) > 0)
+            <span class="icon-badge">{{ $cartCount > 9 ? '9+' : $cartCount }}</span>
+          @endif
+        </a>
+        <a href="{{ route('customer.helpline') }}" class="icon-btn" title="Helpline"><i class="fa-solid fa-headset"></i></a>
+        <a href="#" class="icon-btn" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></a>
         <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
       </div>
     </div>
+    @if(! empty($pageTitle) || (isset($pageActions) && trim($pageActions)))
+      <div class="cust-header-page">
+        <div class="d-flex align-items-center gap-2 min-w-0">
+          @if(! empty($backUrl))
+            <a href="{{ $backUrl }}" class="icon-btn icon-btn-muted" title="Back"><i class="fa-solid fa-chevron-left"></i></a>
+          @endif
+          @if(! empty($pageTitle))
+            <div class="cust-page-title">{{ $pageTitle }}</div>
+          @endif
+        </div>
+        @isset($pageActions)
+          <div class="cust-header-actions">{{ $pageActions }}</div>
+        @endisset
+      </div>
+    @endif
   </div>
   <div class="cust-content">
     @include('partials.toasts')

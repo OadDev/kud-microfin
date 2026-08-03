@@ -2,7 +2,7 @@
     $lateFee = $emi && $emi->displayStatus() === 'Overdue' ? $loan->late_fee : 0;
     $totalPayable = $emi ? (float) $emi->amount + (float) $lateFee : 0;
 @endphp
-<x-customer-layout :title="$title" :active="$active">
+<x-customer-layout :title="$title" :active="$active" pageTitle="Pay EMI">
 
 @if(!$emi && $pendingVerificationEmi)
   <div class="card-flat p-4 text-center">

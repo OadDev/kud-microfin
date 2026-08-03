@@ -1,5 +1,4 @@
-<x-customer-layout :title="$title" :active="$active">
-<a class="btn btn-sm btn-outline-fin mb-3" href="{{ route('customer.products.index') }}"><i class="fa-solid fa-arrow-left me-1"></i>Continue Shopping</a>
+<x-customer-layout :title="$title" :active="$active" pageTitle="My Cart" backUrl="{{ route('customer.products.index') }}">
 
 @forelse($items as $item)
   <div class="card-flat p-3 mb-2 d-flex flex-row gap-3 align-items-center">

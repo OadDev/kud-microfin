@@ -1,5 +1,4 @@
-<x-customer-layout :title="$title" active="products">
-<a class="btn btn-sm btn-outline-fin mb-3" href="{{ route('customer.orders.index') }}"><i class="fa-solid fa-arrow-left me-1"></i>Back to My Orders</a>
+<x-customer-layout :title="$title" active="products" pageTitle="{{ $order->order_no }}" backUrl="{{ route('customer.orders.index') }}">
 
 <div class="card-flat p-3">
   <div class="d-flex justify-content-between align-items-start mb-3">

@@ -1,15 +1,10 @@
 @php
   $activeFilterCount = collect($filters)->except('search')->filter(fn ($v) => $v !== null && $v !== '')->count();
 @endphp
-<x-customer-layout :title="$title" :active="$active">
-
-<div class="d-flex justify-content-between align-items-center mb-2">
-  <div class="section-title mb-0">Shop</div>
-  <div class="d-flex gap-2">
-    <a href="{{ route('customer.favourites.index') }}" class="btn btn-sm btn-outline-fin"><i class="fa-solid fa-heart"></i></a>
-    <a href="{{ route('customer.cart.index') }}" class="btn btn-sm btn-outline-fin"><i class="fa-solid fa-cart-shopping"></i></a>
-  </div>
-</div>
+<x-customer-layout :title="$title" :active="$active" pageTitle="Shop">
+  <x-slot:pageActions>
+    <a href="{{ route('customer.favourites.index') }}" class="icon-btn" title="Favourites"><i class="fa-solid fa-heart"></i></a>
+  </x-slot:pageActions>
 
 <form method="GET" id="filterForm" action="{{ route('customer.products.index') }}">
   <div class="card-flat p-2 mb-3 d-flex flex-row gap-2 align-items-center">
@@ -23,7 +18,7 @@
     </button>
   </div>
 
-  <div id="filtersOverlay" class="filters-overlay d-none">
+  <div id="filtersOverlay" class="filters-overlay">
     <div class="filters-header">
       <span class="fw-bold">Filters</span>
       <button type="button" class="btn btn-link btn-sm text-danger p-0" onclick="clearAllFilters()">CLEAR ALL</button>
@@ -152,12 +147,12 @@
 <div class="row g-2">
   @forelse($products as $p)
     <div class="col-6">
-      <div class="card-flat p-0 overflow-hidden mb-2 position-relative">
+      <div class="product-card mb-2">
         <a href="{{ route('customer.products.show', $p) }}" style="color:inherit;">
           @if($p->image_path)
             <img src="{{ Illuminate\Support\Facades\Storage::disk('public')->url($p->image_path) }}" alt="{{ $p->name }}" class="w-100" style="height:110px;object-fit:cover;">
           @else
-            <div class="d-flex align-items-center justify-content-center bg-primary-subtle" style="height:110px;"><i class="fa-solid fa-box fa-2x text-primary"></i></div>
+            <div class="product-thumb-placeholder d-flex align-items-center justify-content-center bg-primary-subtle" style="height:110px;"><i class="fa-solid fa-box fa-2x text-primary"></i></div>
           @endif
           <div class="p-2">
             <div class="small-note">{{ $p->brand }}</div>
@@ -171,9 +166,9 @@
             @endif
           </div>
         </a>
-        <form method="POST" action="{{ route('customer.favourites.toggle', $p) }}" class="position-absolute top-0 end-0 m-1">
+        <form method="POST" action="{{ route('customer.favourites.toggle', $p) }}">
           @csrf
-          <button class="btn btn-sm btn-light rounded-circle shadow-sm" type="submit" title="Toggle favourite"><i class="fa-solid fa-heart {{ in_array($p->id, $favouriteIds ?? []) ? 'text-danger' : 'text-muted' }}"></i></button>
+          <button class="fav-toggle-btn" type="submit" title="Toggle favourite"><i class="fa-solid fa-heart {{ in_array($p->id, $favouriteIds ?? []) ? 'text-danger' : '' }}"></i></button>
         </form>
       </div>
     </div>
@@ -185,11 +180,11 @@
 @push('scripts')
 <script>
 function openFilters(){
-  document.getElementById('filtersOverlay').classList.remove('d-none');
+  document.getElementById('filtersOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 function closeFilters(){
-  document.getElementById('filtersOverlay').classList.add('d-none');
+  document.getElementById('filtersOverlay').classList.remove('open');
   document.body.style.overflow = '';
 }
 function showFilterPanel(id, el){
