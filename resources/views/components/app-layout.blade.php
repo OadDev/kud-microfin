@@ -44,12 +44,8 @@
         <a class="nav-link {{ ($active ?? '') === 'products' ? 'active' : '' }}" href="{{ route('admin.products.index') }}"><i class="fa-solid fa-box"></i> Products</a>
         <a class="nav-link {{ ($active ?? '') === 'orders' ? 'active' : '' }}" href="{{ route('admin.orders.index') }}"><i class="fa-solid fa-cart-shopping"></i> Orders</a>
       @else
-        <a class="nav-link {{ ($active ?? '') === 'dashboard' ? 'active' : '' }}" href="{{ route('shopowner.dashboard') }}"><i class="fa-solid fa-gauge"></i> Dashboard</a>
         <a class="nav-link {{ ($active ?? '') === 'customers' ? 'active' : '' }}" href="{{ route('shopowner.customers.index') }}"><i class="fa-solid fa-users"></i> Customers</a>
         <a class="nav-link {{ ($active ?? '') === 'create-customer' ? 'active' : '' }}" href="{{ route('shopowner.customers.create') }}"><i class="fa-solid fa-user-plus"></i> Create Customer</a>
-        <a class="nav-link {{ ($active ?? '') === 'active-loans' ? 'active' : '' }}" href="{{ route('shopowner.loans.index') }}"><i class="fa-solid fa-file-invoice-dollar"></i> Active Loans</a>
-        <a class="nav-link {{ ($active ?? '') === 'emi-list' ? 'active' : '' }}" href="{{ route('shopowner.emis.index') }}"><i class="fa-solid fa-calendar-check"></i> EMI List</a>
-        <a class="nav-link {{ ($active ?? '') === 'documents' ? 'active' : '' }}" href="{{ route('shopowner.documents.index') }}"><i class="fa-solid fa-file-lines"></i> Documents</a>
       @endif
       <hr style="border-color:rgba(255,255,255,.15); margin:8px 16px;">
       <a class="nav-link" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
@@ -67,6 +63,36 @@
         </div>
       </div>
       <div class="d-flex align-items-center gap-3">
+        @if($isAdmin)
+        <div class="dropdown">
+          <button class="btn btn-sm btn-outline-secondary position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
+            <i class="fa-solid fa-bell"></i>
+            @if($unreadNotifications->count())
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:.6rem;">{{ $unreadNotifications->count() }}</span>
+            @endif
+          </button>
+          <div class="dropdown-menu dropdown-menu-end p-0" style="width:320px; max-height:420px; overflow-y:auto;">
+            <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+              <span class="fw-semibold" style="font-size:.85rem;">Notifications</span>
+              @if($unreadNotifications->count())
+                <form method="POST" action="{{ route('admin.notifications.read-all') }}">
+                  @csrf
+                  <button class="btn btn-link btn-sm p-0" type="submit" style="font-size:.75rem;">Mark all read</button>
+                </form>
+              @endif
+            </div>
+            @forelse($unreadNotifications as $n)
+              <a href="{{ route('admin.notifications.read', $n->id) }}" class="dropdown-item px-3 py-2 border-bottom" style="white-space:normal;">
+                <div class="fw-semibold" style="font-size:.85rem;">New Order {{ $n->data['order_no'] ?? '' }}</div>
+                <div class="small-note">{{ $n->data['customer_name'] ?? '' }} · ₹{{ number_format($n->data['total_amount'] ?? 0, 2) }}</div>
+                <div class="small-note">{{ $n->created_at->diffForHumans() }}</div>
+              </a>
+            @empty
+              <div class="px-3 py-4 text-center small-note">No new notifications.</div>
+            @endforelse
+          </div>
+        </div>
+        @endif
         <div class="d-flex align-items-center gap-2">
           <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width:34px;height:34px;"><i class="fa-solid fa-user"></i></div>
           <span class="d-none d-sm-inline fw-semibold">{{ $user->name }}</span>

@@ -21,6 +21,7 @@ class Product extends Model
         'stock_quantity',
         'image_path',
         'video_url',
+        'video_path',
         'is_active',
     ];
 
@@ -66,6 +67,11 @@ class Product extends Model
     public function financeable(): bool
     {
         return $this->down_payment !== null && (float) $this->down_payment < (float) $this->price;
+    }
+
+    public function hasVideo(): bool
+    {
+        return (bool) ($this->video_path || $this->video_url);
     }
 
     /**

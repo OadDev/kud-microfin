@@ -35,7 +35,12 @@
       <div class="small-note">{{ $product->description }}</div>
     @endif
 
-    @if($product->video_url)
+    @if($product->video_path)
+      <video controls preload="metadata" class="w-100 mt-2" style="max-height:260px;border-radius:10px;background:#000;">
+        <source src="{{ Illuminate\Support\Facades\Storage::disk('public')->url($product->video_path) }}">
+        Your browser doesn't support embedded video.
+      </video>
+    @elseif($product->video_url)
       <a href="{{ $product->video_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-fin mt-2"><i class="fa-solid fa-circle-play me-1"></i>Watch Video</a>
     @endif
 

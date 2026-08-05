@@ -58,5 +58,16 @@ class AppServiceProvider extends ServiceProvider
             }
             $view->with('cartCount', $cartCount);
         });
+
+        // Admin's notification bell (new orders) -- same reasoning as the
+        // cart badge above: needs to show on every admin page, not just one
+        // controller's view.
+        View::composer('components.app-layout', function ($view) {
+            $user = Auth::user();
+            $unreadNotifications = ($user && $user->role === 'admin')
+                ? $user->unreadNotifications()->take(8)->get()
+                : collect();
+            $view->with('unreadNotifications', $unreadNotifications);
+        });
     }
 }

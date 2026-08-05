@@ -91,7 +91,18 @@
                     @endif
                   </div>
                   <div class="col-md-4 d-flex align-items-end"><div class="form-check"><input class="form-check-input" type="checkbox" name="is_active" value="1" id="prodActive{{ $p->id }}" {{ $p->is_active ? 'checked' : '' }}><label class="form-check-label" for="prodActive{{ $p->id }}">Active</label></div></div>
-                  <div class="col-12"><label class="form-label">Video Link (optional — YouTube, etc.)</label><input type="url" class="form-control" name="video_url" value="{{ $p->video_url }}" placeholder="https://..."></div>
+                  <div class="col-12"><hr class="my-1"></div>
+                  <div class="col-md-8">
+                    <label class="form-label">Upload Video (optional, max 20MB — takes priority over the link below)</label>
+                    <input type="file" class="form-control" name="video" accept="video/*">
+                    @if($p->video_path)
+                      <div class="form-check mt-2">
+                        <input class="form-check-input" type="checkbox" name="remove_video" value="1" id="prodRemoveVideo{{ $p->id }}">
+                        <label class="form-check-label small-note" for="prodRemoveVideo{{ $p->id }}">Remove the currently uploaded video</label>
+                      </div>
+                    @endif
+                  </div>
+                  <div class="col-12"><label class="form-label">Video Link (optional — YouTube, etc. Used only if no video is uploaded)</label><input type="url" class="form-control" name="video_url" value="{{ $p->video_url }}" placeholder="https://..."></div>
                 </div>
               </div>
               <div class="modal-footer">
@@ -153,7 +164,9 @@
             <div class="col-12"><label class="form-label">Description</label><textarea class="form-control" name="description" rows="3">{{ old('description') }}</textarea></div>
             <div class="col-md-8"><label class="form-label">Photos (up to 4)</label><input type="file" class="form-control" name="images[]" accept="image/*" multiple></div>
             <div class="col-md-4 d-flex align-items-end"><div class="form-check"><input class="form-check-input" type="checkbox" name="is_active" value="1" id="prodActiveNew" checked><label class="form-check-label" for="prodActiveNew">Active</label></div></div>
-            <div class="col-12"><label class="form-label">Video Link (optional — YouTube, etc.)</label><input type="url" class="form-control" name="video_url" value="{{ old('video_url') }}" placeholder="https://..."></div>
+            <div class="col-12"><hr class="my-1"></div>
+            <div class="col-md-8"><label class="form-label">Upload Video (optional, max 20MB — takes priority over the link below)</label><input type="file" class="form-control" name="video" accept="video/*"></div>
+            <div class="col-12"><label class="form-label">Video Link (optional — YouTube, etc. Used only if no video is uploaded)</label><input type="url" class="form-control" name="video_url" value="{{ old('video_url') }}" placeholder="https://..."></div>
           </div>
         </div>
         <div class="modal-footer">

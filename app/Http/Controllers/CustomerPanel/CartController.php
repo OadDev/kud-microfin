@@ -9,11 +9,14 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\PaymentSetting;
 use App\Models\Product;
+use App\Models\User;
+use App\Notifications\NewOrderNotification;
 use App\Services\CodeGenerator;
 use App\Services\EmiScheduleService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\View\View;
 
 class CartController extends Controller
@@ -150,6 +153,15 @@ class CartController extends Controller
 
             return $order;
         });
+
+        // Notify Admin of every order placed (email + in-app). Best-effort --
+        // a broken mail server must not turn a successfully placed order
+        // into a 500 for the customer.
+        try {
+            Notification::send(User::where('role', 'admin')->get(), new NewOrderNotification($order));
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         if ($data['payment_method'] === 'cod') {
             return redirect()->route('customer.orders.show', $order)->with('success', 'Order placed successfully! Pay cash on delivery.');

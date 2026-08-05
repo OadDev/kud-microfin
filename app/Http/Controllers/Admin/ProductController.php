@@ -30,10 +30,15 @@ class ProductController extends Controller
         $data = $this->validated($request);
         $images = $data['images'] ?? [];
         unset($data['images']);
+        $video = $data['video'] ?? null;
+        unset($data['video']);
         $data['is_active'] = $request->boolean('is_active');
 
         $product = Product::create($data);
         $this->syncImages($product, $images);
+        if ($video) {
+            $this->storeVideo($product, $video);
+        }
 
         return back()->with('success', 'Product added successfully.');
     }
@@ -43,12 +48,23 @@ class ProductController extends Controller
         $data = $this->validated($request);
         $images = $data['images'] ?? [];
         unset($data['images']);
+        $video = $data['video'] ?? null;
+        unset($data['video']);
         $data['is_active'] = $request->boolean('is_active');
 
         $product->update($data);
 
         if (! empty($images)) {
             $this->syncImages($product, $images);
+        }
+
+        if ($request->boolean('remove_video') && $product->video_path) {
+            Storage::disk('public')->delete($product->video_path);
+            $product->update(['video_path' => null]);
+        }
+
+        if ($video) {
+            $this->storeVideo($product, $video);
         }
 
         return back()->with('success', 'Product updated successfully.');
@@ -65,6 +81,9 @@ class ProductController extends Controller
         }
         if ($product->image_path) {
             Storage::disk('public')->delete($product->image_path);
+        }
+        if ($product->video_path) {
+            Storage::disk('public')->delete($product->video_path);
         }
         $product->delete();
 
@@ -98,6 +117,21 @@ class ProductController extends Controller
         }
     }
 
+    /**
+     * Replaces the product's uploaded video file. An uploaded file takes
+     * display priority over video_url (see Product::hasVideo() usage in the
+     * customer-facing show page) -- it isn't cleared here so admins can
+     * still fall back to it later by removing the upload.
+     */
+    protected function storeVideo(Product $product, $file): void
+    {
+        if ($product->video_path) {
+            Storage::disk('public')->delete($product->video_path);
+        }
+        $path = $file->store('products/videos', 'public');
+        $product->update(['video_path' => $path]);
+    }
+
     protected function validated(Request $request): array
     {
         return $request->validate([
@@ -114,6 +148,7 @@ class ProductController extends Controller
             'images' => ['nullable', 'array', 'max:4'],
             'images.*' => ['image', 'max:4096'],
             'video_url' => ['nullable', 'url', 'max:255'],
+            'video' => ['nullable', 'file', 'mimetypes:video/mp4,video/quicktime,video/webm,video/x-msvideo', 'max:20480'],
             'is_active' => ['nullable', 'boolean'],
         ]);
     }
