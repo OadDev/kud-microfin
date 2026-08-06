@@ -18,10 +18,7 @@
   @php
     $cards = [
       ['label' => 'Total Customers', 'value' => $stats['total_customers'], 'icon' => 'fa-users', 'color' => 'var(--primary)', 'bg' => 'var(--primary-light)'],
-      ['label' => 'Active Loans', 'value' => $stats['active_loans'], 'icon' => 'fa-file-invoice-dollar', 'color' => 'var(--green)', 'bg' => 'var(--green-bg)'],
-      ['label' => 'EMI Collected', 'value' => '₹'.number_format($stats['emi_collected']), 'icon' => 'fa-sack-dollar', 'color' => 'var(--green)', 'bg' => 'var(--green-bg)'],
-      ['label' => 'Pending EMI', 'value' => $stats['pending_emi'], 'icon' => 'fa-hourglass-half', 'color' => 'var(--orange)', 'bg' => 'var(--orange-bg)'],
-      ['label' => 'Overdue EMI', 'value' => $stats['overdue_emi'], 'icon' => 'fa-triangle-exclamation', 'color' => 'var(--red)', 'bg' => 'var(--red-bg)'],
+      ['label' => 'Awaiting Approval', 'value' => $stats['pending_loan_approvals'], 'icon' => 'fa-hourglass-half', 'color' => 'var(--orange)', 'bg' => 'var(--orange-bg)'],
       ['label' => 'Pending Documents', 'value' => $stats['pending_documents'], 'icon' => 'fa-file-lines', 'color' => 'var(--orange)', 'bg' => 'var(--orange-bg)'],
     ];
   @endphp
@@ -47,29 +44,40 @@
 </div>
 @endif
 
+@if($isAdmin)
 <div class="card-flat p-3 mb-3">
   <div class="section-title mb-2"><i class="fa-solid fa-chart-column me-2"></i>EMI Collection (Last 6 Months)</div>
   <div style="height:260px;"><canvas id="emiCollectionChart"></canvas></div>
 </div>
+@endif
 
 <div class="row g-3">
-  <div class="col-lg-{{ $isAdmin ? 4 : 6 }}">
+  <div class="col-lg-{{ $isAdmin ? 4 : 12 }}">
     <div class="card-flat p-3 h-100">
       <div class="section-title mb-2"><i class="fa-solid fa-users me-2"></i>Recent Customers</div>
       @forelse($customers as $c)
         <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
           <div class="min-w-0">
             <div class="fw-semibold text-truncate">{{ $c->user->name }}</div>
-            <div class="small-note">{{ $c->currentLoan()?->loan_account_no }} · ₹{{ number_format($c->currentLoan()?->principal ?? 0) }}</div>
+            @if($isAdmin)
+              <div class="small-note">{{ $c->currentLoan()?->loan_account_no }} · ₹{{ number_format($c->currentLoan()?->principal ?? 0) }}</div>
+            @else
+              <div class="small-note">{{ $c->customer_code }}</div>
+            @endif
           </div>
-          <x-status-badge :status="ucfirst($c->currentLoan()?->status ?? 'active')" />
+          @if($isAdmin)
+            <x-status-badge :status="ucfirst($c->currentLoan()?->status ?? 'active')" />
+          @else
+            <a class="btn btn-sm btn-outline-fin" href="{{ route('customers.show', $c) }}">View</a>
+          @endif
         </div>
       @empty
         <div class="small-note">No customers yet.</div>
       @endforelse
     </div>
   </div>
-  <div class="col-lg-{{ $isAdmin ? 4 : 6 }}">
+  @if($isAdmin)
+  <div class="col-lg-4">
     <div class="card-flat p-3 h-100">
       <div class="section-title mb-2"><i class="fa-solid fa-calendar-day me-2"></i>Upcoming EMI Due</div>
       @forelse($upcomingEmis as $row)
@@ -85,7 +93,6 @@
       @endforelse
     </div>
   </div>
-  @if($isAdmin)
   <div class="col-lg-4">
     <div class="card-flat p-3 h-100">
       <div class="section-title mb-2"><i class="fa-solid fa-magnifying-glass-dollar me-2"></i>Pending Payment Verification</div>
@@ -124,6 +131,7 @@
   @endif
 </div>
 
+@if($isAdmin)
 @push('scripts')
 <script>
 new Chart(document.getElementById('emiCollectionChart'), {
@@ -140,4 +148,5 @@ new Chart(document.getElementById('emiCollectionChart'), {
 });
 </script>
 @endpush
+@endif
 </x-app-layout>

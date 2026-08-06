@@ -25,7 +25,6 @@ use App\Http\Controllers\CustomerPanel\ProductController as CustomerProductContr
 use App\Http\Controllers\CustomerPanel\ProfileController as CustomerProfileController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentController;
-use App\Http\Controllers\EmiController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\MarketingController;
@@ -110,13 +109,9 @@ Route::middleware(['auth', 'role:admin,shop_owner'])->group(function () {
     Route::get('/shop-owner/customers/create', [CustomerController::class, 'create'])->name('shopowner.customers.create');
     Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
 
-    // Active loans
-    Route::get('/admin/active-loans', [LoanController::class, 'index'])->name('admin.loans.index');
-    Route::get('/shop-owner/active-loans', [LoanController::class, 'index'])->name('shopowner.loans.index');
+    // Foreclose is an action reached from the customer detail page, not the
+    // (Admin-only) Active Loans list, so Shop Owner keeps access to it.
     Route::post('/loans/{loan}/foreclose', [LoanController::class, 'foreclose'])->name('loans.foreclose');
-
-    // Shop Owner's own EMI list (all EMIs across their customers)
-    Route::get('/shop-owner/emi-list', [EmiController::class, 'index'])->name('shopowner.emis.index');
 
     // Documents (Welcome Letter / Sanction Letter generation + signed upload)
     Route::get('/admin/documents', [DocumentController::class, 'index'])->name('admin.documents.index');
@@ -124,6 +119,18 @@ Route::middleware(['auth', 'role:admin,shop_owner'])->group(function () {
     Route::post('/loans/{loan}/documents/{type}/signed', [DocumentController::class, 'storeSigned'])
         ->whereIn('type', ['welcome_letter', 'sanction_letter', 'noc'])
         ->name('documents.signed.store');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Admin-only: EMI/payment tracking (Active Loans list)
+|--------------------------------------------------------------------------
+| Shop Owner must not see loan payment progress at all, so this list --
+| unlike the customer list/detail pages, which stay shared with the
+| financial columns stripped -- is simply not reachable by Shop Owner.
+*/
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/admin/active-loans', [LoanController::class, 'index'])->name('admin.loans.index');
 });
 
 /*

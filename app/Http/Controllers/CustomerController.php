@@ -36,7 +36,11 @@ class CustomerController extends Controller
 
         $customers = $query->get();
 
-        if ($status = $request->query('status')) {
+        // Filtering/sorting by loan status is Admin-only -- Shop Owner
+        // doesn't see EMI/loan status at all, so the query param is simply
+        // ignored rather than silently leaking it through which customers
+        // get filtered in or out.
+        if ($isAdmin && ($status = $request->query('status'))) {
             $customers = $customers->filter(fn (Customer $c) => $c->currentLoan()?->status === $status);
         }
 

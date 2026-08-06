@@ -20,15 +20,19 @@
         <div class="small-note"><i class="fa-solid fa-phone me-1"></i>{{ $customer->user->mobile }}@if($customer->shopOwner) · Shop: {{ $customer->shopOwner->shop_name }}@endif</div>
       </div>
     </div>
-    <x-status-badge :status="ucfirst($loan?->status ?? 'active')" />
+    @if($isAdmin)
+      <x-status-badge :status="ucfirst($loan?->status ?? 'active')" />
+    @endif
   </div>
 
-  @if($loan?->status === 'pending')
-    <div class="alert alert-warning mt-3 mb-0" style="font-size:.85rem;"><i class="fa-solid fa-hourglass-half me-1"></i>This loan is awaiting Admin approval.</div>
-  @elseif($loan?->status === 'rejected')
-    <div class="alert alert-danger mt-3 mb-0" style="font-size:.85rem;"><i class="fa-solid fa-xmark me-1"></i>This loan was rejected.@if($loan->reject_reason) Reason: {{ $loan->reject_reason }}@endif</div>
-  @elseif($loan?->status === 'foreclosed')
-    <div class="alert alert-info mt-3 mb-0" style="font-size:.85rem;"><i class="fa-solid fa-circle-check me-1"></i>This loan was foreclosed on {{ $loan->foreclosed_at->format('d/m/Y') }} (₹{{ number_format($loan->foreclosure_amount, 2) }} settled).</div>
+  @if($isAdmin)
+    @if($loan?->status === 'pending')
+      <div class="alert alert-warning mt-3 mb-0" style="font-size:.85rem;"><i class="fa-solid fa-hourglass-half me-1"></i>This loan is awaiting Admin approval.</div>
+    @elseif($loan?->status === 'rejected')
+      <div class="alert alert-danger mt-3 mb-0" style="font-size:.85rem;"><i class="fa-solid fa-xmark me-1"></i>This loan was rejected.@if($loan->reject_reason) Reason: {{ $loan->reject_reason }}@endif</div>
+    @elseif($loan?->status === 'foreclosed')
+      <div class="alert alert-info mt-3 mb-0" style="font-size:.85rem;"><i class="fa-solid fa-circle-check me-1"></i>This loan was foreclosed on {{ $loan->foreclosed_at->format('d/m/Y') }} (₹{{ number_format($loan->foreclosure_amount, 2) }} settled).</div>
+    @endif
   @endif
 
   @if($isAdmin && $loan && in_array($loan->status, ['active', 'overdue']))
@@ -56,12 +60,6 @@
       <div class="col-6 col-md-3"><div class="small-note">Pending EMIs</div><div class="fw-bold">{{ $totalEmis - $paidEmis }}</div></div>
       <div class="col-6 col-md-3"><div class="small-note">Next EMI Due</div><div class="fw-bold">{{ $next?->due_date->format('d/m/Y') ?? '-' }}</div></div>
     </div>
-  @else
-    <div class="row g-3 mt-1">
-      <div class="col-6 col-md-4"><div class="small-note">Principal Amount</div><div class="fw-bold">₹{{ number_format($loan?->principal ?? 0) }}</div></div>
-      <div class="col-6 col-md-4"><div class="small-note">Total Payable</div><div class="fw-bold">₹{{ number_format($loan?->total_payable ?? 0) }}</div></div>
-      <div class="col-6 col-md-4"><div class="small-note">Loan Start Date</div><div class="fw-bold">{{ $loan?->start_date->format('d/m/Y') ?? '-' }}</div></div>
-    </div>
   @endif
 </div>
 
@@ -88,13 +86,13 @@
     </div>
     <div class="col-md-6">
       <div class="card-flat p-3">
-        <div class="section-title mb-2">Identity &amp; Loan Info</div>
+        <div class="section-title mb-2">{{ $isAdmin ? 'Identity & Loan Info' : 'Identity Details' }}</div>
         <div class="dc-row"><span class="text-muted-fin">PAN Number</span><span>{{ $customer->pan }}</span></div>
         <div class="dc-row"><span class="text-muted-fin">Aadhaar Number</span><span>{{ $customer->aadhaar }}</span></div>
-        <div class="dc-row"><span class="text-muted-fin">Loan Purpose</span><span>{{ $loan?->purpose }}</span></div>
-        <div class="dc-row"><span class="text-muted-fin">EMI Frequency</span><span>{{ $loan?->frequency }}</span></div>
-        <div class="dc-row"><span class="text-muted-fin">Loan Start Date</span><span>{{ $loan?->start_date->format('d/m/Y') }}</span></div>
         @if($isAdmin)
+          <div class="dc-row"><span class="text-muted-fin">Loan Purpose</span><span>{{ $loan?->purpose }}</span></div>
+          <div class="dc-row"><span class="text-muted-fin">EMI Frequency</span><span>{{ $loan?->frequency }}</span></div>
+          <div class="dc-row"><span class="text-muted-fin">Loan Start Date</span><span>{{ $loan?->start_date->format('d/m/Y') }}</span></div>
           <div class="dc-row"><span class="text-muted-fin">Late Fee / EMI</span><span>₹{{ number_format($loan?->late_fee ?? 0) }}</span></div>
         @endif
       </div>

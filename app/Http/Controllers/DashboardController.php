@@ -91,20 +91,18 @@ class DashboardController extends Controller
             return $signedTypes->count() < 2;
         })->count();
 
+        // Shop Owner sees customer/approval/document status only -- EMI
+        // payment tracking (amounts collected, outstanding, overdue) is
+        // Admin-only, so none of that is computed into these stats.
         $stats = [
             'total_customers' => Customer::where('shop_owner_id', $user->shopOwner->id)->count(),
-            'active_loans' => $activeLoans,
-            'emi_collected' => $emiCollected,
-            'pending_emi' => $financialLoans->sum(fn (Loan $loan) => $loan->emis->filter(fn ($e) => in_array($e->displayStatus(), ['Upcoming', 'Due Today']))->count()),
-            'overdue_emi' => $overdueEmis,
             'pending_documents' => $pendingDocs,
             'pending_loan_approvals' => $pendingApprovals,
         ];
 
         return view('shared.dashboard', [
             'title' => 'Dashboard', 'active' => 'dashboard', 'isAdmin' => false,
-            'stats' => $stats, 'customers' => $customers, 'upcomingEmis' => $upcomingEmis,
-            'chartLabels' => $chartLabels, 'chartData' => $chartData,
+            'stats' => $stats, 'customers' => $customers,
         ]);
     }
 }
