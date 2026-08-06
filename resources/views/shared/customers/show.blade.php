@@ -126,7 +126,7 @@
       <thead><tr><th>Ref</th><th>EMI #</th><th>Amount</th><th>Method</th><th>Txn No.</th><th>Date</th><th>Status</th></tr></thead>
       <tbody>
       @forelse($payments as $p)
-        <tr><td>{{ $p->reference }}</td><td>{{ $p->emi->emi_number }}</td><td>₹{{ number_format($p->paid_amount) }}</td><td>{{ $p->method }}</td><td>{{ $p->txn_reference }}</td><td>{{ $p->submitted_at->format('d/m/Y') }}</td><td><x-status-badge :status="ucfirst(str_replace('_',' ',$p->status))" /></td></tr>
+        <tr><td>{{ $p->reference }}</td><td>{{ $p->is_foreclosure ? 'Foreclosure' : 'EMI #'.$p->emi->emi_number }}</td><td>₹{{ number_format($p->paid_amount) }}</td><td>{{ $p->method }}</td><td>{{ $p->txn_reference }}</td><td>{{ $p->submitted_at->format('d/m/Y') }}</td><td><x-status-badge :status="ucfirst(str_replace('_',' ',$p->status))" /></td></tr>
       @empty
         <tr><td colspan="7" class="text-center text-muted-fin py-3">No payments yet.</td></tr>
       @endforelse
@@ -136,7 +136,7 @@
   <div class="data-cards">
     @forelse($payments as $p)
       <div class="data-card">
-        <div class="dc-head"><div class="fw-bold">EMI #{{ $p->emi->emi_number }}</div><x-status-badge :status="ucfirst(str_replace('_',' ',$p->status))" /></div>
+        <div class="dc-head"><div class="fw-bold">{{ $p->is_foreclosure ? 'Foreclosure' : 'EMI #'.$p->emi->emi_number }}</div><x-status-badge :status="ucfirst(str_replace('_',' ',$p->status))" /></div>
         <div class="dc-row"><span class="dc-label">Amount</span><span>₹{{ number_format($p->paid_amount) }}</span></div>
         <div class="dc-row"><span class="dc-label">Method</span><span>{{ $p->method }}</span></div>
         <div class="dc-row"><span class="dc-label">Txn No.</span><span>{{ $p->txn_reference }}</span></div>

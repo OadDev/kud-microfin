@@ -100,7 +100,7 @@
         <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
           <div class="min-w-0">
             <div class="fw-semibold text-truncate">{{ $p->customer->user->name }}</div>
-            <div class="small-note">EMI #{{ $p->emi_id ? $p->emi->emi_number : '' }} · ₹{{ number_format($p->paid_amount) }}</div>
+            <div class="small-note">{{ $p->is_foreclosure ? 'Loan Foreclosure' : ($p->emi_id ? 'EMI #'.$p->emi->emi_number : '') }} · ₹{{ number_format($p->paid_amount) }}</div>
           </div>
           <a class="btn btn-sm btn-outline-fin" href="{{ route('admin.payment-verification.show', $p) }}">View</a>
         </div>

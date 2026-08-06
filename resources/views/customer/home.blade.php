@@ -41,7 +41,7 @@
   <div class="section-title mb-2">Recent Payments</div>
   @forelse($recentPayments as $p)
     <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-      <div><div class="fw-semibold">EMI #{{ $p->emi->emi_number }}</div><div class="small-note">{{ $p->submitted_at->format('d/m/Y') }} · {{ $p->method }}</div></div>
+      <div><div class="fw-semibold">{{ $p->is_foreclosure ? 'Loan Foreclosure' : 'EMI #'.$p->emi->emi_number }}</div><div class="small-note">{{ $p->submitted_at->format('d/m/Y') }} · {{ $p->method }}</div></div>
       <div class="text-end"><div class="fw-semibold">₹{{ number_format($p->paid_amount) }}</div><x-status-badge :status="ucfirst(str_replace('_',' ',$p->status))" /></div>
     </div>
   @empty

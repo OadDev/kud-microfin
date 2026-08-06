@@ -11,7 +11,7 @@
       <tr>
         <td>{{ $p->customer->user->name }}</td>
         <td>{{ $p->loan->loan_account_no }}</td>
-        <td>{{ $p->emi->emi_number }}</td>
+        <td>@if($p->is_foreclosure)<span class="badge bg-primary">Foreclosure</span>@else EMI #{{ $p->emi->emi_number }}@endif</td>
         <td>₹{{ number_format($p->paid_amount) }}</td>
         <td>{{ $p->method }}</td>
         <td>{{ $p->txn_reference }}</td>
@@ -29,7 +29,7 @@
 <div class="data-cards">
   @forelse($submissions as $p)
     <div class="data-card">
-      <div class="dc-head"><div><div class="fw-bold">{{ $p->customer->user->name }}</div><div class="small-note">{{ $p->loan->loan_account_no }} · EMI #{{ $p->emi->emi_number }}</div></div><x-status-badge :status="ucfirst(str_replace('_',' ',$p->status))" /></div>
+      <div class="dc-head"><div><div class="fw-bold">{{ $p->customer->user->name }}</div><div class="small-note">{{ $p->loan->loan_account_no }} · {{ $p->is_foreclosure ? 'Loan Foreclosure' : 'EMI #'.$p->emi->emi_number }}</div></div><x-status-badge :status="ucfirst(str_replace('_',' ',$p->status))" /></div>
       <div class="dc-row"><span class="dc-label">Amount</span><span>₹{{ number_format($p->paid_amount) }}</span></div>
       <div class="dc-row"><span class="dc-label">Method</span><span>{{ $p->method }}</span></div>
       <div class="dc-row"><span class="dc-label">Txn No.</span><span>{{ $p->txn_reference }}</span></div>

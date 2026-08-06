@@ -14,6 +14,7 @@ class PaymentSubmission extends Model
         'reference',
         'loan_id',
         'emi_id',
+        'is_foreclosure',
         'customer_id',
         'paid_amount',
         'method',
@@ -31,6 +32,7 @@ class PaymentSubmission extends Model
     {
         return [
             'paid_amount' => 'decimal:2',
+            'is_foreclosure' => 'boolean',
             'submitted_at' => 'datetime',
             'verified_at' => 'datetime',
         ];

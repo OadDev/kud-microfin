@@ -42,7 +42,12 @@
     <div class="dc-row"><span class="text-muted-fin">Remaining Outstanding</span><span>₹{{ number_format($fc['outstanding'], 2) }}</span></div>
     <div class="dc-row"><span class="text-muted-fin">Foreclosure Interest ({{ rtrim(rtrim(number_format($fc['interest_rate'], 2), '0'), '.') }}%)</span><span>₹{{ number_format($fc['interest_amount'], 2) }}</span></div>
     <div class="dc-row"><span class="text-muted-fin fw-semibold">Total Foreclosure Amount</span><span class="fw-bold">₹{{ number_format($fc['total'], 2) }}</span></div>
-    <div class="small-note mt-2">This is what you'd pay today to close the loan immediately instead of continuing the remaining EMIs. Contact your Shop Owner or our Helpline to request foreclosure.</div>
+    @if($pendingForeclosure)
+      <div class="alert alert-warning mt-3 mb-0" style="font-size:.8rem;"><i class="fa-solid fa-hourglass-half me-1"></i>Your foreclosure payment of ₹{{ number_format($pendingForeclosure->paid_amount, 2) }} is under verification by Admin.</div>
+    @else
+      <div class="small-note mt-2 mb-3">This is what you'd pay today to close the loan immediately instead of continuing the remaining EMIs.</div>
+      <a href="{{ route('customer.foreclose') }}" class="btn btn-primary-fin w-100"><i class="fa-solid fa-flag-checkered me-1"></i>Foreclose Loan</a>
+    @endif
   </div>
 @endif
 

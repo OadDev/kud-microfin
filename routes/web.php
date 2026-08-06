@@ -196,6 +196,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer.')->group(function () {
     Route::get('/home', [CustomerHomeController::class, 'index'])->name('home');
     Route::get('/loan', [CustomerLoanController::class, 'index'])->name('loan');
+    Route::get('/loan/foreclose', [CustomerPaymentController::class, 'foreclose'])->name('foreclose');
+    Route::post('/loan/foreclose', [CustomerPaymentController::class, 'forecloseStore'])->name('foreclose.store');
     Route::get('/pay', [CustomerPaymentController::class, 'show'])->name('pay');
     Route::post('/pay', [CustomerPaymentController::class, 'store'])->name('pay.store');
     Route::get('/documents', [CustomerDocumentController::class, 'index'])->name('documents');

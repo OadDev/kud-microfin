@@ -14,8 +14,12 @@
   </div>
   <div class="dc-row"><span class="text-muted-fin">Customer</span><span>{{ $p->customer->user->name }}</span></div>
   <div class="dc-row"><span class="text-muted-fin">Loan A/C No.</span><span>{{ $p->loan->loan_account_no }}</span></div>
-  <div class="dc-row"><span class="text-muted-fin">EMI Number</span><span>#{{ $p->emi->emi_number }}</span></div>
-  <div class="dc-row"><span class="text-muted-fin">EMI Amount</span><span>₹{{ number_format($p->emi->amount) }}</span></div>
+  @if($p->is_foreclosure)
+    <div class="dc-row"><span class="text-muted-fin">Type</span><span><span class="badge bg-primary">Loan Foreclosure</span></span></div>
+  @else
+    <div class="dc-row"><span class="text-muted-fin">EMI Number</span><span>#{{ $p->emi->emi_number }}</span></div>
+    <div class="dc-row"><span class="text-muted-fin">EMI Amount</span><span>₹{{ number_format($p->emi->amount) }}</span></div>
+  @endif
   <div class="dc-row"><span class="text-muted-fin">Paid Amount</span><span>₹{{ number_format($p->paid_amount) }}</span></div>
   <div class="dc-row"><span class="text-muted-fin">Payment Method</span><span>{{ $p->method }}</span></div>
   <div class="dc-row"><span class="text-muted-fin">Transaction No.</span><span>{{ $p->txn_reference }}</span></div>

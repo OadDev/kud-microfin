@@ -43,6 +43,13 @@ class PaymentVerificationController extends Controller
             'verified_at' => now(),
         ]);
 
+        if ($paymentSubmission->is_foreclosure) {
+            $paymentSubmission->loan->foreclose();
+
+            return redirect()->route('admin.payment-verification.index')
+                ->with('success', "Payment approved. Loan {$paymentSubmission->loan->loan_account_no} has been foreclosed.");
+        }
+
         $emi = $paymentSubmission->emi;
         $emi->update(['status' => 'paid', 'payment_date' => now()]);
 
@@ -67,10 +74,12 @@ class PaymentVerificationController extends Controller
             'verified_at' => now(),
         ]);
 
-        $emi = $paymentSubmission->emi;
-        $emi->update(['status' => 'pending']);
+        if (! $paymentSubmission->is_foreclosure) {
+            $emi = $paymentSubmission->emi;
+            $emi->update(['status' => 'pending']);
 
-        $paymentSubmission->loan->refreshStatus();
+            $paymentSubmission->loan->refreshStatus();
+        }
 
         return redirect()->route('admin.payment-verification.index')
             ->with('success', "Payment for {$paymentSubmission->customer->user->name} was rejected. Reason: {$data['reason']}");
