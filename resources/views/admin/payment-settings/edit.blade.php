@@ -36,6 +36,14 @@
         <div class="section-title mb-2"><i class="fa-solid fa-message me-2"></i>Payment Instructions</div>
         <textarea class="form-control" name="instructions" rows="6">{{ $settings->instructions }}</textarea>
       </div>
+      <div class="card-flat p-3 mb-3">
+        <div class="section-title mb-2"><i class="fa-solid fa-flag-checkered me-2"></i>Loan Foreclosure</div>
+        <div class="small-note mb-2">Extra interest charged (as a % of the outstanding balance) when a loan is closed early. Shown to customers and staff wherever a foreclosure amount is quoted.</div>
+        <div class="mb-2">
+          <label class="form-label">Foreclosure Interest Rate (%)</label>
+          <input type="number" step="0.01" min="0" max="100" class="form-control" name="foreclosure_interest_rate" value="{{ $settings->foreclosure_interest_rate }}" required style="max-width:160px;">
+        </div>
+      </div>
       <div class="card-flat p-3">
         <div class="section-title mb-2"><i class="fa-solid fa-credit-card me-2"></i>Razorpay (Shop Checkout)</div>
         <div class="small-note mb-2">Used only for the Product Shop's online checkout — not for EMI payments. Leave blank to offer Cash on Delivery only.</div>

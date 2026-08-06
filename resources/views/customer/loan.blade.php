@@ -34,6 +34,18 @@
   <div class="dc-row"><span class="text-muted-fin">Loan Start Date</span><span>{{ $loan->start_date->format('d/m/Y') }}</span></div>
   <div class="dc-row"><span class="text-muted-fin">Outstanding Balance</span><span class="fw-semibold text-danger">₹{{ number_format($outstanding) }}</span></div>
 </div>
+
+@if(in_array($loan->status, ['active', 'overdue']))
+  @php $fc = $loan->foreclosureBreakdown(); @endphp
+  <div class="card-flat p-3 mb-3">
+    <div class="section-title mb-2"><i class="fa-solid fa-flag-checkered me-1"></i>Want to Close Your Loan Early?</div>
+    <div class="dc-row"><span class="text-muted-fin">Remaining Outstanding</span><span>₹{{ number_format($fc['outstanding'], 2) }}</span></div>
+    <div class="dc-row"><span class="text-muted-fin">Foreclosure Interest ({{ rtrim(rtrim(number_format($fc['interest_rate'], 2), '0'), '.') }}%)</span><span>₹{{ number_format($fc['interest_amount'], 2) }}</span></div>
+    <div class="dc-row"><span class="text-muted-fin fw-semibold">Total Foreclosure Amount</span><span class="fw-bold">₹{{ number_format($fc['total'], 2) }}</span></div>
+    <div class="small-note mt-2">This is what you'd pay today to close the loan immediately instead of continuing the remaining EMIs. Contact your Shop Owner or our Helpline to request foreclosure.</div>
+  </div>
+@endif
+
 <div class="card-flat p-3 mb-3">
   <div class="section-title mb-2">EMI Schedule</div>
   @foreach($loan->emis as $e)

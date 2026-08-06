@@ -32,9 +32,16 @@
   @endif
 
   @if($loan && in_array($loan->status, ['active', 'overdue']))
-    <form method="POST" action="{{ route('loans.foreclose', $loan) }}" class="mt-3">
+    @php $fc = $loan->foreclosureBreakdown(); @endphp
+    <div class="alert alert-light border mt-3 mb-2" style="font-size:.85rem;">
+      <div class="fw-semibold mb-1"><i class="fa-solid fa-flag-checkered me-1"></i>Foreclosure Quote</div>
+      <div class="dc-row"><span class="text-muted-fin">Remaining Outstanding</span><span>₹{{ number_format($fc['outstanding'], 2) }}</span></div>
+      <div class="dc-row"><span class="text-muted-fin">Foreclosure Interest ({{ rtrim(rtrim(number_format($fc['interest_rate'], 2), '0'), '.') }}%)</span><span>₹{{ number_format($fc['interest_amount'], 2) }}</span></div>
+      <div class="dc-row"><span class="text-muted-fin fw-semibold">Total Payable to Foreclose</span><span class="fw-bold">₹{{ number_format($fc['total'], 2) }}</span></div>
+    </div>
+    <form method="POST" action="{{ route('loans.foreclose', $loan) }}">
       @csrf
-      <button class="btn btn-outline-fin btn-sm" type="submit" data-confirm="Foreclose this loan? The customer will need to pay the full outstanding balance of ₹{{ number_format($loan->foreclosureQuote(), 2) }} now, and the loan will close immediately." data-confirm-class="btn-primary-fin"><i class="fa-solid fa-flag-checkered me-1"></i>Foreclose Loan (₹{{ number_format($loan->foreclosureQuote(), 2) }})</button>
+      <button class="btn btn-outline-fin btn-sm" type="submit" data-confirm="Foreclose this loan? The customer will need to pay ₹{{ number_format($fc['total'], 2) }} now (₹{{ number_format($fc['outstanding'], 2) }} outstanding + ₹{{ number_format($fc['interest_amount'], 2) }} foreclosure interest), and the loan will close immediately." data-confirm-class="btn-primary-fin"><i class="fa-solid fa-flag-checkered me-1"></i>Foreclose Loan (₹{{ number_format($fc['total'], 2) }})</button>
     </form>
   @endif
 

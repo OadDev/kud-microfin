@@ -138,15 +138,27 @@ class Loan extends Model
 
     /**
      * What the customer would need to pay right now to close the loan
-     * immediately instead of continuing the scheduled EMIs. This app's
-     * loans are a flat total_payable split evenly across EMIs (not a
-     * reducing balance with separately accruing interest), so there's no
-     * unearned-interest portion to waive -- foreclosure is simply "pay the
-     * remaining outstanding balance today."
+     * immediately instead of continuing the scheduled EMIs: the remaining
+     * outstanding balance plus a foreclosure interest charge (Admin-set
+     * percentage of that outstanding balance, see PaymentSetting).
      */
+    public function foreclosureBreakdown(): array
+    {
+        $outstanding = $this->outstanding();
+        $rate = (float) PaymentSetting::current()->foreclosure_interest_rate;
+        $interest = round($outstanding * $rate / 100, 2);
+
+        return [
+            'outstanding' => $outstanding,
+            'interest_rate' => $rate,
+            'interest_amount' => $interest,
+            'total' => round($outstanding + $interest, 2),
+        ];
+    }
+
     public function foreclosureQuote(): float
     {
-        return $this->outstanding();
+        return $this->foreclosureBreakdown()['total'];
     }
 
     /**

@@ -18,7 +18,15 @@ class PaymentSetting extends Model
         'instructions',
         'razorpay_key_id',
         'razorpay_key_secret',
+        'foreclosure_interest_rate',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'foreclosure_interest_rate' => 'decimal:2',
+        ];
+    }
 
     /**
      * There is only ever one settings row (Admin-configured payment details).
