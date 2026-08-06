@@ -39,7 +39,9 @@
         <td><x-status-badge :status="ucfirst($loan?->status ?? 'active')" /></td>
         <td class="d-flex gap-2">
           <a class="btn btn-sm btn-outline-fin" href="{{ route('customers.show', $c) }}" title="View"><i class="fa-solid fa-eye"></i></a>
-          <a class="btn btn-sm btn-outline-success" href="tel:{{ $c->user->mobile }}" title="Call {{ $c->user->mobile }}"><i class="fa-solid fa-phone"></i></a>
+          @if($isAdmin)
+            <a class="btn btn-sm btn-outline-success" href="tel:{{ $c->user->mobile }}" title="Call {{ $c->user->mobile }}"><i class="fa-solid fa-phone"></i></a>
+          @endif
         </td>
       </tr>
     @empty
@@ -63,7 +65,9 @@
       <div class="dc-row"><span class="dc-label">Next Due</span><span>{{ $next?->due_date->format('d/m/Y') ?? '-' }}</span></div>
       <div class="d-flex gap-2 mt-2">
         <a class="btn btn-sm btn-outline-fin flex-fill" href="{{ route('customers.show', $c) }}"><i class="fa-solid fa-eye me-1"></i>View Details</a>
-        <a class="btn btn-sm btn-outline-success" href="tel:{{ $c->user->mobile }}"><i class="fa-solid fa-phone"></i></a>
+        @if($isAdmin)
+          <a class="btn btn-sm btn-outline-success" href="tel:{{ $c->user->mobile }}"><i class="fa-solid fa-phone"></i></a>
+        @endif
       </div>
     </div>
   @empty

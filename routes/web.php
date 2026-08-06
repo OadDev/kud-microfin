@@ -25,6 +25,7 @@ use App\Http\Controllers\CustomerPanel\ProductController as CustomerProductContr
 use App\Http\Controllers\CustomerPanel\ProfileController as CustomerProfileController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\EmiController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\MarketingController;
@@ -94,25 +95,13 @@ Route::middleware('auth')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| Admin-only: Dashboard, Active Loans list, Documents list
-|--------------------------------------------------------------------------
-| The Shop Owner panel is intentionally limited to customer creation and
-| the customer list -- these list/report pages are Admin-only. A Shop
-| Owner still reaches an individual loan/document through the customer
-| detail page (customers.show, below), which stays shared.
-*/
-Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
-    Route::get('/admin/active-loans', [LoanController::class, 'index'])->name('admin.loans.index');
-    Route::get('/admin/documents', [DocumentController::class, 'index'])->name('admin.documents.index');
-});
-
-/*
-|--------------------------------------------------------------------------
 | Admin + Shop Owner shared area
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:admin,shop_owner'])->group(function () {
+
+    Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
+    Route::get('/shop-owner/dashboard', [DashboardController::class, 'index'])->name('shopowner.dashboard');
 
     // Customers (list scoped by role inside the controller; Admin sees all, Shop Owner sees own)
     Route::get('/admin/customers', [CustomerController::class, 'index'])->name('admin.customers.index');
@@ -121,12 +110,17 @@ Route::middleware(['auth', 'role:admin,shop_owner'])->group(function () {
     Route::get('/shop-owner/customers/create', [CustomerController::class, 'create'])->name('shopowner.customers.create');
     Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
 
-    // Foreclose is an action reached from the customer detail page, not the
-    // (Admin-only) Active Loans list, so Shop Owner keeps access to it.
+    // Active loans
+    Route::get('/admin/active-loans', [LoanController::class, 'index'])->name('admin.loans.index');
+    Route::get('/shop-owner/active-loans', [LoanController::class, 'index'])->name('shopowner.loans.index');
     Route::post('/loans/{loan}/foreclose', [LoanController::class, 'foreclose'])->name('loans.foreclose');
 
-    // Signed document upload is likewise an action on the customer detail /
-    // document view page, not the (Admin-only) Documents list.
+    // Shop Owner's own EMI list (all EMIs across their customers)
+    Route::get('/shop-owner/emi-list', [EmiController::class, 'index'])->name('shopowner.emis.index');
+
+    // Documents (Welcome Letter / Sanction Letter generation + signed upload)
+    Route::get('/admin/documents', [DocumentController::class, 'index'])->name('admin.documents.index');
+    Route::get('/shop-owner/documents', [DocumentController::class, 'index'])->name('shopowner.documents.index');
     Route::post('/loans/{loan}/documents/{type}/signed', [DocumentController::class, 'storeSigned'])
         ->whereIn('type', ['welcome_letter', 'sanction_letter', 'noc'])
         ->name('documents.signed.store');

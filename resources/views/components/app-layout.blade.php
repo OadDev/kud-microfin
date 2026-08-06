@@ -44,8 +44,12 @@
         <a class="nav-link {{ ($active ?? '') === 'products' ? 'active' : '' }}" href="{{ route('admin.products.index') }}"><i class="fa-solid fa-box"></i> Products</a>
         <a class="nav-link {{ ($active ?? '') === 'orders' ? 'active' : '' }}" href="{{ route('admin.orders.index') }}"><i class="fa-solid fa-cart-shopping"></i> Orders</a>
       @else
+        <a class="nav-link {{ ($active ?? '') === 'dashboard' ? 'active' : '' }}" href="{{ route('shopowner.dashboard') }}"><i class="fa-solid fa-gauge"></i> Dashboard</a>
         <a class="nav-link {{ ($active ?? '') === 'customers' ? 'active' : '' }}" href="{{ route('shopowner.customers.index') }}"><i class="fa-solid fa-users"></i> Customers</a>
         <a class="nav-link {{ ($active ?? '') === 'create-customer' ? 'active' : '' }}" href="{{ route('shopowner.customers.create') }}"><i class="fa-solid fa-user-plus"></i> Create Customer</a>
+        <a class="nav-link {{ ($active ?? '') === 'active-loans' ? 'active' : '' }}" href="{{ route('shopowner.loans.index') }}"><i class="fa-solid fa-file-invoice-dollar"></i> Active Loans</a>
+        <a class="nav-link {{ ($active ?? '') === 'emi-list' ? 'active' : '' }}" href="{{ route('shopowner.emis.index') }}"><i class="fa-solid fa-calendar-check"></i> EMI List</a>
+        <a class="nav-link {{ ($active ?? '') === 'documents' ? 'active' : '' }}" href="{{ route('shopowner.documents.index') }}"><i class="fa-solid fa-file-lines"></i> Documents</a>
       @endif
       <hr style="border-color:rgba(255,255,255,.15); margin:8px 16px;">
       <a class="nav-link" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>

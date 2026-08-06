@@ -91,7 +91,7 @@ class AuthController extends Controller
     {
         return match ($user->role) {
             'admin' => route('admin.dashboard'),
-            'shop_owner' => route('shopowner.customers.index'),
+            'shop_owner' => route('shopowner.dashboard'),
             'customer' => route('customer.home'),
         };
     }
