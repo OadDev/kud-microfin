@@ -3,6 +3,7 @@
 @endphp
 <x-customer-layout :title="$title" :active="$active" pageTitle="Shop">
   <x-slot:pageActions>
+    <a href="{{ route('customer.orders.index') }}" class="icon-btn" title="My Orders"><i class="fa-solid fa-receipt"></i></a>
     <a href="{{ route('customer.favourites.index') }}" class="icon-btn" title="Favourites"><i class="fa-solid fa-heart"></i></a>
   </x-slot:pageActions>
 

@@ -15,7 +15,7 @@ class OrderController extends Controller
 
         return view('customer.orders.index', [
             'title' => 'My Orders', 'active' => 'products',
-            'orders' => $customer->orders()->with('items.product')->latest('id')->get(),
+            'orders' => $customer->orders()->with('items.product', 'loan')->latest('id')->get(),
         ]);
     }
 

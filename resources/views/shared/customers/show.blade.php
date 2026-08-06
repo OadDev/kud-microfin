@@ -31,7 +31,7 @@
     <div class="alert alert-info mt-3 mb-0" style="font-size:.85rem;"><i class="fa-solid fa-circle-check me-1"></i>This loan was foreclosed on {{ $loan->foreclosed_at->format('d/m/Y') }} (₹{{ number_format($loan->foreclosure_amount, 2) }} settled).</div>
   @endif
 
-  @if($loan && in_array($loan->status, ['active', 'overdue']))
+  @if($isAdmin && $loan && in_array($loan->status, ['active', 'overdue']))
     @php $fc = $loan->foreclosureBreakdown(); @endphp
     <div class="alert alert-light border mt-3 mb-2" style="font-size:.85rem;">
       <div class="fw-semibold mb-1"><i class="fa-solid fa-flag-checkered me-1"></i>Foreclosure Quote</div>
@@ -45,20 +45,28 @@
     </form>
   @endif
 
-  <div class="row g-3 mt-1">
-    <div class="col-6 col-md-3"><div class="small-note">Principal Amount</div><div class="fw-bold">₹{{ number_format($loan?->principal ?? 0) }}</div></div>
-    <div class="col-6 col-md-3"><div class="small-note">Total Payable</div><div class="fw-bold">₹{{ number_format($loan?->total_payable ?? 0) }}</div></div>
-    <div class="col-6 col-md-3"><div class="small-note">Amount Paid</div><div class="fw-bold text-success">₹{{ number_format($loan?->amountPaid() ?? 0) }}</div></div>
-    <div class="col-6 col-md-3"><div class="small-note">Outstanding</div><div class="fw-bold text-danger">₹{{ number_format($outstanding) }}</div></div>
-    <div class="col-6 col-md-3"><div class="small-note">EMI Amount</div><div class="fw-bold">₹{{ number_format($loan?->emi_amount ?? 0) }}</div></div>
-    <div class="col-6 col-md-3"><div class="small-note">Paid EMIs</div><div class="fw-bold">{{ $paidEmis }} / {{ $totalEmis }}</div></div>
-    <div class="col-6 col-md-3"><div class="small-note">Pending EMIs</div><div class="fw-bold">{{ $totalEmis - $paidEmis }}</div></div>
-    <div class="col-6 col-md-3"><div class="small-note">Next EMI Due</div><div class="fw-bold">{{ $next?->due_date->format('d/m/Y') ?? '-' }}</div></div>
-  </div>
+  @if($isAdmin)
+    <div class="row g-3 mt-1">
+      <div class="col-6 col-md-3"><div class="small-note">Principal Amount</div><div class="fw-bold">₹{{ number_format($loan?->principal ?? 0) }}</div></div>
+      <div class="col-6 col-md-3"><div class="small-note">Total Payable</div><div class="fw-bold">₹{{ number_format($loan?->total_payable ?? 0) }}</div></div>
+      <div class="col-6 col-md-3"><div class="small-note">Amount Paid</div><div class="fw-bold text-success">₹{{ number_format($loan?->amountPaid() ?? 0) }}</div></div>
+      <div class="col-6 col-md-3"><div class="small-note">Outstanding</div><div class="fw-bold text-danger">₹{{ number_format($outstanding) }}</div></div>
+      <div class="col-6 col-md-3"><div class="small-note">EMI Amount</div><div class="fw-bold">₹{{ number_format($loan?->emi_amount ?? 0) }}</div></div>
+      <div class="col-6 col-md-3"><div class="small-note">Paid EMIs</div><div class="fw-bold">{{ $paidEmis }} / {{ $totalEmis }}</div></div>
+      <div class="col-6 col-md-3"><div class="small-note">Pending EMIs</div><div class="fw-bold">{{ $totalEmis - $paidEmis }}</div></div>
+      <div class="col-6 col-md-3"><div class="small-note">Next EMI Due</div><div class="fw-bold">{{ $next?->due_date->format('d/m/Y') ?? '-' }}</div></div>
+    </div>
+  @else
+    <div class="row g-3 mt-1">
+      <div class="col-6 col-md-4"><div class="small-note">Principal Amount</div><div class="fw-bold">₹{{ number_format($loan?->principal ?? 0) }}</div></div>
+      <div class="col-6 col-md-4"><div class="small-note">Total Payable</div><div class="fw-bold">₹{{ number_format($loan?->total_payable ?? 0) }}</div></div>
+      <div class="col-6 col-md-4"><div class="small-note">Loan Start Date</div><div class="fw-bold">{{ $loan?->start_date->format('d/m/Y') ?? '-' }}</div></div>
+    </div>
+  @endif
 </div>
 
 <ul class="nav nav-pills flex-nowrap overflow-auto mb-3" style="gap:6px;">
-  @foreach(['overview'=>'Overview','emi'=>'EMI Schedule','payments'=>'Payments','docs'=>'Documents'] as $key=>$label)
+  @foreach(($isAdmin ? ['overview'=>'Overview','emi'=>'EMI Schedule','payments'=>'Payments','docs'=>'Documents'] : ['overview'=>'Overview','docs'=>'Documents']) as $key=>$label)
     <li class="nav-item">
       <a class="nav-link {{ $tab===$key?'active':'' }}" style="{{ $tab===$key ? 'background:var(--primary);color:#fff;' : 'color:var(--primary);' }}" href="{{ route('customers.show', ['customer'=>$customer,'tab'=>$key]) }}">{{ $label }}</a>
     </li>
@@ -86,11 +94,13 @@
         <div class="dc-row"><span class="text-muted-fin">Loan Purpose</span><span>{{ $loan?->purpose }}</span></div>
         <div class="dc-row"><span class="text-muted-fin">EMI Frequency</span><span>{{ $loan?->frequency }}</span></div>
         <div class="dc-row"><span class="text-muted-fin">Loan Start Date</span><span>{{ $loan?->start_date->format('d/m/Y') }}</span></div>
-        <div class="dc-row"><span class="text-muted-fin">Late Fee / EMI</span><span>₹{{ number_format($loan?->late_fee ?? 0) }}</span></div>
+        @if($isAdmin)
+          <div class="dc-row"><span class="text-muted-fin">Late Fee / EMI</span><span>₹{{ number_format($loan?->late_fee ?? 0) }}</span></div>
+        @endif
       </div>
     </div>
   </div>
-@elseif($tab === 'emi')
+@elseif($isAdmin && $tab === 'emi')
   <div class="card-flat p-0 table-responsive-fin">
     <table class="table table-fin mb-0">
       <thead><tr><th>EMI #</th><th>Due Date</th><th>Amount</th><th>Status</th><th>Payment Date</th></tr></thead>
@@ -111,7 +121,7 @@
       </div>
     @endforeach
   </div>
-@elseif($tab === 'payments')
+@elseif($isAdmin && $tab === 'payments')
   @php $payments = $loan->paymentSubmissions->sortByDesc('id'); @endphp
   <div class="card-flat p-0 table-responsive-fin">
     <table class="table table-fin mb-0">

@@ -45,4 +45,22 @@ class Order extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+
+    /**
+     * For EMI-financing orders, the loan's approval state is what actually
+     * blocks the order (not the delivery status), so it's surfaced as its
+     * own label wherever an order's status is shown to the customer.
+     */
+    public function financingStatusLabel(): ?string
+    {
+        if ($this->payment_method !== 'emi_financing' || ! $this->loan) {
+            return null;
+        }
+
+        return match ($this->loan->status) {
+            'pending' => 'Financing Pending',
+            'rejected' => 'Financing Rejected',
+            default => 'Financing Approved',
+        };
+    }
 }

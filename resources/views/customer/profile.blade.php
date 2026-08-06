@@ -22,6 +22,12 @@
   <div class="dc-row"><span class="text-muted-fin">PAN</span><span>{{ $customer->pan }}</span></div>
   <div class="dc-row"><span class="text-muted-fin">Aadhaar</span><span>{{ $customer->aadhaar }}</span></div>
 </div>
+
+<a href="{{ route('customer.orders.index') }}" class="card-flat p-3 mb-3 d-flex justify-content-between align-items-center" style="color:inherit;">
+  <span><i class="fa-solid fa-receipt me-2 text-primary"></i>My Orders</span>
+  <i class="fa-solid fa-chevron-right text-muted"></i>
+</a>
+
 <div class="card-flat p-3 mb-3">
   <div class="section-title mb-2">Quick Login</div>
   @if($customer->user->hasPinEnabled())

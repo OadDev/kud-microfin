@@ -178,11 +178,19 @@ class CustomerController extends Controller
         $customer->load(['user', 'shopOwner', 'loans.emis', 'loans.paymentSubmissions', 'loans.documents']);
         $loan = $customer->currentLoan();
 
+        // EMI/payment tracking is Admin-only -- Shop Owner sees customer and
+        // loan-approval details but not payment progress, so these tabs
+        // aren't reachable even via a direct URL.
+        $tab = $request->query('tab', 'overview');
+        if (! $user->isAdmin() && in_array($tab, ['emi', 'payments'], true)) {
+            $tab = 'overview';
+        }
+
         return view('shared.customers.show', [
             'title' => 'Customer Details',
             'customer' => $customer,
             'loan' => $loan,
-            'tab' => $request->query('tab', 'overview'),
+            'tab' => $tab,
         ]);
     }
 }

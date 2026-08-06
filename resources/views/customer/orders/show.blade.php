@@ -6,7 +6,11 @@
       <div class="fw-bold">{{ $order->order_no }}</div>
       <div class="small-note">{{ $order->created_at->format('d/m/Y H:i') }}</div>
     </div>
-    <x-status-badge :status="ucfirst($order->status)" />
+    @if($order->financingStatusLabel())
+      <x-status-badge :status="$order->financingStatusLabel()" />
+    @else
+      <x-status-badge :status="ucfirst($order->status)" />
+    @endif
   </div>
 
   @foreach($order->items as $item)

@@ -7,7 +7,11 @@
         <div class="fw-semibold">{{ $o->items->pluck('product.name')->filter()->join(', ') ?: 'Order' }}</div>
         <div class="small-note">{{ $o->order_no }} · {{ $o->created_at->format('d/m/Y') }}</div>
       </div>
-      <x-status-badge :status="ucfirst($o->status)" />
+      @if($o->financingStatusLabel())
+        <x-status-badge :status="$o->financingStatusLabel()" />
+      @else
+        <x-status-badge :status="ucfirst($o->status)" />
+      @endif
     </div>
     <div class="d-flex justify-content-between mt-2">
       <span class="small-note">{{ $o->items->sum('quantity') }} item(s) · {{ $o->payment_method === 'emi_financing' ? 'EMI FINANCING' : strtoupper($o->payment_method) }}</span>
