@@ -1,0 +1,87 @@
+name: Build Mobile App
+
+# Builds the Capacitor-wrapped Android/iOS apps in mobile/. This can't run
+# on a regular dev machine without Android Studio/Xcode installed -- GitHub's
+# runners ship with the Android SDK preinstalled, and macos-latest ships
+# Xcode, so this is the practical way to get an installable Android APK (and
+# to prove the iOS side still compiles) without owning that toolchain
+# locally.
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - claude/bold-hawking-ptm14i
+    paths:
+      - "mobile/**"
+      - ".github/workflows/build-mobile.yml"
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install JS dependencies
+        working-directory: mobile
+        run: npm install
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Sync Capacitor (copies web assets + plugins into android/)
+        working-directory: mobile
+        run: npx cap sync android
+
+      - name: Build debug APK
+        working-directory: mobile/android
+        run: ./gradlew assembleDebug --no-daemon
+
+      # Debug APKs are self-signed with a default debug key -- fine to
+      # sideload for testing, not fine to publish to the Play Store (that
+      # needs a real release-signing key you generate yourself).
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: bluepeak-fintech-debug-apk
+          path: mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+
+  ios:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install JS dependencies
+        working-directory: mobile
+        run: npm install
+
+      - name: Sync Capacitor (copies web assets + plugins into ios/)
+        working-directory: mobile
+        run: npx cap sync ios
+
+      # Simulator build only, with code signing disabled -- this just
+      # proves the iOS project compiles. A device-installable/App-Store
+      # build needs a real Apple Developer signing certificate, which
+      # doesn't exist yet (see mobile/README.md).
+      - name: Build for iOS Simulator (no code signing)
+        working-directory: mobile/ios/App
+        run: |
+          xcodebuild -workspace App.xcworkspace -scheme App \
+            -sdk iphonesimulator -configuration Debug \
+            -destination "generic/platform=iOS Simulator" \
+            CODE_SIGNING_ALLOWED=NO build

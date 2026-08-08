@@ -14,6 +14,20 @@ all icon/splash assets, but **cannot compile either app** — there's no Android
 here (Xcode only runs on macOS). Building the installable APK/IPA needs the steps below, on a
 machine (or CI) that has the right toolchain.
 
+## Quickest way to get an APK: GitHub Actions
+
+`.github/workflows/build-mobile.yml` builds both apps on GitHub's own runners (which already
+have the Android SDK and, for iOS, Xcode) — no local setup needed. Go to **Actions → Build
+Mobile App → Run workflow**, or just push a change under `mobile/`. When it finishes:
+- **Android**: download the `bluepeak-fintech-debug-apk` artifact from the run — a real,
+  installable `.apk` you can sideload onto any Android phone (enable "Install from unknown
+  sources" for the browser/file app you use to open it). It's debug-signed, fine for testing,
+  not for the Play Store (that needs your own release-signing key).
+- **iOS**: the job only builds for the Simulator with code signing disabled, to prove the
+  project still compiles — it does not produce anything installable on a real iPhone. A real
+  device or App Store build needs your own Apple Developer signing certificate (see "Building
+  for iOS" below); nothing here can substitute for that.
+
 ## One-time setup
 
 ```bash
