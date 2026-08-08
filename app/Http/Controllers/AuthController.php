@@ -21,6 +21,25 @@ class AuthController extends Controller
     }
 
     /**
+     * The Android/iOS app's entry screen -- OTP login only, no password
+     * form, no Admin/Shop Owner options, no demo buttons. Customer-only by
+     * design, since the app is customer-facing exclusively.
+     */
+    public function showAppLogin(Request $request): View
+    {
+        $quickLoginUser = (new QuickLoginController)->identifiedUser($request);
+
+        // Remembered for logout() -- an app user who signs out must land
+        // back on this clean OTP-only screen, never the general /login page
+        // with its Admin/Shop Owner options.
+        $request->session()->put('is_app_client', true);
+
+        return view('auth.app-login', [
+            'quickLoginUser' => $quickLoginUser && $quickLoginUser->hasPinEnabled() ? $quickLoginUser : null,
+        ]);
+    }
+
+    /**
      * Password login shared by Admin and Shop Owner. Accepts a mobile
      * number or an email address in the same field, matching the UI.
      */
@@ -81,11 +100,13 @@ class AuthController extends Controller
 
     public function logout(Request $request): RedirectResponse
     {
+        $isAppClient = $request->session()->get('is_app_client', false);
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login');
+        return redirect()->route($isAppClient ? 'app.login' : 'login');
     }
 
     public function homeFor(User $user): string

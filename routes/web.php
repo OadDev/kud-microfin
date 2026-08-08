@@ -58,6 +58,10 @@ Route::get('/', [MarketingController::class, 'index'])->name('marketing.home');
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
+
+    // Mobile app entry point (Android/iOS WebView start URL) -- customer
+    // OTP login only, see AuthController::showAppLogin().
+    Route::get('/app/login', [AuthController::class, 'showAppLogin'])->name('app.login');
     Route::post('/demo-login/{role}', [AuthController::class, 'demoLogin'])->name('demo.login');
 
     Route::post('/customer/otp/send', [CustomerAuthController::class, 'sendOtp'])->name('customer.otp.send');

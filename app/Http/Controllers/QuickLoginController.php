@@ -75,11 +75,11 @@ class QuickLoginController extends Controller
      * "Not you?" — drop this device's quick-login link so the full login
      * form shows again.
      */
-    public function forget(): RedirectResponse
+    public function forget(Request $request): RedirectResponse
     {
         Cookie::queue(Cookie::forget(self::COOKIE));
 
-        return redirect()->route('login');
+        return redirect()->route($request->session()->get('is_app_client', false) ? 'app.login' : 'login');
     }
 
     /**
