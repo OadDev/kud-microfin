@@ -22,8 +22,8 @@
   --radius:14px;
   --shadow:0 2px 10px rgba(15,35,65,.06);
 }
-*{box-sizing:border-box;}
-html,body{overflow-x:hidden; max-width:100%;}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{overflow-x:hidden; max-width:100%; overscroll-behavior-y:contain;}
 /* Bootstrap's CDN can be slow or blocked; this app leans on .d-none for
    real show/hide logic (not just spacing), so it needs to work even if
    Bootstrap's stylesheet never loads. */
