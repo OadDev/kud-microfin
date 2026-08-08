@@ -16,10 +16,30 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // Release signing comes from environment variables (set by CI from
+    // GitHub Secrets, see .github/workflows/release-android.yml) so the
+    // real signing key never touches source control. Building `release`
+    // locally without those set still works -- Gradle just falls back to
+    // an unsigned artifact.
+    def releaseStoreFile = System.getenv("RELEASE_STORE_FILE")
+    if (releaseStoreFile) {
+        signingConfigs {
+            release {
+                storeFile file(releaseStoreFile)
+                storePassword System.getenv("RELEASE_STORE_PASSWORD")
+                keyAlias System.getenv("RELEASE_KEY_ALIAS")
+                keyPassword System.getenv("RELEASE_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (releaseStoreFile) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }

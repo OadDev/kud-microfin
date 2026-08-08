@@ -131,12 +131,54 @@ macOS. Options:
    these can build and even submit to TestFlight/App Store from this same `mobile/` folder
    without you owning a Mac.
 
-## Publishing
+## Publishing to the Play Store (Android)
 
-- **Play Store**: needs a signed `.aab`, a Google Play Console developer account ($25 one-time),
-  and store listing assets (screenshots, feature graphic — not generated here).
-- **App Store**: needs an Apple Developer Program account ($99/year), a signed build via Xcode
-  or CI, and App Store Connect listing assets.
+`.github/workflows/release-android.yml` builds a signed, upload-ready `.aab` in CI. One-time
+setup:
 
-Neither store account/listing is something this repo can set up for you — both require your own
-developer accounts and manual review submission.
+1. A signing keystore was generated for this app (`bluepeak-upload-key.jks`) and handed to you
+   directly (not committed here — a signing key must never be in git). **Back it up somewhere
+   safe outside this repo** — if it's lost, you can never publish an update to this app under
+   the same listing again.
+2. In **GitHub → this repo → Settings → Secrets and variables → Actions**, add 4 secrets (the
+   exact values were included with the keystore handoff):
+   `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`,
+   `ANDROID_KEY_PASSWORD`.
+3. Run **Actions → Release Android (signed AAB) → Run workflow**. Download the
+   `bluepeak-fintech-release-aab` artifact when it finishes.
+4. In [Play Console](https://play.google.com/console) → your app → **Production** (or a testing
+   track first) → **Create new release**, upload the `.aab`. First-ever upload also asks you to
+   opt into **Play App Signing** — accept it (Google recommended default): Google re-signs the
+   app with a key it manages for the actual Play Store distribution, so losing the upload
+   keystore later is recoverable (you'd request a new upload key from Google), whereas losing a
+   *non*-Play-App-Signing key is unrecoverable.
+5. Fill in the store listing (screenshots, description, privacy policy URL, content rating
+   questionnaire, data safety form) — none of that is something this repo can generate; it's
+   done in the Play Console UI.
+
+Before your first real submission, bump `versionCode`/`versionName` in
+`mobile/android/app/build.gradle` for each subsequent release (Play Console rejects re-uploading
+the same `versionCode` twice), and swap in a real 1024×1024 icon (see "Icons & splash screen"
+above).
+
+## Publishing to the App Store (iOS)
+
+**Needs a Mac with Xcode at least once** — Apple only allows iOS app signing/archiving from
+macOS; there's no CI-only path that entirely avoids this the way Android's does. Two ways to get
+there:
+1. **Physical/rented Mac**: clone this repo, `cd mobile && npm install && npx cap sync ios`,
+   open `ios/App/App.xcworkspace` in Xcode, sign in with your Apple ID under
+   **Xcode → Settings → Accounts**, select your Team in the target's **Signing & Capabilities**
+   tab, then **Product → Archive** → **Distribute App** → **App Store Connect**.
+2. **Cloud Mac CI** (no Mac needed at all): [Codemagic](https://codemagic.io) or
+   [Ionic Appflow](https://ionic.io/appflow) can build, sign, and submit straight to
+   TestFlight/App Store from this same `mobile/ios` project using an **App Store Connect API
+   key** (generate one in App Store Connect → Users and Access → Integrations — a `.p8` file +
+   Key ID + Issuer ID) instead of a login session, which also works from a GitHub Actions
+   `macos-latest` runner if you'd rather stay on GitHub Actions end to end. Tell me if you want
+   this wired up and I'll need that API key (as a GitHub Secret, never pasted into chat) plus
+   your Apple Team ID.
+
+Either way, first fill in `APPLE_TEAM_ID` in the server's `.env` (see "Biometric login" above)
+and complete the one-time Xcode **Associated Domains** capability step so passkeys work inside
+the shipped app.

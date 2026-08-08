@@ -1,0 +1,62 @@
+name: Release Android (signed AAB)
+
+# Builds a signed, Play-Store-ready .aab. Needs these repo secrets first
+# (Settings -> Secrets and variables -> Actions):
+#   ANDROID_KEYSTORE_BASE64   -- `base64 -w0 your-upload-key.jks`
+#   ANDROID_KEYSTORE_PASSWORD
+#   ANDROID_KEY_ALIAS
+#   ANDROID_KEY_PASSWORD
+# See mobile/README.md for where the keystore itself came from and how to
+# store it safely -- it is never committed to this repo.
+on:
+  workflow_dispatch: {}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install JS dependencies
+        working-directory: mobile
+        run: npm install
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Sync Capacitor (copies web assets + plugins into android/)
+        working-directory: mobile
+        run: npx cap sync android
+
+      - name: Decode signing keystore
+        working-directory: mobile/android/app
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > release.jks
+
+      - name: Build signed release AAB
+        working-directory: mobile/android
+        env:
+          RELEASE_STORE_FILE: release.jks
+          RELEASE_STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: ./gradlew bundleRelease --no-daemon
+
+      - name: Remove decoded keystore before upload
+        if: always()
+        run: rm -f mobile/android/app/release.jks
+
+      - name: Upload signed AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: bluepeak-fintech-release-aab
+          path: mobile/android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 90
