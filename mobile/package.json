@@ -1,0 +1,23 @@
+{
+  "name": "bluepeak-fintech-app",
+  "version": "1.0.0",
+  "description": "BluePeak Fintech customer mobile app (Capacitor WebView wrapper around the production customer login/panel)",
+  "private": true,
+  "scripts": {
+    "sync": "cap sync",
+    "open:android": "cap open android",
+    "open:ios": "cap open ios",
+    "assets": "capacitor-assets generate --iconBackgroundColor '#0c2053' --iconBackgroundColorDark '#0c2053' --splashBackgroundColor '#0c2053' --splashBackgroundColorDark '#0c2053' && rm -rf icons www/manifest.json"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/ios": "^8.5.0",
+    "@capacitor/splash-screen": "^8.0.2",
+    "onesignal-cordova-plugin": "^5.5.2"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5"
+  }
+}

@@ -52,6 +52,19 @@ Route::get('/', [MarketingController::class, 'index'])->name('marketing.home');
 
 /*
 |--------------------------------------------------------------------------
+| Named "home" -- Laravel's `guest` middleware sends an already-logged-in
+| user here whenever they hit a guest-only route (e.g. a customer whose
+| session is still valid reopening the mobile app at /app/login). Without
+| this, it falls back to '/' (the public marketing page) since neither
+| 'home' nor 'dashboard' otherwise exists as a route name.
+|--------------------------------------------------------------------------
+*/
+Route::get('/home', fn () => redirect()->to(
+    auth()->check() ? (new AuthController)->homeFor(auth()->user()) : route('login')
+))->name('home');
+
+/*
+|--------------------------------------------------------------------------
 | Guest / public routes
 |--------------------------------------------------------------------------
 */

@@ -1,0 +1,22 @@
+{
+  "appId": "com.bluepeakfintech.app",
+  "appName": "BluePeak Fintech",
+  "webDir": "www",
+  "server": {
+    "url": "https://bluepeakfintech.com/app/login",
+    "androidScheme": "https",
+    "cleartext": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1800,
+      "launchAutoHide": true,
+      "backgroundColor": "#0c2053",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false,
+      "splashFullScreen": true,
+      "splashImmersive": true
+    }
+  }
+}

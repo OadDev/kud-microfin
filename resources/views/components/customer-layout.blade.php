@@ -68,6 +68,7 @@ function copyToClipboard(text, label){
   }
 }
 </script>
+@include('partials.onesignal-bridge')
 @stack('scripts')
 </body>
 </html>
