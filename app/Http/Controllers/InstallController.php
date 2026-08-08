@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Database\Seeders\DemoDataSeeder;
+use Database\Seeders\NotificationTemplatesSeeder;
 use Database\Seeders\PaymentSettingsSeeder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -73,6 +74,7 @@ class InstallController extends Controller
             Artisan::call('migrate', ['--force' => true]);
 
             (new PaymentSettingsSeeder)->run();
+            (new NotificationTemplatesSeeder)->run();
 
             User::create([
                 'name' => $data['admin_name'],

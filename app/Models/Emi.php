@@ -17,6 +17,7 @@ class Emi extends Model
         'amount',
         'status',
         'payment_date',
+        'reminder_sent_at',
     ];
 
     protected function casts(): array
@@ -25,6 +26,7 @@ class Emi extends Model
             'due_date' => 'date',
             'payment_date' => 'date',
             'amount' => 'decimal:2',
+            'reminder_sent_at' => 'datetime',
         ];
     }
 

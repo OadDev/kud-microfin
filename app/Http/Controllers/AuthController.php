@@ -67,6 +67,7 @@ class AuthController extends Controller
      */
     public function demoLogin(Request $request, string $role): RedirectResponse
     {
+        abort_unless(app()->environment('local'), 404);
         abort_unless(in_array($role, ['admin', 'shop_owner', 'customer'], true), 404);
 
         $user = User::where('role', $role)->where('status', 'approved')->oldest('id')->first();

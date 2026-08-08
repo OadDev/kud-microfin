@@ -38,6 +38,7 @@
         <a class="nav-link {{ ($active ?? '') === 'emi-calculator' ? 'active' : '' }}" href="{{ route('admin.emi-calculator') }}"><i class="fa-solid fa-calculator"></i> EMI Calculator</a>
         <a class="nav-link {{ ($active ?? '') === 'payment-verification' ? 'active' : '' }}" href="{{ route('admin.payment-verification.index') }}"><i class="fa-solid fa-magnifying-glass-dollar"></i> Payment Verification</a>
         <a class="nav-link {{ ($active ?? '') === 'payment-settings' ? 'active' : '' }}" href="{{ route('admin.payment-settings.edit') }}"><i class="fa-solid fa-gear"></i> Payment Settings</a>
+        <a class="nav-link {{ ($active ?? '') === 'notifications' ? 'active' : '' }}" href="{{ route('admin.notification-manager.settings') }}"><i class="fa-solid fa-bell"></i> Notification Manager</a>
         <a class="nav-link {{ ($active ?? '') === 'documents' ? 'active' : '' }}" href="{{ route('admin.documents.index') }}"><i class="fa-solid fa-file-lines"></i> Documents</a>
         <a class="nav-link {{ ($active ?? '') === 'banners' ? 'active' : '' }}" href="{{ route('admin.banners.index') }}"><i class="fa-solid fa-images"></i> Home Banners</a>
         <a class="nav-link {{ ($active ?? '') === 'categories' ? 'active' : '' }}" href="{{ route('admin.categories.index') }}"><i class="fa-solid fa-tags"></i> Categories</a>

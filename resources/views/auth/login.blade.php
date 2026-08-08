@@ -78,6 +78,7 @@
       </div>
     @endif
 
+    @if(app()->environment('local'))
     <hr>
     <div class="text-center small-note mb-2">Quick Demo Access</div>
     <div class="d-grid gap-2">
@@ -85,6 +86,7 @@
       <form method="POST" action="{{ route('demo.login', 'shop_owner') }}">@csrf<button class="btn btn-sm btn-outline-fin w-100" type="submit"><i class="fa-solid fa-store me-1"></i> Login as Shop Owner</button></form>
       <form method="POST" action="{{ route('demo.login', 'customer') }}">@csrf<button class="btn btn-sm btn-outline-fin w-100" type="submit"><i class="fa-solid fa-user me-1"></i> Login as Customer</button></form>
     </div>
+    @endif
     <div class="text-center small-note mt-3">
       Want to list your shop? <a href="{{ route('shop-owner.register') }}">Register as Shop Owner</a>
     </div>

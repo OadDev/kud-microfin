@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Services\CustomerNotifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -41,11 +42,20 @@ class OrderController extends Controller
             'status' => ['required', 'in:pending,confirmed,shipped,delivered,cancelled'],
         ]);
 
+        $statusChanged = $order->status !== $data['status'];
+
         $order->update($data);
 
         // Marking a COD order delivered is treated as the point of collection.
         if ($data['status'] === 'delivered' && $order->payment_method === 'cod' && $order->payment_status === 'pending') {
             $order->update(['payment_status' => 'paid']);
+        }
+
+        if ($statusChanged) {
+            CustomerNotifier::send('order_status_changed', $order->customer, [
+                'order_no' => $order->order_no,
+                'status' => ucfirst($data['status']),
+            ]);
         }
 
         return back()->with('success', 'Order status updated.');

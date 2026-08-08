@@ -12,6 +12,7 @@ use App\Models\Product;
 use App\Models\User;
 use App\Notifications\NewOrderNotification;
 use App\Services\CodeGenerator;
+use App\Services\CustomerNotifier;
 use App\Services\EmiScheduleService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -162,6 +163,12 @@ class CartController extends Controller
         } catch (\Throwable $e) {
             report($e);
         }
+
+        CustomerNotifier::send('order_placed', $customer, [
+            'order_no' => $order->order_no,
+            'amount' => number_format((float) $order->total_amount, 2),
+            'payment_method' => $data['payment_method'] === 'emi_financing' ? 'EMI Financing' : strtoupper($data['payment_method']),
+        ]);
 
         if ($data['payment_method'] === 'cod') {
             return redirect()->route('customer.orders.show', $order)->with('success', 'Order placed successfully! Pay cash on delivery.');

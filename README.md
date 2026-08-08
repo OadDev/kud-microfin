@@ -162,6 +162,19 @@ only once `installed.lock` exists, so this never runs against an as-yet-unconfig
 and clears caches; `.env`, uploads, and the installed lock stay untouched, so nothing about the
 running site resets.
 
+### 4. Cron (needed for EMI reminder notifications)
+
+Automated EMI-due reminders (`Admin > Notification Manager`) run off Laravel's scheduler, which
+needs exactly one cron entry — Hostinger doesn't run this for you. In **hPanel → Advanced →
+Cron Jobs**, add a job that runs **every minute**:
+
+```
+* * * * * php /home/USERNAME/domains/YOURDOMAIN/public_html/artisan schedule:run >> /dev/null 2>&1
+```
+
+(Laravel's scheduler itself decides what actually needs to run each minute — this single entry
+covers the EMI reminder job and anything scheduled in `routes/console.php` in the future.)
+
 ### How the flat layout is hardened
 
 Because `app/`, `vendor/`, `config/`, `.env` etc. all sit in `public_html` next to `index.php`

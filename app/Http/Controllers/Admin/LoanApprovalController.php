@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Loan;
+use App\Services\CustomerNotifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -40,6 +41,12 @@ class LoanApprovalController extends Controller
         ]);
         $loan->refreshStatus();
 
+        CustomerNotifier::send('loan_approved', $loan->customer, [
+            'loan_account_no' => $loan->loan_account_no,
+            'emi_amount' => number_format((float) $loan->emi_amount, 2),
+            'num_emis' => $loan->num_emis,
+        ]);
+
         return redirect()->route('admin.loan-approvals.index')
             ->with('success', "Loan {$loan->loan_account_no} approved and is now active.");
     }
@@ -57,6 +64,11 @@ class LoanApprovalController extends Controller
             'approved_by' => $request->user()->id,
             'approved_at' => now(),
             'reject_reason' => $data['reason'],
+        ]);
+
+        CustomerNotifier::send('loan_rejected', $loan->customer, [
+            'loan_account_no' => $loan->loan_account_no,
+            'reason' => $data['reason'],
         ]);
 
         return redirect()->route('admin.loan-approvals.index')

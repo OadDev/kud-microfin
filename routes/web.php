@@ -4,7 +4,10 @@ use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\EmiCalculatorController;
 use App\Http\Controllers\Admin\LoanApprovalController;
+use App\Http\Controllers\Admin\NotificationBroadcastController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
+use App\Http\Controllers\Admin\NotificationSettingController;
+use App\Http\Controllers\Admin\NotificationTemplateController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\PaymentSettingController;
 use App\Http\Controllers\Admin\PaymentVerificationController;
@@ -186,6 +189,22 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.status');
     Route::post('/orders/{order}/mark-cod-paid', [AdminOrderController::class, 'markCodPaid'])->name('orders.mark-cod-paid');
+
+    // Notification Manager (OneSignal push + SMTP email settings, editable
+    // templates for the automated events, and a manual push composer)
+    Route::prefix('notification-manager')->name('notification-manager.')->group(function () {
+        Route::get('/settings', [NotificationSettingController::class, 'edit'])->name('settings');
+        Route::post('/settings', [NotificationSettingController::class, 'update'])->name('settings.update');
+        Route::post('/settings/test-email', [NotificationSettingController::class, 'testEmail'])->name('settings.test-email');
+        Route::post('/settings/test-push', [NotificationSettingController::class, 'testPush'])->name('settings.test-push');
+
+        Route::get('/templates', [NotificationTemplateController::class, 'index'])->name('templates');
+        Route::get('/templates/{notificationTemplate}/edit', [NotificationTemplateController::class, 'edit'])->name('templates.edit');
+        Route::put('/templates/{notificationTemplate}', [NotificationTemplateController::class, 'update'])->name('templates.update');
+
+        Route::get('/send', [NotificationBroadcastController::class, 'create'])->name('send');
+        Route::post('/send', [NotificationBroadcastController::class, 'store'])->name('send.store');
+    });
 });
 
 /*

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PaymentSubmission;
+use App\Services\CustomerNotifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -46,6 +47,11 @@ class PaymentVerificationController extends Controller
         if ($paymentSubmission->is_foreclosure) {
             $paymentSubmission->loan->foreclose();
 
+            CustomerNotifier::send('foreclosure_approved', $paymentSubmission->customer, [
+                'loan_account_no' => $paymentSubmission->loan->loan_account_no,
+                'amount' => number_format((float) $paymentSubmission->paid_amount, 2),
+            ]);
+
             return redirect()->route('admin.payment-verification.index')
                 ->with('success', "Payment approved. Loan {$paymentSubmission->loan->loan_account_no} has been foreclosed.");
         }
@@ -54,6 +60,11 @@ class PaymentVerificationController extends Controller
         $emi->update(['status' => 'paid', 'payment_date' => now()]);
 
         $paymentSubmission->loan->refreshStatus();
+
+        CustomerNotifier::send('payment_approved', $paymentSubmission->customer, [
+            'emi_number' => $emi->emi_number,
+            'amount' => number_format((float) $paymentSubmission->paid_amount, 2),
+        ]);
 
         return redirect()->route('admin.payment-verification.index')
             ->with('success', "Payment approved. EMI #{$emi->emi_number} marked as Paid.");
@@ -79,6 +90,11 @@ class PaymentVerificationController extends Controller
             $emi->update(['status' => 'pending']);
 
             $paymentSubmission->loan->refreshStatus();
+
+            CustomerNotifier::send('payment_rejected', $paymentSubmission->customer, [
+                'emi_number' => $emi->emi_number,
+                'reason' => $data['reason'],
+            ]);
         }
 
         return redirect()->route('admin.payment-verification.index')

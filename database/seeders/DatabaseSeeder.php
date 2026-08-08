@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             PaymentSettingsSeeder::class,
+            NotificationTemplatesSeeder::class,
             DemoDataSeeder::class,
         ]);
     }
