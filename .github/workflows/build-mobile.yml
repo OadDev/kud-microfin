@@ -81,7 +81,7 @@ jobs:
       - name: Build for iOS Simulator (no code signing)
         working-directory: mobile/ios/App
         run: |
-          xcodebuild -workspace App.xcworkspace -scheme App \
+          xcodebuild -project App.xcodeproj -scheme App \
             -sdk iphonesimulator -configuration Debug \
             -destination "generic/platform=iOS Simulator" \
             CODE_SIGNING_ALLOWED=NO build

@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ShopOwnerController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CustomerPasswordResetController;
 use App\Http\Controllers\CustomerPanel\CartController;
 use App\Http\Controllers\CustomerPanel\DocumentController as CustomerDocumentController;
 use App\Http\Controllers\CustomerPanel\FavouriteController;
@@ -85,6 +86,11 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/login', [AuthController::class, 'showCustomerLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'loginCustomer'])->name('login.submit');
+
+    Route::get('/login/forgot-password', [CustomerPasswordResetController::class, 'showRequest'])->name('password.request');
+    Route::post('/login/forgot-password', [CustomerPasswordResetController::class, 'sendOtp'])->name('password.email')->middleware('throttle:5,1');
+    Route::get('/login/reset-password', [CustomerPasswordResetController::class, 'showReset'])->name('password.reset.show');
+    Route::post('/login/reset-password', [CustomerPasswordResetController::class, 'resetPassword'])->name('password.reset')->middleware('throttle:5,1');
 
     Route::post('/demo-login/{role}', [AuthController::class, 'demoLogin'])->name('demo.login');
 

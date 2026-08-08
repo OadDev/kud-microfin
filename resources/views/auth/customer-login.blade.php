@@ -42,6 +42,7 @@
           <label class="form-label">Password</label>
           <input type="password" name="password" class="form-control" placeholder="Enter password">
         </div>
+        <div class="text-end mb-2"><a href="{{ route('password.request') }}" class="small-note">Forgot password?</a></div>
         <button class="btn btn-primary-fin w-100 mb-2" type="submit"><i class="fa-solid fa-right-to-bracket me-1"></i> Login</button>
         <div class="small-note text-center mt-2">Don't know your password? Ask your Shop Owner or our Helpline -- it was shared with you when your account was created.</div>
       </form>

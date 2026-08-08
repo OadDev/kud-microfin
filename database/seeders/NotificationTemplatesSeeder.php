@@ -95,6 +95,16 @@ class NotificationTemplatesSeeder extends Seeder
                 'push_title' => 'EMI Due Soon',
                 'push_body' => 'EMI #{{emi_number}} of ₹{{amount}} is due on {{due_date}}.',
             ],
+            [
+                'key' => 'password_reset_otp',
+                'name' => 'Password Reset OTP',
+                'description' => 'Sent when a customer requests a password reset code. Placeholders: {{customer_name}}, {{otp_code}}',
+                'push_enabled' => false,
+                'email_subject' => 'Your BluePeak Fintech password reset code',
+                'email_body' => "Hi {{customer_name}},\n\nUse this code to reset your password: {{otp_code}}\n\nThis code expires in 10 minutes. If you didn't request this, you can safely ignore this email.\n\n— BluePeak Fintech",
+                'push_title' => null,
+                'push_body' => null,
+            ],
         ];
     }
 }
