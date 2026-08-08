@@ -4,15 +4,16 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Passkeys\Contracts\PasskeyUser;
+use Laravel\Passkeys\PasskeyAuthenticatable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements PasskeyUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, PasskeyAuthenticatable;
 
     /**
      * The attributes that are mass assignable.
@@ -65,9 +66,14 @@ class User extends Authenticatable
         return $this->hasOne(Customer::class);
     }
 
-    public function webauthnCredentials(): HasMany
+    /**
+     * Shown as the account subtitle in biometric/passkey prompts. Prefer
+     * mobile over email since it's the identifier customers actually log
+     * in with (email is optional for a customer).
+     */
+    public function getPasskeyUsername(): string
     {
-        return $this->hasMany(WebauthnCredential::class);
+        return $this->mobile ?? $this->email ?? (string) $this->getAuthIdentifier();
     }
 
     public function isAdmin(): bool
@@ -122,6 +128,6 @@ class User extends Authenticatable
             'pin_hash' => null,
             'pin_enabled_at' => null,
         ])->save();
-        $this->webauthnCredentials()->delete();
+        $this->passkeys()->delete();
     }
 }

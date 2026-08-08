@@ -96,12 +96,17 @@ class CustomerController extends Controller
 
         $shopOwnerId = $isAdmin ? (int) $data['shop_owner_id'] : $user->shopOwner->id;
 
-        $loan = DB::transaction(function () use ($data, $request, $shopOwnerId) {
+        // A 6-digit numeric password (not a random string) so it's easy for
+        // staff to read aloud/type when handing it to the customer -- there's
+        // no SMS/email delivery guaranteed, so this is communicated manually.
+        $tempPassword = (string) random_int(100000, 999999);
+
+        $loan = DB::transaction(function () use ($data, $request, $shopOwnerId, $tempPassword) {
             $customerUser = User::create([
                 'name' => $data['full_name'],
                 'mobile' => $data['mobile'],
                 'email' => $data['email'] ?? null,
-                'password' => Hash::make(str()->random(10)),
+                'password' => Hash::make($tempPassword),
                 'role' => 'customer',
                 'status' => 'approved',
             ]);
@@ -167,7 +172,8 @@ class CustomerController extends Controller
             ->route($isAdmin ? 'admin.customers.create' : 'shopowner.customers.create')
             ->with('success', "Customer and loan created successfully: {$loan->customer->customer_code}")
             ->with('created_loan_id', $loan->id)
-            ->with('created_customer_id', $loan->customer_id);
+            ->with('created_customer_id', $loan->customer_id)
+            ->with('created_customer_password', $tempPassword);
     }
 
     public function show(Request $request, Customer $customer): View

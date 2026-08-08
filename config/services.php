@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    // Mobile app passkey support (see WellKnownController + mobile/README.md)
+    'apple' => [
+        'team_id' => env('APPLE_TEAM_ID'),
+    ],
+    'android' => [
+        // Comma-separated if signing with more than one certificate (e.g. upload + app signing keys)
+        'sha256_fingerprints' => env('ANDROID_SHA256_FINGERPRINTS'),
+    ],
+
 ];

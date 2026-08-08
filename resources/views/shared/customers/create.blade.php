@@ -85,7 +85,13 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header bg-success-subtle"><h5 class="modal-title"><i class="fa-solid fa-circle-check text-success me-2"></i>Customer &amp; Loan Created</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
-      <div class="modal-body">{{ session('success') }}</div>
+      <div class="modal-body">
+        <div class="mb-3">{{ session('success') }}</div>
+        <div class="alert alert-warning mb-0">
+          <div class="fw-semibold mb-1"><i class="fa-solid fa-key me-1"></i>Customer Login Password: <span class="fs-5">{{ session('created_customer_password') }}</span></div>
+          <div class="small">There's no SMS gateway connected, so this password is only shown here, once. Please share it with the customer directly (call/WhatsApp/in person) so they can log in at {{ route('login') }} with their mobile number and this password.</div>
+        </div>
+      </div>
       <div class="modal-footer flex-wrap">
         <a class="btn btn-outline-fin btn-sm" href="{{ route('customers.show', session('created_customer_id')) }}">View Customer</a>
         <a class="btn btn-outline-fin btn-sm" href="{{ route('documents.show', [session('created_loan_id'), 'welcome_letter']) }}">Generate Welcome Letter</a>

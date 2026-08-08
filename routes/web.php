@@ -14,7 +14,6 @@ use App\Http\Controllers\Admin\PaymentVerificationController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ShopOwnerController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerPanel\CartController;
 use App\Http\Controllers\CustomerPanel\DocumentController as CustomerDocumentController;
@@ -33,6 +32,7 @@ use App\Http\Controllers\LoanController;
 use App\Http\Controllers\MarketingController;
 use App\Http\Controllers\PublicRegistrationController;
 use App\Http\Controllers\QuickLoginController;
+use App\Http\Controllers\WellKnownController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -50,11 +50,16 @@ Route::post('/install', [InstallController::class, 'store'])->name('install.stor
 */
 Route::get('/', [MarketingController::class, 'index'])->name('marketing.home');
 
+// Domain-ownership files the mobile app needs for passkeys to work inside
+// the WebView -- see WellKnownController.
+Route::get('/.well-known/apple-app-site-association', [WellKnownController::class, 'appleAppSiteAssociation']);
+Route::get('/.well-known/assetlinks.json', [WellKnownController::class, 'assetLinks']);
+
 /*
 |--------------------------------------------------------------------------
 | Named "home" -- Laravel's `guest` middleware sends an already-logged-in
 | user here whenever they hit a guest-only route (e.g. a customer whose
-| session is still valid reopening the mobile app at /app/login). Without
+| session is still valid reopening the mobile app at /login). Without
 | this, it falls back to '/' (the public marketing page) since neither
 | 'home' nor 'dashboard' otherwise exists as a route name.
 |--------------------------------------------------------------------------
@@ -65,26 +70,30 @@ Route::get('/home', fn () => redirect()->to(
 
 /*
 |--------------------------------------------------------------------------
-| Guest / public routes
+| Guest / public routes -- login is deliberately three separate,
+| role-specific screens (no shared page): /admin (staff), /shop-owner/login
+| (staff), /login (Customer -- also the mobile app's start URL). None of
+| them expose any of the others' options.
 |--------------------------------------------------------------------------
 */
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
+    Route::get('/admin', [AuthController::class, 'showAdminLogin'])->name('admin.login');
+    Route::post('/admin', [AuthController::class, 'loginAdmin'])->name('admin.login.submit');
 
-    // Mobile app entry point (Android/iOS WebView start URL) -- customer
-    // OTP login only, see AuthController::showAppLogin().
-    Route::get('/app/login', [AuthController::class, 'showAppLogin'])->name('app.login');
+    Route::get('/shop-owner/login', [AuthController::class, 'showShopOwnerLogin'])->name('shopowner.login');
+    Route::post('/shop-owner/login', [AuthController::class, 'loginShopOwner'])->name('shopowner.login.submit');
+
+    Route::get('/login', [AuthController::class, 'showCustomerLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'loginCustomer'])->name('login.submit');
+
     Route::post('/demo-login/{role}', [AuthController::class, 'demoLogin'])->name('demo.login');
-
-    Route::post('/customer/otp/send', [CustomerAuthController::class, 'sendOtp'])->name('customer.otp.send');
-    Route::post('/customer/otp/verify', [CustomerAuthController::class, 'verifyOtp'])->name('customer.otp.verify');
 
     Route::get('/register/shop-owner', [PublicRegistrationController::class, 'create'])->name('shop-owner.register');
     Route::post('/register/shop-owner', [PublicRegistrationController::class, 'store'])->name('shop-owner.register.submit');
 
     // Quick PIN login (identifies the user via a per-device cookie set
-    // during setup, so this stays inside the guest group).
+    // during setup, so this stays inside the guest group). Customer-only
+    // in practice -- see QuickLoginController.
     Route::post('/quick-login/verify', [QuickLoginController::class, 'verifyPin'])->name('quick-login.verify');
 });
 
@@ -239,6 +248,7 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::get('/documents', [CustomerDocumentController::class, 'index'])->name('documents');
     Route::get('/profile', [CustomerProfileController::class, 'index'])->name('profile');
     Route::post('/profile/photo', [CustomerProfileController::class, 'updatePhoto'])->name('profile.photo');
+    Route::post('/profile/password', [CustomerProfileController::class, 'updatePassword'])->name('profile.password');
 
     // Products (browse, search/filter) + Cart + Favourites + Orders
     Route::get('/products', [CustomerProductController::class, 'index'])->name('products.index');

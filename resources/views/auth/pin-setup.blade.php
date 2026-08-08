@@ -4,7 +4,7 @@
     <div class="text-center mb-3">
       <div class="login-logo"><img src="{{ asset('images/logo-icon.png') }}" alt="BluePeak Fintech"></div>
       <h4 class="fw-bold brand-text mb-0">Set Up Quick Login</h4>
-      <div class="page-sub">Skip typing your password/OTP next time on this device</div>
+      <div class="page-sub">Skip typing your password next time on this device</div>
     </div>
 
     <form method="POST" action="{{ route('quick-login.setup.store') }}">

@@ -9,56 +9,58 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
+/**
+ * Login is split into three separate, role-specific screens/URLs -- there
+ * is no shared login page. This is deliberate: staff (Admin/Shop Owner)
+ * and Customers must never be shown each other's login options, and the
+ * customer-facing mobile app's start URL (/login) must never expose a
+ * path into the staff panel.
+ */
 class AuthController extends Controller
 {
-    public function showLogin(Request $request): View
+    public function showAdminLogin(): View
     {
-        $quickLoginUser = (new QuickLoginController)->identifiedUser($request);
-
-        return view('auth.login', [
-            'quickLoginUser' => $quickLoginUser && $quickLoginUser->hasPinEnabled() ? $quickLoginUser : null,
-        ]);
+        return view('auth.admin-login');
     }
 
-    /**
-     * The Android/iOS app's entry screen -- OTP login only, no password
-     * form, no Admin/Shop Owner options, no demo buttons. Customer-only by
-     * design, since the app is customer-facing exclusively.
-     */
-    public function showAppLogin(Request $request): View
-    {
-        $quickLoginUser = (new QuickLoginController)->identifiedUser($request);
-
-        // Remembered for logout() -- an app user who signs out must land
-        // back on this clean OTP-only screen, never the general /login page
-        // with its Admin/Shop Owner options.
-        $request->session()->put('is_app_client', true);
-
-        return view('auth.app-login', [
-            'quickLoginUser' => $quickLoginUser && $quickLoginUser->hasPinEnabled() ? $quickLoginUser : null,
-        ]);
-    }
-
-    /**
-     * Password login shared by Admin and Shop Owner. Accepts a mobile
-     * number or an email address in the same field, matching the UI.
-     */
-    public function login(Request $request): RedirectResponse
+    public function loginAdmin(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'identifier' => ['required', 'string'],
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::where('mobile', $data['identifier'])
-            ->orWhere('email', $data['identifier'])
-            ->first();
+        $user = User::where('mobile', $data['identifier'])->orWhere('email', $data['identifier'])->first();
 
-        if (! $user || ! in_array($user->role, ['admin', 'shop_owner'], true) || ! Hash::check($data['password'], $user->password)) {
+        if (! $user || $user->role !== 'admin' || ! Hash::check($data['password'], $user->password)) {
             return back()->withErrors(['identifier' => 'Invalid credentials.'])->onlyInput('identifier');
         }
 
-        if ($user->role === 'shop_owner' && $user->status !== 'approved') {
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        return redirect()->intended($this->homeFor($user));
+    }
+
+    public function showShopOwnerLogin(): View
+    {
+        return view('auth.shop-owner-login');
+    }
+
+    public function loginShopOwner(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'identifier' => ['required', 'string'],
+            'password' => ['required', 'string'],
+        ]);
+
+        $user = User::where('mobile', $data['identifier'])->orWhere('email', $data['identifier'])->first();
+
+        if (! $user || $user->role !== 'shop_owner' || ! Hash::check($data['password'], $user->password)) {
+            return back()->withErrors(['identifier' => 'Invalid credentials.'])->onlyInput('identifier');
+        }
+
+        if ($user->status !== 'approved') {
             return back()->withErrors([
                 'identifier' => match ($user->status) {
                     'pending' => 'Your shop owner registration is still pending Admin approval.',
@@ -72,6 +74,41 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
+        return redirect()->intended($this->homeFor($user));
+    }
+
+    /**
+     * Customer login -- also the Android/iOS app's start URL. Password
+     * based (no SMS gateway is wired up, so OTP would mean showing the
+     * code on-screen instead of texting it -- a real account-takeover
+     * risk we're not shipping). Offers the Quick PIN / biometric shortcut
+     * for a returning, already-identified device.
+     */
+    public function showCustomerLogin(Request $request): View
+    {
+        $quickLoginUser = (new QuickLoginController)->identifiedUser($request);
+
+        return view('auth.customer-login', [
+            'quickLoginUser' => $quickLoginUser && $quickLoginUser->hasPinEnabled() ? $quickLoginUser : null,
+        ]);
+    }
+
+    public function loginCustomer(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'identifier' => ['required', 'string'],
+            'password' => ['required', 'string'],
+        ]);
+
+        $user = User::where('mobile', $data['identifier'])->orWhere('email', $data['identifier'])->first();
+
+        if (! $user || $user->role !== 'customer' || ! Hash::check($data['password'], $user->password)) {
+            return back()->withErrors(['identifier' => 'Invalid mobile number/email or password.'])->onlyInput('identifier');
+        }
+
+        Auth::login($user);
+        $request->session()->regenerate();
+
         if (! $user->hasPinEnabled() && ! $request->session()->has('url.intended')) {
             return redirect()->route('quick-login.setup');
         }
@@ -80,9 +117,9 @@ class AuthController extends Controller
     }
 
     /**
-     * Quick demo-login buttons, mirroring the prototype's "Login as Admin /
-     * Shop Owner / Customer" shortcuts. Only ever logs into seeded demo
-     * accounts — never creates or elevates a user.
+     * Quick demo-login shortcuts for local dev/testing only -- no UI button
+     * renders anywhere; hit the route directly (e.g. via curl) if needed.
+     * Only ever logs into seeded demo accounts, never creates or elevates one.
      */
     public function demoLogin(Request $request, string $role): RedirectResponse
     {
@@ -100,13 +137,17 @@ class AuthController extends Controller
 
     public function logout(Request $request): RedirectResponse
     {
-        $isAppClient = $request->session()->get('is_app_client', false);
+        $role = $request->user()?->role;
 
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route($isAppClient ? 'app.login' : 'login');
+        return redirect()->route(match ($role) {
+            'admin' => 'admin.login',
+            'shop_owner' => 'shopowner.login',
+            default => 'login',
+        });
     }
 
     public function homeFor(User $user): string

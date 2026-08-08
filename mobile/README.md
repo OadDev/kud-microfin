@@ -2,10 +2,12 @@
 
 A [Capacitor](https://capacitorjs.com) WebView wrapper around the production BluePeak Fintech
 site. There is no separate mobile codebase to maintain — the app just loads
-`https://bluepeakfintech.com/app/login` (see `capacitor.config.json` → `server.url`) inside a
+`https://bluepeakfintech.com/login` (see `capacitor.config.json` → `server.url`) inside a
 native shell with a splash screen, app icon, and push notification support. Every screen a
 customer sees is the same Blade-rendered site as the browser version; **customer-only** — the
-app's entry point (`/app/login`) has no Admin/Shop Owner login path.
+app's entry point (`/login`) is the dedicated Customer login screen and has no Admin/Shop Owner
+login path (those live at separate URLs, `/admin` and `/shop-owner/login`, that the app never
+loads).
 
 This was scaffolded from this Linux dev machine, which can generate both native projects and
 all icon/splash assets, but **cannot compile either app** — there's no Android SDK and no Xcode
@@ -27,7 +29,7 @@ Edit `server.url` in `capacitor.config.json`, then re-sync:
 npx cap sync
 ```
 
-It's currently pointed at `https://bluepeakfintech.com/app/login` — update this if the real
+It's currently pointed at `https://bluepeakfintech.com/login` — update this if the real
 production domain ends up different from what's in `.env.production.example`.
 
 ## Icons & splash screen
@@ -43,6 +45,34 @@ Play Store listing image, iOS App Store icon). **Before publishing**, drop a rea
 npm run assets
 npx cap sync
 ```
+
+## Biometric login (Face ID / Touch ID / Android fingerprint)
+
+Customers can already register and log in with a passkey from a normal browser (Chrome/Safari) —
+that part needs no mobile-specific setup and works today. Making it work **inside this app
+specifically** needs two "we own this domain" files the OS checks before letting the app touch
+platform credentials, plus one manual Xcode step:
+
+1. **Android** — `GET /.well-known/assetlinks.json` (already served by the Laravel app, see
+   `WellKnownController`) needs your app's real release-signing certificate fingerprint. Once
+   you've generated a signing key: `keytool -list -v -keystore your.keystore` (or read it off
+   Play Console → Setup → App signing), then set `ANDROID_SHA256_FINGERPRINTS` in the server's
+   `.env` to that SHA-256 value (comma-separate if you have more than one, e.g. upload key +
+   Play App Signing key). No native Android project changes needed beyond that — the OS verifies
+   this automatically against the domain.
+
+2. **iOS** — `GET /.well-known/apple-app-site-association` needs your Apple Developer **Team
+   ID** (found in [developer.apple.com](https://developer.apple.com) → Membership). Set
+   `APPLE_TEAM_ID` in the server's `.env`. Then, in Xcode, open the `App` target → **Signing &
+   Capabilities** → **+ Capability** → **Associated Domains**, and add
+   `webcredentials:bluepeakfintech.com` (already present in `App.entitlements` in this repo as a
+   starting point, but Xcode needs to actually link that entitlements file to the target's build
+   settings — a one-time manual step, since that wiring lives in the `.pbxproj` project file
+   which isn't safely hand-editable outside Xcode itself).
+
+Until both are set, passkey login inside the app will just silently behave as if the browser
+doesn't support it (the UI hides the button) — nothing breaks, customers can still use their
+password. The browser-based (non-app) passkey login is completely unaffected either way.
 
 ## OneSignal (push notifications)
 

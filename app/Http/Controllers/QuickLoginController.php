@@ -10,9 +10,10 @@ use Illuminate\Support\Facades\Cookie;
 use Illuminate\View\View;
 
 /**
- * Quick PIN login: after a full login, a user can opt in to a 4-6 digit PIN
- * tied to that one device (identified by a long-lived signed cookie), so
- * they don't have to re-enter mobile+password/OTP every time on it.
+ * Quick PIN login: after logging in, a Customer can opt in to a 4-6 digit
+ * PIN tied to that one device (identified by a long-lived signed cookie),
+ * so they don't have to re-enter mobile+password every time on it.
+ * Customer-only -- Admin/Shop Owner always use their password.
  */
 class QuickLoginController extends Controller
 {
@@ -20,11 +21,15 @@ class QuickLoginController extends Controller
 
     public function setupPrompt(Request $request): View
     {
+        abort_unless($request->user()->isCustomer(), 403);
+
         return view('auth.pin-setup', ['user' => $request->user()]);
     }
 
     public function storePin(Request $request): RedirectResponse
     {
+        abort_unless($request->user()->isCustomer(), 403);
+
         $data = $request->validate([
             'pin' => ['required', 'digits_between:4,6', 'confirmed'],
         ]);
@@ -61,7 +66,7 @@ class QuickLoginController extends Controller
 
         $user = $this->identifiedUser($request);
 
-        if (! $user || $user->id !== (int) $data['user_id'] || ! $user->verifyPin($data['pin'])) {
+        if (! $user || ! $user->isCustomer() || $user->id !== (int) $data['user_id'] || ! $user->verifyPin($data['pin'])) {
             return back()->withErrors(['pin' => 'Incorrect PIN.']);
         }
 
@@ -73,13 +78,14 @@ class QuickLoginController extends Controller
 
     /**
      * "Not you?" — drop this device's quick-login link so the full login
-     * form shows again.
+     * form shows again. Quick login is customer-only, so this always
+     * belongs on the customer login screen.
      */
-    public function forget(Request $request): RedirectResponse
+    public function forget(): RedirectResponse
     {
         Cookie::queue(Cookie::forget(self::COOKIE));
 
-        return redirect()->route($request->session()->get('is_app_client', false) ? 'app.login' : 'login');
+        return redirect()->route('login');
     }
 
     /**

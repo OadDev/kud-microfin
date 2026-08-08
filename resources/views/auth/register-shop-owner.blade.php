@@ -30,7 +30,7 @@
         <button class="btn btn-primary-fin w-100 mt-3" type="submit"><i class="fa-solid fa-paper-plane me-1"></i> Submit Registration</button>
       </form>
     @endif
-    <div class="text-center small-note mt-3"><a href="{{ route('login') }}">Back to Login</a></div>
+    <div class="text-center small-note mt-3"><a href="{{ route('shopowner.login') }}">Back to Login</a></div>
   </div>
 </div>
 </x-guest-layout>

@@ -29,7 +29,7 @@ class EnsureAppIsInstalled
         }
 
         if ($installed && $request->routeIs('install.*')) {
-            return redirect()->route('login');
+            return redirect()->route('marketing.home');
         }
 
         return $next($request);

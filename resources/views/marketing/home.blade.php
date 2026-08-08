@@ -27,7 +27,8 @@
       <a href="#how-it-works" class="d-none d-md-inline text-decoration-none text-muted-fin small fw-semibold">How It Works</a>
       <a href="#contact" class="d-none d-md-inline text-decoration-none text-muted-fin small fw-semibold">Contact</a>
       <a href="{{ route('shop-owner.register') }}" class="btn btn-sm btn-outline-fin">Register as Shop Owner</a>
-      <a href="{{ route('login') }}" class="btn btn-sm btn-primary-fin">Login</a>
+      <a href="{{ route('shopowner.login') }}" class="btn btn-sm btn-outline-fin">Shop Owner Login</a>
+      <a href="{{ route('login') }}" class="btn btn-sm btn-primary-fin">Customer Login</a>
     </div>
   </div>
 </nav>
@@ -46,7 +47,8 @@
         <h1>Small loans, big possibilities — with EMIs you can actually plan around.</h1>
         <p class="lead mt-3 mb-4">BluePeak Fintech helps you access fast, transparent microloans through your nearest registered Shop Partner, track every EMI in one place, and even shop for everyday essentials with Cash on Delivery or online payment.</p>
         <div class="d-flex gap-2 justify-content-center justify-content-md-start flex-wrap">
-          <a href="{{ route('login') }}" class="btn btn-light fw-semibold px-4"><i class="fa-solid fa-right-to-bracket me-1"></i>Customer / Shop Owner Login</a>
+          <a href="{{ route('login') }}" class="btn btn-light fw-semibold px-4"><i class="fa-solid fa-right-to-bracket me-1"></i>Customer Login</a>
+          <a href="{{ route('shopowner.login') }}" class="btn btn-outline-light px-4"><i class="fa-solid fa-store me-1"></i>Shop Owner Login</a>
           <a href="{{ route('shop-owner.register') }}" class="btn btn-outline-light px-4"><i class="fa-solid fa-store me-1"></i>Become a Shop Partner</a>
         </div>
       </div>
@@ -168,7 +170,8 @@
       <div class="small">&copy; {{ now()->year }} BluePeak Fintech. All rights reserved.</div>
     </div>
     <div class="d-flex gap-3 small">
-      <a href="{{ route('login') }}">Login</a>
+      <a href="{{ route('login') }}">Customer Login</a>
+      <a href="{{ route('shopowner.login') }}">Shop Owner Login</a>
       <a href="{{ route('shop-owner.register') }}">Register as Shop Owner</a>
       <a href="tel:+917002128302">+91 70021 28302</a>
     </div>

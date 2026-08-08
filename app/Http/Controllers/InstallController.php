@@ -105,7 +105,7 @@ class InstallController extends Controller
 
         file_put_contents(storage_path('app/installed.lock'), now()->toDateTimeString());
 
-        return redirect()->route('login')->with('success', 'Installation complete! Log in with the Admin account you just created.');
+        return redirect()->route('admin.login')->with('success', 'Installation complete! Log in with the Admin account you just created.');
     }
 
     protected function requirementChecks(): array

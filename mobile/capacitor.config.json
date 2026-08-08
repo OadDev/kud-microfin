@@ -3,7 +3,7 @@
   "appName": "BluePeak Fintech",
   "webDir": "www",
   "server": {
-    "url": "https://bluepeakfintech.com/app/login",
+    "url": "https://bluepeakfintech.com/login",
     "androidScheme": "https",
     "cleartext": false
   },
