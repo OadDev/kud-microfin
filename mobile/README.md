@@ -163,22 +163,35 @@ above).
 
 ## Publishing to the App Store (iOS)
 
-**Needs a Mac with Xcode at least once** — Apple only allows iOS app signing/archiving from
-macOS; there's no CI-only path that entirely avoids this the way Android's does. Two ways to get
-there:
-1. **Physical/rented Mac**: clone this repo, `cd mobile && npm install && npx cap sync ios`,
-   open `ios/App/App.xcworkspace` in Xcode, sign in with your Apple ID under
-   **Xcode → Settings → Accounts**, select your Team in the target's **Signing & Capabilities**
-   tab, then **Product → Archive** → **Distribute App** → **App Store Connect**.
-2. **Cloud Mac CI** (no Mac needed at all): [Codemagic](https://codemagic.io) or
-   [Ionic Appflow](https://ionic.io/appflow) can build, sign, and submit straight to
-   TestFlight/App Store from this same `mobile/ios` project using an **App Store Connect API
-   key** (generate one in App Store Connect → Users and Access → Integrations — a `.p8` file +
-   Key ID + Issuer ID) instead of a login session, which also works from a GitHub Actions
-   `macos-latest` runner if you'd rather stay on GitHub Actions end to end. Tell me if you want
-   this wired up and I'll need that API key (as a GitHub Secret, never pasted into chat) plus
-   your Apple Team ID.
+`.github/workflows/release-ios.yml` builds, signs, and uploads to TestFlight on a
+`macos-latest` GitHub Actions runner using an **App Store Connect API key** — no Mac needed by
+you at any point, no logged-in Apple ID in CI. **This hasn't been run/verified end to end** (the
+environment that wrote it has no Mac/Xcode access to test against) — the xcodebuild/export flags
+follow Apple's documented CI pattern, but treat the first real run as a shakedown; it may need a
+small fix or two (e.g. the App ID needing to be registered in your Apple Developer account
+first, or an export-options tweak).
 
-Either way, first fill in `APPLE_TEAM_ID` in the server's `.env` (see "Biometric login" above)
-and complete the one-time Xcode **Associated Domains** capability step so passkeys work inside
-the shipped app.
+One-time setup:
+
+1. In [App Store Connect](https://appstoreconnect.apple.com) → **Users and Access** →
+   **Integrations** → **Keys**, generate a new API key (Admin access). Apple lets you download
+   the `.p8` file **exactly once** — save it immediately.
+2. In **GitHub → this repo → Settings → Secrets and variables → Actions**, add:
+   - `APPLE_TEAM_ID` — from [developer.apple.com](https://developer.apple.com) → Membership
+   - `APPSTORE_API_KEY_ID` — shown next to the key you just created
+   - `APPSTORE_API_ISSUER_ID` — shown at the top of the same Keys page
+   - `APPSTORE_API_KEY_P8` — the full contents of the `.p8` file you downloaded
+3. Make sure `com.bluepeakfintech.app` is registered as an App ID in your Apple Developer
+   account and has a matching app record created in App Store Connect (first-time-only, done
+   once in the Apple/App Store Connect UI — not something this workflow can create for you).
+4. Run **Actions → Release iOS (TestFlight) → Run workflow**.
+
+If you'd rather not deal with CI signing at all, the alternative is a physical/rented Mac:
+clone this repo, `cd mobile && npm install && npx cap sync ios`, open
+`ios/App/App.xcworkspace` in Xcode, sign in under **Xcode → Settings → Accounts**, select your
+Team in the target's **Signing & Capabilities** tab, then **Product → Archive** → **Distribute
+App**.
+
+Either way, first fill in `APPLE_TEAM_ID` in the *server's* `.env` too (see "Biometric login"
+above — same value, different place it's used) and complete the one-time Xcode **Associated
+Domains** capability step so passkeys work inside the shipped app.

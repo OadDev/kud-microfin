@@ -1,0 +1,111 @@
+name: Release iOS (TestFlight)
+
+# Builds, signs, and uploads to TestFlight using an App Store Connect API
+# key instead of a logged-in Apple ID -- no Mac needed by a human at any
+# point. Needs these repo secrets first (Settings -> Secrets and variables
+# -> Actions):
+#   APPLE_TEAM_ID              -- developer.apple.com -> Membership
+#   APPSTORE_API_KEY_ID         -- App Store Connect -> Users and Access ->
+#                                  Integrations -> Keys
+#   APPSTORE_API_ISSUER_ID      -- same page, "Issuer ID" at the top
+#   APPSTORE_API_KEY_P8          -- contents of the downloaded AuthKey_*.p8
+#                                  file (Apple only lets you download this
+#                                  once when you generate the key -- save it)
+#
+# This has not been run/verified end to end (no Mac/Xcode access in the
+# environment that wrote it) -- the xcodebuild/export flags are correct
+# per Apple's documented CI pattern, but the first real run may need small
+# fixes (e.g. matching the exact scheme/bundle ID Xcode expects, or the
+# app record not existing yet in App Store Connect). Treat the first run
+# as a shakedown, not a guarantee.
+on:
+  workflow_dispatch: {}
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install JS dependencies
+        working-directory: mobile
+        run: npm install
+
+      - name: Sync Capacitor (copies web assets + plugins into ios/)
+        working-directory: mobile
+        run: npx cap sync ios
+
+      - name: Install App Store Connect API key
+        env:
+          APPSTORE_API_KEY_P8: ${{ secrets.APPSTORE_API_KEY_P8 }}
+          APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+        run: |
+          mkdir -p ~/private_keys
+          echo "$APPSTORE_API_KEY_P8" > ~/private_keys/AuthKey_${APPSTORE_API_KEY_ID}.p8
+
+      - name: Archive
+        working-directory: mobile/ios/App
+        env:
+          APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          xcodebuild -workspace App.xcworkspace -scheme App -configuration Release \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$HOME/private_keys/AuthKey_${APPSTORE_API_KEY_ID}.p8" \
+            -authenticationKeyID "$APPSTORE_API_KEY_ID" \
+            -authenticationKeyIssuerID "$APPSTORE_API_ISSUER_ID" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CODE_SIGN_STYLE=Automatic \
+            archive
+
+      - name: Export IPA
+        working-directory: mobile/ios/App
+        env:
+          APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          cat > ExportOptions.plist <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>teamID</key><string>${APPLE_TEAM_ID}</string>
+            <key>signingStyle</key><string>automatic</string>
+          </dict>
+          </plist>
+          PLIST
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -exportOptionsPlist ExportOptions.plist \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$HOME/private_keys/AuthKey_${APPSTORE_API_KEY_ID}.p8" \
+            -authenticationKeyID "$APPSTORE_API_KEY_ID" \
+            -authenticationKeyIssuerID "$APPSTORE_API_ISSUER_ID"
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bluepeak-fintech-ipa
+          path: ${{ runner.temp }}/export/*.ipa
+          retention-days: 90
+
+      - name: Upload to TestFlight
+        env:
+          APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
+        run: |
+          xcrun altool --upload-app \
+            -f "$RUNNER_TEMP"/export/*.ipa -t ios \
+            --apiKey "$APPSTORE_API_KEY_ID" \
+            --apiIssuer "$APPSTORE_API_ISSUER_ID"
