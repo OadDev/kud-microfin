@@ -85,8 +85,39 @@ platform credentials, plus one manual Xcode step:
    which isn't safely hand-editable outside Xcode itself).
 
 Until both are set, passkey login inside the app will just silently behave as if the browser
-doesn't support it (the UI hides the button) — nothing breaks, customers can still use their
-password. The browser-based (non-app) passkey login is completely unaffected either way.
+doesn't support it (the UI hides the button, or shows "Biometric login isn't supported on this
+device/browser" on the profile page) — nothing breaks, customers can still use their password.
+The browser-based (non-app) passkey login is completely unaffected either way.
+
+**Debug builds (the APK from "Build Mobile App") can't be made to work here, even temporarily.**
+Every CI run generates a brand-new, random debug signing key (there's no cached
+`~/.android/debug.keystore` between runs), so its SHA-256 fingerprint is different on every
+rebuild — there's no stable value to put in `ANDROID_SHA256_FINGERPRINTS`. To actually test
+biometric login inside the app, you need a build signed with your real, stable release key:
+
+1. Get the SHA-256 fingerprint of the upload key you already have (`bluepeak-upload-key.jks`):
+   `keytool -list -v -keystore bluepeak-upload-key.jks -alias bluepeak-upload` (password is in
+   the `README_KEYSTORE.txt` you were sent alongside it) — copy the `SHA256:` line.
+2. Set `ANDROID_SHA256_FINGERPRINTS` in the **server's** `.env` (edit it directly on
+   Hostinger — it's never in git) to that value, and `APP_URL`/`APPLE_TEAM_ID` too if you're
+   also chasing the iOS side.
+3. Add the 4 `ANDROID_*` GitHub Secrets from that same handoff if you haven't yet (Settings →
+   Secrets and variables → Actions) — needed for the next step to sign anything.
+4. Run **Actions → Release Android (signed AAB) → Run workflow**. It now also uploads a
+   `bluepeak-fintech-release-apk` artifact — a directly-installable `.apk`, signed with the same
+   real key as the `.aab`, unlike the debug build. **Uninstall the debug APK first** (Android
+   won't install a differently-signed APK over an existing package) and sideload this one.
+5. Retry biometric login/registration in the app. If it still doesn't show up, double check the
+   fingerprint has no typos/extra whitespace and that `.well-known/assetlinks.json` on the live
+   site actually reflects it (it's server-rendered from that env var, so a browser hit on
+   `https://bluepeakfintech.com/.well-known/assetlinks.json` should show it immediately, no
+   deploy needed).
+
+If it's still not showing up after all that, it may also just be that the specific Android
+System WebView version on your test device doesn't yet support platform WebAuthn -- verify by
+opening the live site (`bluepeakfintech.com/login`) in that same phone's actual Chrome browser,
+not the app: if the biometric button shows up and works there, the server side is fully correct
+and the remaining gap is genuinely device/WebView-version-specific.
 
 ## OneSignal (push notifications)
 

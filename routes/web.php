@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\ShopOwnerController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerPasswordResetController;
+use App\Http\Controllers\CustomerRegistrationController;
 use App\Http\Controllers\CustomerPanel\CartController;
 use App\Http\Controllers\CustomerPanel\DocumentController as CustomerDocumentController;
 use App\Http\Controllers\CustomerPanel\FavouriteController;
@@ -96,6 +97,9 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/register/shop-owner', [PublicRegistrationController::class, 'create'])->name('shop-owner.register');
     Route::post('/register/shop-owner', [PublicRegistrationController::class, 'store'])->name('shop-owner.register.submit');
+
+    Route::get('/register', [CustomerRegistrationController::class, 'create'])->name('customer.register');
+    Route::post('/register', [CustomerRegistrationController::class, 'store'])->name('customer.register.submit');
 
     // Quick PIN login (identifies the user via a per-device cookie set
     // during setup, so this stays inside the guest group). Customer-only

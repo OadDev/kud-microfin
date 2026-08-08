@@ -46,6 +46,9 @@
         <button class="btn btn-primary-fin w-100 mb-2" type="submit"><i class="fa-solid fa-right-to-bracket me-1"></i> Login</button>
         <div class="small-note text-center mt-2">Don't know your password? Ask your Shop Owner or our Helpline -- it was shared with you when your account was created.</div>
       </form>
+      <div class="text-center mt-3">
+        <a href="{{ route('customer.register') }}" class="small-note">New here? Create an account</a>
+      </div>
     @endif
   </div>
 </div>
