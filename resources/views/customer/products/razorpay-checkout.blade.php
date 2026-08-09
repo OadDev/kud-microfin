@@ -16,6 +16,7 @@
   <div id="payError" class="alert alert-danger mt-3 d-none" style="font-size:.85rem;"></div>
 </div>
 
+@push('scripts')
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
 document.getElementById('btnPayNow').addEventListener('click', function(){
@@ -80,4 +81,5 @@ function showPayError(msg){
   el.classList.remove('d-none');
 }
 </script>
+@endpush
 </x-customer-layout>

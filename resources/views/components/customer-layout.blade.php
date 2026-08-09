@@ -75,7 +75,20 @@ function copyToClipboard(text, label){
 @include('partials.onesignal-bridge')
 @include('partials.native-back-button')
 @include('partials.app-lock-bridge')
-@include('partials.page-transitions')
+<script>
+// Drop-in replacement for `document.addEventListener('DOMContentLoaded', fn)` in
+// page-specific scripts below -- see partials/ajax-navigation.blade.php for why.
+window.bpReady = function (fn) {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', fn, { once: true });
+  } else {
+    fn();
+  }
+};
+</script>
+<div id="bpPageScripts">
 @stack('scripts')
+</div>
+@include('partials.ajax-navigation')
 </body>
 </html>

@@ -111,7 +111,7 @@
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', async function () {
+bpReady(async function () {
   const inApp = window.Capacitor && window.Capacitor.isNativePlatform();
 
   if (inApp) {

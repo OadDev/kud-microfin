@@ -19,7 +19,6 @@
 @include('partials.native-biometric')
 @include('partials.onesignal-bridge')
 @include('partials.native-back-button')
-@include('partials.page-transitions')
 @stack('scripts')
 </body>
 </html>
