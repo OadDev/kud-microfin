@@ -18,6 +18,7 @@
 @include('partials.passkeys')
 @include('partials.onesignal-bridge')
 @include('partials.native-back-button')
+@include('partials.page-transitions')
 @stack('scripts')
 </body>
 </html>

@@ -81,7 +81,8 @@
       <button class="btn btn-outline-danger btn-sm w-100" type="submit"><i class="fa-solid fa-lock me-1"></i>Disable Quick Login</button>
     </form>
   @else
-    <div class="small-note mb-2">Not set up yet — you'll be offered this the next time you log in.</div>
+    <div class="small-note mb-2">Not set up yet.</div>
+    <a href="{{ route('quick-login.setup') }}" class="btn btn-outline-fin btn-sm w-100"><i class="fa-solid fa-unlock me-1"></i>Set Up Quick PIN Login</a>
   @endif
 </div>
 <form method="POST" action="{{ route('logout') }}">

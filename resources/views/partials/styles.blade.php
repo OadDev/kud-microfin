@@ -24,6 +24,12 @@
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
 html,body{overflow-x:hidden; max-width:100%;}
+/* Soft fade on every page load, and a quick fade-out right before leaving
+   (see partials/page-transitions.blade.php) -- makes navigating between
+   screens feel like a transition instead of an instant hard cut. */
+html{animation:bpPageIn .18s ease;}
+html.bp-page-leaving{opacity:0; transition:opacity .1s ease;}
+@keyframes bpPageIn{from{opacity:0;} to{opacity:1;}}
 /* Bootstrap's CDN can be slow or blocked; this app leans on .d-none for
    real show/hide logic (not just spacing), so it needs to work even if
    Bootstrap's stylesheet never loads. */
