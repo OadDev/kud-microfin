@@ -5,12 +5,12 @@
   "server": {
     "url": "https://bluepeakfintech.com/login",
     "androidScheme": "https",
-    "cleartext": false
+    "cleartext": false,
+    "errorPath": "offline.html"
   },
   "plugins": {
     "SplashScreen": {
-      "launchShowDuration": 1800,
-      "launchAutoHide": true,
+      "launchAutoHide": false,
       "backgroundColor": "#0c2053",
       "androidSplashResourceName": "splash",
       "androidScaleType": "CENTER_CROP",

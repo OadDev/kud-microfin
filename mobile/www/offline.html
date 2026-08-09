@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>No Internet Connection</title>
+<style>
+  html, body { height: 100%; margin: 0; background: #0c2053; }
+  body {
+    display: flex; align-items: center; justify-content: center;
+    font-family: -apple-system, Roboto, Helvetica, Arial, sans-serif;
+    padding: 24px; box-sizing: border-box;
+  }
+  .wrap { text-align: center; color: #ffffff; max-width: 320px; }
+  img { width: 72px; height: 72px; margin-bottom: 16px; }
+  h1 { font-size: 1.15rem; margin: 0 0 8px; }
+  p { font-size: .92rem; color: #c3cbe0; margin: 0 0 22px; line-height: 1.4; }
+  button {
+    background: #ffffff; color: #0c2053; border: none; border-radius: 999px;
+    padding: 12px 28px; font-size: .95rem; font-weight: 600; cursor: pointer;
+  }
+  button:active { opacity: .85; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <img src="icon.png" alt="BluePeak Fintech">
+    <h1>No Internet Connection</h1>
+    <p>We couldn't reach BluePeak Fintech. Please check your Wi-Fi or mobile data and try again.</p>
+    <button id="retryBtn" type="button">Retry</button>
+  </div>
+  <script>
+    // Capacitor's server.errorPath (see capacitor.config.json) loads this
+    // page in place of the OS's own network-error page whenever the main
+    // frame fails to load the remote server.url. Retrying just re-attempts
+    // that same URL -- reloading this page itself would just show the same
+    // "no internet" screen again since it's a local, always-reachable file.
+    var appUrl = 'https://bluepeakfintech.com/login';
+    document.getElementById('retryBtn').addEventListener('click', function () {
+      window.location.href = appUrl;
+    });
+    // Also retry automatically the moment the OS reports connectivity back.
+    window.addEventListener('online', function () {
+      window.location.href = appUrl;
+    });
+    // The launch splash is set to launchAutoHide:false so it can wait for
+    // the real app page to finish loading (see native-splash-hide.blade.php)
+    // -- but this offline page loads instead on a failed connection, and
+    // never reaches that script, so it has to dismiss the splash itself or
+    // this message would stay hidden behind it indefinitely.
+    if (window.Capacitor && window.Capacitor.isNativePlatform() && window.Capacitor.Plugins && window.Capacitor.Plugins.SplashScreen) {
+      window.Capacitor.Plugins.SplashScreen.hide();
+    }
+  </script>
+</body>
+</html>

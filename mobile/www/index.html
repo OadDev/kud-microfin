@@ -17,10 +17,11 @@
     <div>BluePeak Fintech</div>
   </div>
   <!--
-    This page is only ever seen if the app can't reach the server (offline
-    fallback) or for a split second before Capacitor's server.url takes
-    over -- the real app is the live website loaded via server.url in
-    capacitor.config.json, not this file. See mobile/README.md.
+    This page is only ever seen for a split second before Capacitor's
+    server.url takes over -- the real app is the live website loaded via
+    server.url in capacitor.config.json, not this file. The offline/no-
+    connection fallback is offline.html (see server.errorPath below), not
+    this one. See mobile/README.md.
   -->
 </body>
 </html>

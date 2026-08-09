@@ -14,6 +14,7 @@
 <body>
 {{ $slot }}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+@include('partials.native-splash-hide')
 @include('partials.passkeys')
 @include('partials.onesignal-bridge')
 @include('partials.native-back-button')

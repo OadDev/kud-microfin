@@ -15,6 +15,7 @@
  */
 
 $brandNavy = [12, 32, 83]; // #0c2053
+$white = [255, 255, 255];
 $logoPath = __DIR__.'/../../public/images/logo-icon.png';
 
 function canvas(int $size, array $rgb): GdImage
@@ -48,8 +49,12 @@ function pasteLogoCentered(GdImage $canvasImg, string $logoPath, int $canvasSize
 }
 
 // App icon: 1024x1024, logo fills most of the frame (platforms apply
-// their own corner-rounding/masking on top of this square source).
-$icon = canvas(1024, $brandNavy);
+// their own corner-rounding/masking on top of this square source). White
+// canvas, not brand navy -- the logo's mountain/chart negative space is
+// transparent (not solid white) in the source PNG, so a navy canvas made
+// those cutouts navy too, leaving an icon that read as one indistinct
+// blue blob. White gives the intended blue-logo-on-white contrast.
+$icon = canvas(1024, $white);
 pasteLogoCentered($icon, $logoPath, 1024, 0.62);
 imagepng($icon, __DIR__.'/icon.png');
 
