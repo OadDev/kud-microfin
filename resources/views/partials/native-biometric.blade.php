@@ -63,7 +63,8 @@
 
       onError?.('Biometric login failed. Please use your password.');
     } catch (e) {
-      onError?.('Biometric login was cancelled or is not available right now.');
+      var detail = (e && (e.message || e.errorMessage)) || '';
+      onError?.('Biometric login was cancelled or is not available right now.' + (detail ? ' (' + detail + ')' : ''));
     }
   }
 
@@ -84,6 +85,15 @@
       }
       var data = await res.json();
 
+      // Clear out any stale key first. If a fingerprint/face was added or removed on this
+      // device since a key was last created here (including a previous failed enable
+      // attempt), Android auto-invalidates that key -- the fingerprint scan itself still
+      // succeeds, but the crypto operation behind setData() then fails right after,
+      // which is exactly the "prompt appears, then cancels itself" symptom. Deleting
+      // first guarantees setData() always creates a fresh key against the device's
+      // current biometric enrollment. Safe to ignore if there was nothing to delete.
+      await NativeBiometric.deleteData({ key: STORAGE_KEY }).catch(function () {});
+
       await NativeBiometric.setData({
         key: STORAGE_KEY,
         value: JSON.stringify({ user_id: data.user_id, token: data.token }),
@@ -93,7 +103,11 @@
 
       onSuccess?.();
     } catch (e) {
-      onError?.('Biometric setup was cancelled or is not available right now.');
+      // Surface the plugin's actual error text -- "cancelled or unavailable" alone isn't
+      // enough to tell a user cancel apart from a keystore/device issue when there's no
+      // way to pull logcat from the reporting device.
+      var detail = (e && (e.message || e.errorMessage)) || '';
+      onError?.('Biometric setup was cancelled or is not available right now.' + (detail ? ' (' + detail + ')' : ''));
     }
   }
 
