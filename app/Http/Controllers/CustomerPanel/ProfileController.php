@@ -39,6 +39,24 @@ class ProfileController extends Controller
         return back()->with('success', 'Profile picture updated.');
     }
 
+    public function updateDetails(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'address' => ['required', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:100'],
+            'state' => ['nullable', 'string', 'max:100'],
+            'pin' => ['nullable', 'digits:6'],
+            'pan' => ['required', 'string', 'max:10', 'regex:/^[A-Z]{5}[0-9]{4}[A-Z]$/i'],
+            'aadhaar' => ['required', 'digits:12'],
+        ]);
+
+        $data['pan'] = strtoupper($data['pan']);
+
+        $request->user()->customer->update($data);
+
+        return back()->with('success', 'Details updated.');
+    }
+
     public function updatePassword(Request $request): RedirectResponse
     {
         $data = $request->validate([

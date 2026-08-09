@@ -285,6 +285,7 @@ Route::middleware(['auth', 'role:customer', 'app.unlocked'])->prefix('customer')
     Route::get('/documents', [CustomerDocumentController::class, 'index'])->name('documents');
     Route::get('/profile', [CustomerProfileController::class, 'index'])->name('profile');
     Route::post('/profile/photo', [CustomerProfileController::class, 'updatePhoto'])->name('profile.photo');
+    Route::post('/profile/details', [CustomerProfileController::class, 'updateDetails'])->name('profile.details');
     Route::post('/profile/password', [CustomerProfileController::class, 'updatePassword'])->name('profile.password');
 
     // Products (browse, search/filter) + Cart + Favourites + Orders

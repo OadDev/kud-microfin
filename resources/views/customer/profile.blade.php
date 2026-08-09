@@ -18,9 +18,46 @@
 <div class="card-flat p-3 mb-3">
   <div class="dc-row"><span class="text-muted-fin">Mobile Number</span><span>{{ $customer->user->mobile }}</span></div>
   <div class="dc-row"><span class="text-muted-fin">Email</span><span>{{ $customer->user->email ?? '-' }}</span></div>
-  <div class="dc-row"><span class="text-muted-fin">Address</span><span class="text-end">{{ $customer->address }}, {{ $customer->city }}</span></div>
-  <div class="dc-row"><span class="text-muted-fin">PAN</span><span>{{ $customer->pan }}</span></div>
-  <div class="dc-row"><span class="text-muted-fin">Aadhaar</span><span>{{ $customer->aadhaar }}</span></div>
+</div>
+
+<div class="card-flat p-3 mb-3">
+  <div class="section-title mb-2">Address &amp; KYC Details</div>
+  <form method="POST" action="{{ route('customer.profile.details') }}">
+    @csrf
+    <div class="mb-2">
+      <label class="form-label">Address</label>
+      <input type="text" class="form-control @error('address') is-invalid @enderror" name="address" value="{{ old('address', $customer->address) }}">
+      @error('address')<div class="invalid-feedback">{{ $message }}</div>@enderror
+    </div>
+    <div class="row g-2 mb-2">
+      <div class="col-6">
+        <label class="form-label">City</label>
+        <input type="text" class="form-control @error('city') is-invalid @enderror" name="city" value="{{ old('city', $customer->city) }}">
+        @error('city')<div class="invalid-feedback">{{ $message }}</div>@enderror
+      </div>
+      <div class="col-6">
+        <label class="form-label">State</label>
+        <input type="text" class="form-control @error('state') is-invalid @enderror" name="state" value="{{ old('state', $customer->state) }}">
+        @error('state')<div class="invalid-feedback">{{ $message }}</div>@enderror
+      </div>
+    </div>
+    <div class="mb-2">
+      <label class="form-label">Pincode</label>
+      <input type="text" inputmode="numeric" maxlength="6" class="form-control @error('pin') is-invalid @enderror" name="pin" value="{{ old('pin', $customer->pin) }}">
+      @error('pin')<div class="invalid-feedback">{{ $message }}</div>@enderror
+    </div>
+    <div class="mb-2">
+      <label class="form-label">PAN</label>
+      <input type="text" maxlength="10" style="text-transform:uppercase;" class="form-control @error('pan') is-invalid @enderror" name="pan" value="{{ old('pan', $customer->pan) }}">
+      @error('pan')<div class="invalid-feedback">{{ $message }}</div>@enderror
+    </div>
+    <div class="mb-2">
+      <label class="form-label">Aadhaar</label>
+      <input type="text" inputmode="numeric" maxlength="12" class="form-control @error('aadhaar') is-invalid @enderror" name="aadhaar" value="{{ old('aadhaar', $customer->aadhaar) }}">
+      @error('aadhaar')<div class="invalid-feedback">{{ $message }}</div>@enderror
+    </div>
+    <button class="btn btn-primary-fin btn-sm w-100" type="submit"><i class="fa-solid fa-floppy-disk me-1"></i>Save Details</button>
+  </form>
 </div>
 
 <a href="{{ route('customer.orders.index') }}" class="card-flat p-3 mb-3 d-flex justify-content-between align-items-center" style="color:inherit;">
