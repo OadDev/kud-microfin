@@ -9,10 +9,12 @@ use App\Models\PaymentSetting;
  * Calculator, product listing/detail "EMI from" badges, and the real
  * product-financing checkout, so the numbers always agree everywhere.
  *
- * Interest is Admin's annual rate (PaymentSetting::product_emi_interest_rate),
- * prorated by the chosen tenure: a 12% p.a. rate charges 12% of the loan
- * amount on a 12-month plan, 6% on a 6-month plan, and so on -- a longer
- * tenure costs more total interest, matching how real EMI financing works.
+ * Interest is Admin's flat monthly rate (PaymentSetting::product_emi_interest_rate):
+ *   Monthly Interest = Loan Amount x (Rate / 100)
+ *   Total Interest   = Monthly Interest x Number of Installments
+ *   Total Repayable  = Loan Amount + Total Interest
+ *   EMI              = Total Repayable / Number of Installments, rounded to
+ *                       the nearest whole rupee (round-half-up).
  */
 class EmiQuoteService
 {
@@ -20,7 +22,8 @@ class EmiQuoteService
     {
         $loanAmount = max(0, $devicePrice - $downPayment);
         $rate = (float) PaymentSetting::current()->product_emi_interest_rate;
-        $interest = $numInstallments > 0 ? round($loanAmount * ($rate / 100) * ($numInstallments / 12), 2) : 0;
+        $monthlyInterest = $loanAmount * ($rate / 100);
+        $interest = $numInstallments > 0 ? round($monthlyInterest * $numInstallments, 2) : 0;
         $totalPayable = $loanAmount + $processingFee + $interest;
         $installment = $numInstallments > 0 ? round($totalPayable / $numInstallments) : 0;
 

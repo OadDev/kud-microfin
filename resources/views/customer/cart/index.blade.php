@@ -78,7 +78,7 @@
           </div>
           <div class="card-flat p-2 mt-2" style="background:#fff;">
             <div class="dc-row"><span class="dc-label">Loan Amount</span><span id="emiLoanAmount">-</span></div>
-            <div class="dc-row"><span class="dc-label">Interest ({{ rtrim(rtrim(number_format($emiInterestRate, 2), '0'), '.') ?: 0 }}% p.a.)</span><span id="emiInterestAmount">-</span></div>
+            <div class="dc-row"><span class="dc-label">Interest ({{ rtrim(rtrim(number_format($emiInterestRate, 2), '0'), '.') ?: 0 }}%/month)</span><span id="emiInterestAmount">-</span></div>
             <div class="dc-row"><span class="dc-label">Total Payable</span><span id="emiTotalPayable">-</span></div>
             <div class="d-flex justify-content-between align-items-center mt-1 pt-1 border-top">
               <span class="fw-semibold">Your EMI</span>
@@ -114,8 +114,9 @@ function updateEmiPreview(){
   var numInstallments = parseInt(document.getElementById('emiInstallments').value, 10) || 0;
 
   var loanAmount = Math.max(0, EMI_DEVICE_PRICE - downPayment);
+  var monthlyInterest = loanAmount * (EMI_INTEREST_RATE / 100);
   var interest = numInstallments > 0
-    ? Math.round(loanAmount * (EMI_INTEREST_RATE / 100) * (numInstallments / 12) * 100) / 100
+    ? Math.round(monthlyInterest * numInstallments * 100) / 100
     : 0;
   var totalPayable = loanAmount + interest;
   var installment = numInstallments > 0 ? Math.round(totalPayable / numInstallments) : 0;

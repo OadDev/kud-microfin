@@ -23,7 +23,7 @@
         <div class="dc-row"><span class="text-muted-fin">Down Payment</span><span>₹{{ number_format($quote['down_payment'], 2) }}</span></div>
         <div class="dc-row"><span class="text-muted-fin fw-semibold">Loan Amount</span><span class="fw-semibold">₹{{ number_format($quote['loan_amount'], 2) }}</span></div>
         <div class="dc-row"><span class="text-muted-fin">Processing Fee</span><span>₹{{ number_format($quote['processing_fee'], 2) }}</span></div>
-        <div class="dc-row"><span class="text-muted-fin">Interest ({{ rtrim(rtrim(number_format($quote['interest_rate'], 2), '0'), '.') ?: 0 }}% p.a.)</span><span>₹{{ number_format($quote['interest'], 2) }}</span></div>
+        <div class="dc-row"><span class="text-muted-fin">Interest ({{ rtrim(rtrim(number_format($quote['interest_rate'], 2), '0'), '.') ?: 0 }}%/month)</span><span>₹{{ number_format($quote['interest'], 2) }}</span></div>
         <div class="dc-row"><span class="text-muted-fin">Total Payable</span><span>₹{{ number_format($quote['total_payable'], 2) }}</span></div>
         <div class="dc-row"><span class="text-muted-fin">Number of Installments</span><span>{{ $quote['num_installments'] }}</span></div>
         <hr>

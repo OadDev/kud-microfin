@@ -46,9 +46,9 @@
       </div>
       <div class="card-flat p-3 mb-3">
         <div class="section-title mb-2"><i class="fa-solid fa-file-invoice-dollar me-2"></i>Product EMI Financing</div>
-        <div class="small-note mb-2">Annual interest rate applied to Shop EMI financing (Cart → EMI Financing), prorated by the tenure the customer picks -- e.g. a 12% rate charges 6% of the loan amount on a 6-month plan and 12% on a 12-month plan. Shown to customers as their EMI preview before they place the order.</div>
+        <div class="small-note mb-2">Flat monthly interest rate applied to Shop EMI financing (Cart → EMI Financing): Monthly Interest = Loan Amount × Rate, charged once per installment -- e.g. a 3.5% rate on a ₹40,000 loan over 6 months charges ₹1,400/month × 6 = ₹8,400 total interest. Shown to customers as their EMI preview before they place the order.</div>
         <div class="mb-2">
-          <label class="form-label">EMI Interest Rate (% per annum)</label>
+          <label class="form-label">EMI Interest Rate (% per month)</label>
           <input type="number" step="0.01" min="0" max="100" class="form-control" name="product_emi_interest_rate" value="{{ $settings->product_emi_interest_rate }}" required style="max-width:160px;">
         </div>
       </div>
