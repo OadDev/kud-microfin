@@ -14,6 +14,16 @@
   // AccessControl.BIOMETRY_ANY from @capgo/capacitor-native-biometric --
   // hardcoded since this page has no bundler to import the enum from.
   var ACCESS_CONTROL_BIOMETRY_ANY = 2;
+  // Without this, the plugin binds the encryption key to that exact BiometricPrompt
+  // operation ("this exact instant"), which some devices' Keystore/Keymaster
+  // implementations handle unreliably -- the fingerprint scan itself succeeds, then the
+  // crypto operation right after it fails (surfaces as a null-message
+  // IllegalBlockSizeException wrapping "key user not authenticated"). Setting a short
+  // validity window instead ("authenticated within the last N seconds") routes the plugin
+  // through its non-CryptoObject-bound path, which is documented as more robust across
+  // devices, at the cost of a negligibly wider (and still very short) window than strict
+  // per-operation binding -- a login/setup flow doesn't need atomic-operation strictness.
+  var AUTH_VALIDITY_SECONDS = 30;
 
   function csrfToken() {
     return document.querySelector('meta[name="csrf-token"]')?.content || '';
@@ -85,19 +95,15 @@
       }
       var data = await res.json();
 
-      // Clear out any stale key first. If a fingerprint/face was added or removed on this
-      // device since a key was last created here (including a previous failed enable
-      // attempt), Android auto-invalidates that key -- the fingerprint scan itself still
-      // succeeds, but the crypto operation behind setData() then fails right after,
-      // which is exactly the "prompt appears, then cancels itself" symptom. Deleting
-      // first guarantees setData() always creates a fresh key against the device's
-      // current biometric enrollment. Safe to ignore if there was nothing to delete.
+      // Clear out any key left over from an earlier attempt first, so setData() below
+      // always starts from a clean slate. Safe to ignore if there was nothing to delete.
       await NativeBiometric.deleteData({ key: STORAGE_KEY }).catch(function () {});
 
       await NativeBiometric.setData({
         key: STORAGE_KEY,
         value: JSON.stringify({ user_id: data.user_id, token: data.token }),
         accessControl: ACCESS_CONTROL_BIOMETRY_ANY,
+        authValidityDuration: AUTH_VALIDITY_SECONDS,
         title: 'Enable Biometric Login',
       });
 
