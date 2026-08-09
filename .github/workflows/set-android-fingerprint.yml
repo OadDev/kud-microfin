@@ -1,0 +1,42 @@
+name: Set Android SHA-256 Fingerprint
+
+# One-off maintenance workflow: writes ANDROID_SHA256_FINGERPRINTS into the
+# production .env over SSH, reusing the same HOSTINGER_SSH_* secrets and
+# connection pattern deploy.yml already uses. .env is deliberately never
+# committed to this repo, so this is the only way to change a value in it
+# without direct server/SSH access outside CI. Safe to re-run -- the
+# remote script is idempotent and backs up .env first.
+on:
+  workflow_dispatch: {}
+
+jobs:
+  set-fingerprint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install sshpass
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq sshpass
+
+      - name: Update .env and clear config cache over a single SSH connection
+        env:
+          SSHPASS: ${{ secrets.HOSTINGER_SSH_PASSWORD }}
+          SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
+          SSH_USER: ${{ secrets.HOSTINGER_SSH_USERNAME }}
+          SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
+          TARGET_PATH: ${{ vars.HOSTINGER_TARGET_PATH }}
+          # SHA-256 fingerprint of the bluepeak-upload release-signing key
+          # (mobile/README.md, "Publishing to the Play Store"). Recompute
+          # with `keytool -list -v` if the signing key is ever rotated.
+          FINGERPRINT: "9E:D1:F7:DE:FE:73:AB:E9:EC:3A:48:FF:1C:69:16:14:A3:A2:EF:41:85:76:20:C9:5D:DA:6C:45:82:9D:C3:B7"
+        run: |
+          set -e
+          if [ -z "$TARGET_PATH" ]; then
+            echo "::error::HOSTINGER_TARGET_PATH is empty (must be a repository Variable, not a Secret)." >&2
+            exit 1
+          fi
+          SET_FP_B64=$(base64 -w0 scripts/set-android-sha256-fingerprint.sh)
+          REMOTE_SETUP_B64=$(base64 -w0 scripts/remote-setup.sh)
+          REMOTE_CMD="set -e; echo $SET_FP_B64 | base64 -d | FINGERPRINT='$FINGERPRINT' bash -s -- '$TARGET_PATH'; echo $REMOTE_SETUP_B64 | base64 -d | bash -s -- '$TARGET_PATH'"
+          sshpass -e ssh -p "$SSH_PORT" -o StrictHostKeyChecking=no "$SSH_USER@$SSH_HOST" "$REMOTE_CMD"

@@ -17,6 +17,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerPasswordResetController;
 use App\Http\Controllers\CustomerRegistrationController;
+use App\Http\Controllers\CustomerPanel\AppLockController;
 use App\Http\Controllers\CustomerPanel\CartController;
 use App\Http\Controllers\CustomerPanel\DocumentController as CustomerDocumentController;
 use App\Http\Controllers\CustomerPanel\FavouriteController;
@@ -245,10 +246,23 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
 /*
 |--------------------------------------------------------------------------
-| Customer panel
+| Customer app lock (Quick PIN re-entry on app reopen) -- deliberately
+| outside the customer route group below so EnsureAppUnlocked, which
+| guards that whole group, doesn't also guard the lock screen itself.
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer.')->group(function () {
+    Route::get('/lock', [AppLockController::class, 'show'])->name('lock.show');
+    Route::post('/lock', [AppLockController::class, 'verify'])->name('lock.verify');
+    Route::post('/lock-now', [AppLockController::class, 'lockNow'])->name('lock.now');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Customer panel
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:customer', 'app.unlocked'])->prefix('customer')->name('customer.')->group(function () {
     Route::get('/home', [CustomerHomeController::class, 'index'])->name('home');
     Route::get('/loan', [CustomerLoanController::class, 'index'])->name('loan');
     Route::get('/loan/foreclose', [CustomerPaymentController::class, 'foreclose'])->name('foreclose');

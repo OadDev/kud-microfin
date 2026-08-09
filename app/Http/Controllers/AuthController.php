@@ -108,6 +108,10 @@ class AuthController extends Controller
 
         Auth::login($user);
         $request->session()->regenerate();
+        // Just proved identity with the password -- the app-lock PIN
+        // screen (EnsureAppUnlocked) would otherwise immediately challenge
+        // this same session again.
+        $request->session()->put('customer_app_unlocked', true);
 
         if (! $user->hasPinEnabled() && ! $request->session()->has('url.intended')) {
             return redirect()->route('quick-login.setup');

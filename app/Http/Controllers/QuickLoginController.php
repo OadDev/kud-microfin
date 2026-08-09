@@ -39,6 +39,7 @@ class QuickLoginController extends Controller
         $token = $user->issueQuickLoginToken();
 
         Cookie::queue(Cookie::make(self::COOKIE, $token, 60 * 24 * 365, httpOnly: true, sameSite: 'lax'));
+        $request->session()->put('customer_app_unlocked', true);
 
         return redirect()->to((new AuthController)->homeFor($user))
             ->with('success', 'Quick PIN login is set up on this device.');
@@ -72,6 +73,7 @@ class QuickLoginController extends Controller
 
         Auth::login($user);
         $request->session()->regenerate();
+        $request->session()->put('customer_app_unlocked', true);
 
         return redirect()->to((new AuthController)->homeFor($user));
     }

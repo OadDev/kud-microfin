@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureUserHasRole::class,
+            'app.unlocked' => \App\Http\Middleware\EnsureAppUnlocked::class,
         ]);
         $middleware->web(append: [
             \App\Http\Middleware\EnsureAppIsInstalled::class,

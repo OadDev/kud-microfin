@@ -73,6 +73,7 @@ function copyToClipboard(text, label){
 @include('partials.passkeys')
 @include('partials.onesignal-bridge')
 @include('partials.native-back-button')
+@include('partials.app-lock-bridge')
 @stack('scripts')
 </body>
 </html>
