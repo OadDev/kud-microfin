@@ -1,0 +1,40 @@
+diff --git a/node_modules/@capgo/capacitor-native-biometric/android/src/main/java/ee/forgr/biometric/AuthActivity.java b/node_modules/@capgo/capacitor-native-biometric/android/src/main/java/ee/forgr/biometric/AuthActivity.java
+index 1f287e2..1d747b3 100644
+--- a/node_modules/@capgo/capacitor-native-biometric/android/src/main/java/ee/forgr/biometric/AuthActivity.java
++++ b/node_modules/@capgo/capacitor-native-biometric/android/src/main/java/ee/forgr/biometric/AuthActivity.java
+@@ -535,7 +535,7 @@ public class AuthActivity extends AppCompatActivity {
+ 
+             finishActivity();
+         } catch (Exception e) {
+-            finishActivity("error", 0, "Failed to encrypt credentials: " + e.getMessage());
++            finishActivity("error", 0, "Failed to encrypt credentials: [" + e.getClass().getSimpleName() + "] " + e.getMessage());
+         }
+     }
+ 
+@@ -568,7 +568,7 @@ public class AuthActivity extends AppCompatActivity {
+             setResult(RESULT_OK, intent);
+             finish();
+         } catch (Exception e) {
+-            finishActivity("error", 0, "Failed to decrypt credentials: " + e.getMessage());
++            finishActivity("error", 0, "Failed to decrypt credentials: [" + e.getClass().getSimpleName() + "] " + e.getMessage());
+         }
+     }
+ 
+@@ -601,7 +601,7 @@ public class AuthActivity extends AppCompatActivity {
+             // Validity window expired (or this is the first use) — a prompt is required.
+             return false;
+         } catch (GeneralSecurityException | IOException e) {
+-            finishActivity("error", 0, "Keystore operation failed: " + e.getMessage());
++            finishActivity("error", 0, "Keystore operation failed: [" + e.getClass().getSimpleName() + "] " + e.getMessage());
+             return true;
+         }
+     }
+@@ -629,7 +629,7 @@ public class AuthActivity extends AppCompatActivity {
+                 decryptAndReturnCredentials(cipher);
+             }
+         } catch (GeneralSecurityException | IOException e) {
+-            finishActivity("error", 0, "Keystore operation failed after authentication: " + e.getMessage());
++            finishActivity("error", 0, "Keystore operation failed after authentication: [" + e.getClass().getSimpleName() + "] " + e.getMessage());
+         }
+     }
+ 
