@@ -40,6 +40,7 @@ class User extends Authenticatable implements PasskeyUser
         'password',
         'remember_token',
         'pin_hash',
+        'biometric_token_hash',
     ];
 
     /**
@@ -129,5 +130,38 @@ class User extends Authenticatable implements PasskeyUser
             'pin_enabled_at' => null,
         ])->save();
         $this->passkeys()->delete();
+    }
+
+    /**
+     * Native-biometric app login (Android BiometricPrompt / iOS
+     * LocalAuthentication via a Capacitor plugin) -- separate from the
+     * browser-based WebAuthn passkeys above, which don't work reliably
+     * inside the app's embedded WebView. The token here is stored by the
+     * native plugin in OS-level secure storage (Android Keystore / iOS
+     * Keychain) gated behind a real biometric prompt, so retrieving it at
+     * all already proves the device owner just authenticated -- this
+     * server-side check only needs to confirm it's the right token.
+     */
+    public function hasBiometricEnabled(): bool
+    {
+        return filled($this->biometric_token_hash);
+    }
+
+    public function issueBiometricToken(): string
+    {
+        $token = bin2hex(random_bytes(32));
+        $this->forceFill(['biometric_token_hash' => hash('sha256', $token)])->save();
+
+        return $token;
+    }
+
+    public function verifyBiometricToken(string $token): bool
+    {
+        return $this->hasBiometricEnabled() && hash_equals($this->biometric_token_hash, hash('sha256', $token));
+    }
+
+    public function revokeBiometric(): void
+    {
+        $this->forceFill(['biometric_token_hash' => null])->save();
     }
 }

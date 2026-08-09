@@ -71,6 +71,7 @@ function copyToClipboard(text, label){
 </script>
 @include('partials.native-splash-hide')
 @include('partials.passkeys')
+@include('partials.native-biometric')
 @include('partials.onesignal-bridge')
 @include('partials.native-back-button')
 @include('partials.app-lock-bridge')

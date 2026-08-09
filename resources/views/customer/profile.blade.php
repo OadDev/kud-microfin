@@ -52,24 +52,43 @@
 
 <div class="card-flat p-3 mb-3" id="passkeysCard">
   <div class="section-title mb-2">Biometric Login (Face ID / Fingerprint)</div>
-  <div id="passkeysList">
-    @forelse($passkeys as $pk)
-      <div class="d-flex justify-content-between align-items-center py-1 border-bottom" data-passkey-row="{{ $pk->id }}">
-        <div>
-          <div class="fw-semibold small">{{ $pk->name }}</div>
-          <div class="small-note">Added {{ $pk->created_at->format('d/m/Y') }}{{ $pk->last_used_at ? ' - Last used '.$pk->last_used_at->diffForHumans() : '' }}</div>
-        </div>
-        <button type="button" class="btn btn-sm btn-outline-danger" onclick="bpDeletePasskey({{ $pk->id }})"><i class="fa-solid fa-trash"></i></button>
-      </div>
-    @empty
+
+  {{-- Inside the app: native biometric (Android BiometricPrompt / iOS
+       LocalAuthentication), just an on/off toggle for this device --}}
+  <div id="nativeBiometricBox" class="d-none">
+    <div id="nativeBiometricEnabledRow" class="d-none">
+      <div class="small-note mb-2"><i class="fa-solid fa-circle text-success" style="font-size:8px;"></i> Biometric login is enabled on this device.</div>
+      <button type="button" id="nativeBiometricDisableBtn" class="btn btn-outline-danger btn-sm w-100"><i class="fa-solid fa-lock me-1"></i>Disable Biometric Login</button>
+    </div>
+    <div id="nativeBiometricDisabledRow" class="d-none">
       <div class="small-note mb-2">Not set up yet.</div>
-    @endforelse
+      <button type="button" id="nativeBiometricEnableBtn" class="btn btn-outline-fin btn-sm w-100"><i class="fa-solid fa-fingerprint me-1"></i>Enable Biometric Login</button>
+    </div>
+    <div id="nativeBiometricError" class="small text-danger mt-1"></div>
   </div>
-  <div id="passkeyRegisterBox" class="d-none mt-2">
-    <button type="button" id="passkeyRegisterBtn" class="btn btn-outline-fin btn-sm w-100"><i class="fa-solid fa-fingerprint me-1"></i>Add This Device</button>
-    <div id="passkeyRegisterError" class="small text-danger mt-1"></div>
+  <div id="nativeBiometricUnsupportedNote" class="small-note d-none mt-2">Biometric login isn't supported on this device.</div>
+
+  {{-- In a browser: the existing WebAuthn passkey system, unaffected --}}
+  <div id="passkeysBox" class="d-none">
+    <div id="passkeysList">
+      @forelse($passkeys as $pk)
+        <div class="d-flex justify-content-between align-items-center py-1 border-bottom" data-passkey-row="{{ $pk->id }}">
+          <div>
+            <div class="fw-semibold small">{{ $pk->name }}</div>
+            <div class="small-note">Added {{ $pk->created_at->format('d/m/Y') }}{{ $pk->last_used_at ? ' - Last used '.$pk->last_used_at->diffForHumans() : '' }}</div>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-danger" onclick="bpDeletePasskey({{ $pk->id }})"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      @empty
+        <div class="small-note mb-2">Not set up yet.</div>
+      @endforelse
+    </div>
+    <div id="passkeyRegisterBox" class="d-none mt-2">
+      <button type="button" id="passkeyRegisterBtn" class="btn btn-outline-fin btn-sm w-100"><i class="fa-solid fa-fingerprint me-1"></i>Add This Device</button>
+      <div id="passkeyRegisterError" class="small text-danger mt-1"></div>
+    </div>
+    <div id="passkeyUnsupportedNote" class="small-note d-none mt-2">Biometric login isn't supported on this device/browser.</div>
   </div>
-  <div id="passkeyUnsupportedNote" class="small-note d-none mt-2">Biometric login isn't supported on this device/browser.</div>
 </div>
 
 <div class="card-flat p-3 mb-3">
@@ -93,7 +112,53 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', async function () {
+  const inApp = window.Capacitor && window.Capacitor.isNativePlatform();
+
+  if (inApp) {
+    if (!window.BluePeakNativeBiometric || !(await window.BluePeakNativeBiometric.isSupported())) {
+      document.getElementById('nativeBiometricUnsupportedNote').classList.remove('d-none');
+      return;
+    }
+
+    const box = document.getElementById('nativeBiometricBox');
+    const enabledRow = document.getElementById('nativeBiometricEnabledRow');
+    const disabledRow = document.getElementById('nativeBiometricDisabledRow');
+    const errEl = document.getElementById('nativeBiometricError');
+    box.classList.remove('d-none');
+
+    const refresh = async function () {
+      const enabled = await window.BluePeakNativeBiometric.isEnabled();
+      enabledRow.classList.toggle('d-none', !enabled);
+      disabledRow.classList.toggle('d-none', enabled);
+    };
+    await refresh();
+
+    document.getElementById('nativeBiometricEnableBtn').addEventListener('click', async function () {
+      const btn = this;
+      errEl.textContent = '';
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Waiting for Face ID / Fingerprint...';
+      await window.BluePeakNativeBiometric.enable(refresh, function (message) {
+        errEl.textContent = message;
+      });
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-fingerprint me-1"></i>Enable Biometric Login';
+    });
+
+    document.getElementById('nativeBiometricDisableBtn').addEventListener('click', function () {
+      if (!confirm('Turn off biometric login on this device?')) return;
+      window.BluePeakNativeBiometric.disable(async function () {
+        await refresh();
+      }, function (message) {
+        errEl.textContent = message;
+      });
+    });
+
+    return;
+  }
+
   if (!window.BluePeakPasskeys) return;
+  document.getElementById('passkeysBox').classList.remove('d-none');
 
   if (await window.BluePeakPasskeys.passkeySupported()) {
     document.getElementById('passkeyRegisterBox').classList.remove('d-none');

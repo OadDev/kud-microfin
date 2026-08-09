@@ -7,11 +7,12 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Re-locks the customer panel behind the Quick PIN every time the mobile
- * app is actually re-entered -- without this, a Capacitor app just keeps
- * the same logged-in web session (and, usually, the same still-rendered
- * page in memory) across closing and reopening, same as a browser tab you
- * never signed out of, so "PIN enabled" never actually got re-checked.
+ * Re-locks the customer panel behind the Quick PIN and/or native biometric
+ * every time the mobile app is actually re-entered -- without this, a
+ * Capacitor app just keeps the same logged-in web session (and, usually,
+ * the same still-rendered page in memory) across closing and reopening,
+ * same as a browser tab you never signed out of, so neither "unlock"
+ * method ever actually got re-checked.
  *
  * The "unlocked" flag lives in the session and is cleared by two things
  * working together (see partials/app-lock-bridge.blade.php):
@@ -28,7 +29,7 @@ class EnsureAppUnlocked
     {
         $user = $request->user();
 
-        if ($user && $user->hasPinEnabled() && ! $request->session()->get('customer_app_unlocked')) {
+        if ($user && ($user->hasPinEnabled() || $user->hasBiometricEnabled()) && ! $request->session()->get('customer_app_unlocked')) {
             // Path + query only (never an absolute URL) so this can be
             // redirected back to later without any open-redirect risk.
             return redirect()->route('customer.lock.show', ['next' => $request->getRequestUri()]);

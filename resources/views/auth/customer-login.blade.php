@@ -7,9 +7,9 @@
       <div class="page-sub">Microfinance Management Platform</div>
     </div>
 
-    <div id="passkeyLoginBox" class="d-none mb-3">
-      <button type="button" id="passkeyLoginBtn" class="btn btn-outline-fin w-100"><i class="fa-solid fa-fingerprint me-1"></i> Login with Face ID / Fingerprint</button>
-      <div id="passkeyLoginError" class="small text-danger mt-1 text-center"></div>
+    <div id="biometricLoginBox" class="d-none mb-3">
+      <button type="button" id="biometricLoginBtn" class="btn btn-outline-fin w-100"><i class="fa-solid fa-fingerprint me-1"></i> Login with Face ID / Fingerprint</button>
+      <div id="biometricLoginError" class="small text-danger mt-1 text-center"></div>
       <div class="text-center small-note my-2">or</div>
     </div>
 
@@ -55,25 +55,47 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', async function () {
-  if (!window.BluePeakPasskeys) return;
-  const box = document.getElementById('passkeyLoginBox');
-  const btn = document.getElementById('passkeyLoginBtn');
-  const errEl = document.getElementById('passkeyLoginError');
-
-  if (await window.BluePeakPasskeys.passkeySupported()) {
-    box.classList.remove('d-none');
-  }
-
-  btn.addEventListener('click', function () {
+  const box = document.getElementById('biometricLoginBox');
+  const btn = document.getElementById('biometricLoginBtn');
+  const errEl = document.getElementById('biometricLoginError');
+  const resetBtn = function () {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-fingerprint me-1"></i> Login with Face ID / Fingerprint';
+  };
+  const showWaiting = function () {
     errEl.textContent = '';
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Waiting for Face ID / Fingerprint...';
-    window.BluePeakPasskeys.passkeyLogin(function (message) {
-      errEl.textContent = message;
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fa-solid fa-fingerprint me-1"></i> Login with Face ID / Fingerprint';
+  };
+
+  // Inside the app: native biometric (Android BiometricPrompt / iOS
+  // LocalAuthentication) -- WebAuthn passkeys don't work reliably in the
+  // embedded WebView across devices. In a browser: WebAuthn passkeys,
+  // unaffected either way. Never both at once.
+  const inApp = window.Capacitor && window.Capacitor.isNativePlatform();
+
+  if (inApp && window.BluePeakNativeBiometric && await window.BluePeakNativeBiometric.isEnabled()) {
+    box.classList.remove('d-none');
+    btn.addEventListener('click', function () {
+      showWaiting();
+      window.BluePeakNativeBiometric.login(function (message) {
+        errEl.textContent = message;
+        resetBtn();
+      });
     });
-  });
+    return;
+  }
+
+  if (!inApp && window.BluePeakPasskeys && await window.BluePeakPasskeys.passkeySupported()) {
+    box.classList.remove('d-none');
+    btn.addEventListener('click', function () {
+      showWaiting();
+      window.BluePeakPasskeys.passkeyLogin(function (message) {
+        errEl.textContent = message;
+        resetBtn();
+      });
+    });
+  }
 });
 </script>
 @endpush

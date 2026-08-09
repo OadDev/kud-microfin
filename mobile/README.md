@@ -62,62 +62,48 @@ npx cap sync
 
 ## Biometric login (Face ID / Touch ID / Android fingerprint)
 
-Customers can already register and log in with a passkey from a normal browser (Chrome/Safari) —
-that part needs no mobile-specific setup and works today. Making it work **inside this app
-specifically** needs two "we own this domain" files the OS checks before letting the app touch
-platform credentials, plus one manual Xcode step:
+Two separate mechanisms cover this, depending on where the customer is:
 
-1. **Android** — `GET /.well-known/assetlinks.json` (already served by the Laravel app, see
-   `WellKnownController`) needs your app's real release-signing certificate fingerprint. Once
-   you've generated a signing key: `keytool -list -v -keystore your.keystore` (or read it off
-   Play Console → Setup → App signing), then set `ANDROID_SHA256_FINGERPRINTS` in the server's
-   `.env` to that SHA-256 value (comma-separate if you have more than one, e.g. upload key +
-   Play App Signing key). No native Android project changes needed beyond that — the OS verifies
-   this automatically against the domain.
+- **Browser (Chrome/Safari)** — real WebAuthn passkeys, no mobile-specific setup needed, works
+  today. See `resources/views/partials/passkeys.blade.php` in the main Laravel app.
+- **Inside this app** — `@capgo/capacitor-native-biometric`, calling the real native OS prompt
+  (Android `BiometricPrompt` / iOS `LocalAuthentication`) directly, via
+  `resources/views/partials/native-biometric.blade.php`.
 
-2. **iOS** — `GET /.well-known/apple-app-site-association` needs your Apple Developer **Team
-   ID** (found in [developer.apple.com](https://developer.apple.com) → Membership). Set
-   `APPLE_TEAM_ID` in the server's `.env`. Then, in Xcode, open the `App` target → **Signing &
-   Capabilities** → **+ Capability** → **Associated Domains**, and add
-   `webcredentials:bluepeakfintech.com` (already present in `App.entitlements` in this repo as a
-   starting point, but Xcode needs to actually link that entitlements file to the target's build
-   settings — a one-time manual step, since that wiring lives in the `.pbxproj` project file
-   which isn't safely hand-editable outside Xcode itself).
+These used to be the same WebAuthn mechanism everywhere, gated behind Digital Asset Links
+(`.well-known/assetlinks.json` / `apple-app-site-association`, `ANDROID_SHA256_FINGERPRINTS` in
+the server's `.env`) so the app's embedded WebView could touch platform credentials. In practice
+that turned out to be unreliable across real Android devices — some WebView builds just don't
+support the in-WebView WebAuthn bridge at all, asset-link verification can get stuck cached from
+before it was configured, etc. — so the app now uses a real native plugin instead, which doesn't
+depend on any of that. The `.well-known/*` files and `ANDROID_SHA256_FINGERPRINTS` env var are
+still served/read (harmless, and Associated Domains has other legitimate uses), but they're no
+longer what makes in-app biometric work.
 
-Until both are set, passkey login inside the app will just silently behave as if the browser
-doesn't support it (the UI hides the button, or shows "Biometric login isn't supported on this
-device/browser" on the profile page) — nothing breaks, customers can still use their password.
-The browser-based (non-app) passkey login is completely unaffected either way.
+How it works: after a customer turns it on (Profile → **Enable Biometric Login**), the app asks
+the server for a random opaque token (`POST /biometric/enable`) and stores it via the plugin in
+OS-level secure storage (Android Keystore / iOS Keychain), protected by `AccessControl.BIOMETRY_ANY`
+— retrieving it later requires a live biometric prompt, enforced by the OS itself, not by app
+code. On next login (or on the app-lock re-entry screen, see `EnsureAppUnlocked`), the plugin's
+`getSecureData()` triggers that prompt, and on success the app posts the retrieved token to
+`POST /biometric/login` to actually log in. The server never sees a password or biometric data,
+only this one-time-issued token, hashed at rest (`users.biometric_token_hash`) exactly like the
+Quick PIN token.
 
-**Debug builds (the APK from "Build Mobile App") can't be made to work here, even temporarily.**
-Every CI run generates a brand-new, random debug signing key (there's no cached
-`~/.android/debug.keystore` between runs), so its SHA-256 fingerprint is different on every
-rebuild — there's no stable value to put in `ANDROID_SHA256_FINGERPRINTS`. To actually test
-biometric login inside the app, you need a build signed with your real, stable release key:
+**No `.env` setup needed for this to work** — unlike the old approach, there's no signing-key
+fingerprint dependency, so it works the same on a debug build as a release build. If a customer
+reports biometric not showing up as an option, check:
 
-1. Get the SHA-256 fingerprint of the upload key you already have (`bluepeak-upload-key.jks`):
-   `keytool -list -v -keystore bluepeak-upload-key.jks -alias bluepeak-upload` (password is in
-   the `README_KEYSTORE.txt` you were sent alongside it) — copy the `SHA256:` line.
-2. Set `ANDROID_SHA256_FINGERPRINTS` in the **server's** `.env` (edit it directly on
-   Hostinger — it's never in git) to that value, and `APP_URL`/`APPLE_TEAM_ID` too if you're
-   also chasing the iOS side.
-3. Add the 4 `ANDROID_*` GitHub Secrets from that same handoff if you haven't yet (Settings →
-   Secrets and variables → Actions) — needed for the next step to sign anything.
-4. Run **Actions → Release Android (signed AAB) → Run workflow**. It now also uploads a
-   `bluepeak-fintech-release-apk` artifact — a directly-installable `.apk`, signed with the same
-   real key as the `.aab`, unlike the debug build. **Uninstall the debug APK first** (Android
-   won't install a differently-signed APK over an existing package) and sideload this one.
-5. Retry biometric login/registration in the app. If it still doesn't show up, double check the
-   fingerprint has no typos/extra whitespace and that `.well-known/assetlinks.json` on the live
-   site actually reflects it (it's server-rendered from that env var, so a browser hit on
-   `https://bluepeakfintech.com/.well-known/assetlinks.json` should show it immediately, no
-   deploy needed).
-
-If it's still not showing up after all that, it may also just be that the specific Android
-System WebView version on your test device doesn't yet support platform WebAuthn -- verify by
-opening the live site (`bluepeakfintech.com/login`) in that same phone's actual Chrome browser,
-not the app: if the biometric button shows up and works there, the server side is fully correct
-and the remaining gap is genuinely device/WebView-version-specific.
+1. `Profile → Biometric Login` shows "Biometric login isn't supported on this device" — that
+   means `NativeBiometric.isAvailable()` returned false: no biometric hardware, nothing enrolled
+   as the device's lock screen method (having the sensor isn't enough — the OS needs a fingerprint/
+   face actually registered as a way to unlock the phone), or the OS/Play Services combination is
+   too old. This is a genuine device limitation, not fixable from the app.
+2. Android needs `<uses-permission android:name="android.permission.USE_BIOMETRIC" />` in
+   `AndroidManifest.xml` (already added) and the `AppTheme.Transparent` style the plugin's
+   `AuthActivity` uses on older Android versions (already added to `styles.xml`).
+3. iOS needs `NSFaceIDUsageDescription` in `Info.plist` (already added) or the app will crash
+   when Face ID is attempted, not just fail gracefully.
 
 ## OneSignal (push notifications)
 

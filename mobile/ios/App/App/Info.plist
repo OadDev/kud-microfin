@@ -70,5 +70,7 @@
 	<array>
 		<string>remote-notification</string>
 	</array>
+	<key>NSFaceIDUsageDescription</key>
+	<string>For an easier and faster login.</string>
 </dict>
 </plist>

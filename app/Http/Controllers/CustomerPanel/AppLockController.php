@@ -18,7 +18,7 @@ class AppLockController extends Controller
     {
         $user = $request->user();
 
-        if (! $user->hasPinEnabled()) {
+        if (! $user->hasPinEnabled() && ! $user->hasBiometricEnabled()) {
             return redirect()->to($this->safeNext($request));
         }
 
@@ -30,6 +30,8 @@ class AppLockController extends Controller
         return view('customer.app-lock', [
             'user' => $user,
             'next' => $this->safeNext($request),
+            'showPin' => $user->hasPinEnabled(),
+            'showBiometric' => $user->hasBiometricEnabled(),
         ]);
     }
 

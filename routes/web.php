@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\PaymentVerificationController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ShopOwnerController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BiometricLoginController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerPasswordResetController;
 use App\Http\Controllers\CustomerRegistrationController;
@@ -118,6 +119,18 @@ Route::middleware('auth')->prefix('quick-login')->name('quick-login.')->group(fu
     Route::post('/setup', [QuickLoginController::class, 'storePin'])->name('setup.store');
     Route::post('/skip', [QuickLoginController::class, 'skip'])->name('skip');
     Route::post('/disable', [QuickLoginController::class, 'disable'])->name('disable');
+});
+
+// Native biometric login (in-app only). /biometric/login deliberately
+// carries no auth-state middleware, same reasoning as quick-login/forget
+// above -- it's called both from the guest login page AND from the
+// already-authenticated app-lock screen (EnsureAppUnlocked), and Laravel's
+// `guest` middleware would otherwise block the second case.
+Route::post('/biometric/login', [BiometricLoginController::class, 'login'])->name('biometric.login')->middleware('throttle:10,1');
+
+Route::middleware('auth')->prefix('biometric')->name('biometric.')->group(function () {
+    Route::post('/enable', [BiometricLoginController::class, 'enable'])->name('enable');
+    Route::post('/disable', [BiometricLoginController::class, 'disable'])->name('disable');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
