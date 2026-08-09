@@ -19,12 +19,14 @@ class PaymentSetting extends Model
         'razorpay_key_id',
         'razorpay_key_secret',
         'foreclosure_interest_rate',
+        'product_emi_interest_rate',
     ];
 
     protected function casts(): array
     {
         return [
             'foreclosure_interest_rate' => 'decimal:2',
+            'product_emi_interest_rate' => 'decimal:2',
         ];
     }
 

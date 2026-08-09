@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Notifications\NewOrderNotification;
 use App\Services\CodeGenerator;
 use App\Services\CustomerNotifier;
+use App\Services\EmiQuoteService;
 use App\Services\EmiScheduleService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -39,6 +40,7 @@ class CartController extends Controller
             'total' => $items->sum(fn (CartItem $i) => $i->lineTotal()),
             'financeableSingleItem' => $financeableSingleItem,
             'razorpayEnabled' => PaymentSetting::current()->razorpayEnabled(),
+            'emiInterestRate' => (float) PaymentSetting::current()->product_emi_interest_rate,
         ]);
     }
 
@@ -183,20 +185,19 @@ class CartController extends Controller
     protected function createFinancingLoan(Order $order, CartItem $item, $customer, float $downPayment, int $numInstallments): void
     {
         $devicePrice = (float) $item->product->price * $item->quantity;
-        $principal = max(0, $devicePrice - $downPayment);
-        $emiAmount = $numInstallments > 0 ? round($principal / $numInstallments) : 0;
+        $quote = EmiQuoteService::quote($devicePrice, $downPayment, 0, $numInstallments);
 
         $loan = Loan::create([
             'customer_id' => $customer->id,
             'shop_owner_id' => $customer->shop_owner_id,
             'loan_account_no' => CodeGenerator::nextLoanAccountNo(),
             'purpose' => 'Purchase: '.$item->product->name,
-            'principal' => $principal,
-            'interest' => 0,
+            'principal' => $quote['loan_amount'],
+            'interest' => $quote['interest'],
             'processing_fee' => 0,
-            'total_payable' => $principal,
+            'total_payable' => $quote['total_payable'],
             'num_emis' => $numInstallments,
-            'emi_amount' => $emiAmount,
+            'emi_amount' => $quote['installment'],
             'frequency' => 'Monthly',
             'start_date' => now()->toDateString(),
             'first_due_date' => now()->addMonthNoOverflow()->toDateString(),

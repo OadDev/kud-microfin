@@ -33,6 +33,7 @@ class PaymentSettingController extends Controller
             'razorpay_key_id' => ['nullable', 'string', 'max:255'],
             'razorpay_key_secret' => ['nullable', 'string', 'max:255'],
             'foreclosure_interest_rate' => ['required', 'numeric', 'min:0', 'max:100'],
+            'product_emi_interest_rate' => ['required', 'numeric', 'min:0', 'max:100'],
         ]);
 
         $settings = PaymentSetting::current();

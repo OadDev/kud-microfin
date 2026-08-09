@@ -44,6 +44,14 @@
           <input type="number" step="0.01" min="0" max="100" class="form-control" name="foreclosure_interest_rate" value="{{ $settings->foreclosure_interest_rate }}" required style="max-width:160px;">
         </div>
       </div>
+      <div class="card-flat p-3 mb-3">
+        <div class="section-title mb-2"><i class="fa-solid fa-file-invoice-dollar me-2"></i>Product EMI Financing</div>
+        <div class="small-note mb-2">Annual interest rate applied to Shop EMI financing (Cart → EMI Financing), prorated by the tenure the customer picks -- e.g. a 12% rate charges 6% of the loan amount on a 6-month plan and 12% on a 12-month plan. Shown to customers as their EMI preview before they place the order.</div>
+        <div class="mb-2">
+          <label class="form-label">EMI Interest Rate (% per annum)</label>
+          <input type="number" step="0.01" min="0" max="100" class="form-control" name="product_emi_interest_rate" value="{{ $settings->product_emi_interest_rate }}" required style="max-width:160px;">
+        </div>
+      </div>
       <div class="card-flat p-3">
         <div class="section-title mb-2"><i class="fa-solid fa-credit-card me-2"></i>Razorpay (Shop Checkout)</div>
         <div class="small-note mb-2">Used only for the Product Shop's online checkout — not for EMI payments. Leave blank to offer Cash on Delivery only.</div>
