@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\BannerController;
+use App\Http\Controllers\Admin\CashPaymentController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\EmiCalculatorController;
 use App\Http\Controllers\Admin\LoanApprovalController;
@@ -216,6 +217,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     Route::get('/payment-settings', [PaymentSettingController::class, 'edit'])->name('payment-settings.edit');
     Route::post('/payment-settings', [PaymentSettingController::class, 'update'])->name('payment-settings.update');
+
+    Route::post('/emis/{emi}/mark-paid-cash', [CashPaymentController::class, 'store'])->name('emis.mark-paid-cash');
 
     // Home banners (customer home page carousel)
     Route::get('/banners', [BannerController::class, 'index'])->name('banners.index');

@@ -101,10 +101,20 @@
 @elseif($isAdmin && $tab === 'emi')
   <div class="card-flat p-0 table-responsive-fin">
     <table class="table table-fin mb-0">
-      <thead><tr><th>EMI #</th><th>Due Date</th><th>Amount</th><th>Status</th><th>Payment Date</th></tr></thead>
+      <thead><tr><th>EMI #</th><th>Due Date</th><th>Amount</th><th>Status</th><th>Payment Date</th><th></th></tr></thead>
       <tbody>
       @foreach($loan->emis as $e)
-        <tr><td>{{ $e->emi_number }}</td><td>{{ $e->due_date->format('d/m/Y') }}</td><td>₹{{ number_format($e->amount) }}</td><td><x-status-badge :status="$e->displayStatus()" /></td><td>{{ $e->payment_date?->format('d/m/Y') ?? '-' }}</td></tr>
+        <tr>
+          <td>{{ $e->emi_number }}</td><td>{{ $e->due_date->format('d/m/Y') }}</td><td>₹{{ number_format($e->amount) }}</td><td><x-status-badge :status="$e->displayStatus()" /></td><td>{{ $e->payment_date?->format('d/m/Y') ?? '-' }}</td>
+          <td>
+            @if($e->status !== 'paid')
+              <form method="POST" action="{{ route('admin.emis.mark-paid-cash', $e) }}">
+                @csrf
+                <button class="btn btn-sm btn-outline-success" type="submit" data-confirm="Mark EMI #{{ $e->emi_number }} (₹{{ number_format($e->amount) }}) as paid in cash for {{ $customer->user->name }}?" data-confirm-class="btn-primary-fin"><i class="fa-solid fa-money-bill-wave me-1"></i>Mark Paid (Cash)</button>
+              </form>
+            @endif
+          </td>
+        </tr>
       @endforeach
       </tbody>
     </table>
@@ -116,6 +126,12 @@
         <div class="dc-row"><span class="dc-label">Due Date</span><span>{{ $e->due_date->format('d/m/Y') }}</span></div>
         <div class="dc-row"><span class="dc-label">Amount</span><span>₹{{ number_format($e->amount) }}</span></div>
         <div class="dc-row"><span class="dc-label">Payment Date</span><span>{{ $e->payment_date?->format('d/m/Y') ?? '-' }}</span></div>
+        @if($e->status !== 'paid')
+          <form method="POST" action="{{ route('admin.emis.mark-paid-cash', $e) }}" class="mt-2">
+            @csrf
+            <button class="btn btn-sm btn-outline-success w-100" type="submit" data-confirm="Mark EMI #{{ $e->emi_number }} (₹{{ number_format($e->amount) }}) as paid in cash for {{ $customer->user->name }}?" data-confirm-class="btn-primary-fin"><i class="fa-solid fa-money-bill-wave me-1"></i>Mark Paid (Cash)</button>
+          </form>
+        @endif
       </div>
     @endforeach
   </div>
@@ -126,7 +142,7 @@
       <thead><tr><th>Ref</th><th>EMI #</th><th>Amount</th><th>Method</th><th>Txn No.</th><th>Date</th><th>Status</th></tr></thead>
       <tbody>
       @forelse($payments as $p)
-        <tr><td>{{ $p->reference }}</td><td>{{ $p->is_foreclosure ? 'Foreclosure' : 'EMI #'.$p->emi->emi_number }}</td><td>₹{{ number_format($p->paid_amount) }}</td><td>{{ $p->method }}</td><td>{{ $p->txn_reference }}</td><td>{{ $p->submitted_at->format('d/m/Y') }}</td><td><x-status-badge :status="ucfirst(str_replace('_',' ',$p->status))" /></td></tr>
+        <tr><td>{{ $p->reference }}</td><td>{{ $p->is_foreclosure ? 'Foreclosure' : 'EMI #'.$p->emi->emi_number }}</td><td>₹{{ number_format($p->paid_amount) }}</td><td>{{ $p->method }}</td><td>{{ $p->txn_reference ?? '-' }}</td><td>{{ $p->submitted_at->format('d/m/Y') }}</td><td><x-status-badge :status="ucfirst(str_replace('_',' ',$p->status))" /></td></tr>
       @empty
         <tr><td colspan="7" class="text-center text-muted-fin py-3">No payments yet.</td></tr>
       @endforelse
@@ -139,7 +155,7 @@
         <div class="dc-head"><div class="fw-bold">{{ $p->is_foreclosure ? 'Foreclosure' : 'EMI #'.$p->emi->emi_number }}</div><x-status-badge :status="ucfirst(str_replace('_',' ',$p->status))" /></div>
         <div class="dc-row"><span class="dc-label">Amount</span><span>₹{{ number_format($p->paid_amount) }}</span></div>
         <div class="dc-row"><span class="dc-label">Method</span><span>{{ $p->method }}</span></div>
-        <div class="dc-row"><span class="dc-label">Txn No.</span><span>{{ $p->txn_reference }}</span></div>
+        <div class="dc-row"><span class="dc-label">Txn No.</span><span>{{ $p->txn_reference ?? '-' }}</span></div>
         <div class="dc-row"><span class="dc-label">Date</span><span>{{ $p->submitted_at->format('d/m/Y') }}</span></div>
       </div>
     @empty

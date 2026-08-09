@@ -3,7 +3,12 @@
 
 <div class="card-flat p-3 p-md-4" style="max-width:560px;">
   <div class="text-center mb-3">
-    @if(\Illuminate\Support\Facades\Storage::disk('public')->exists($p->screenshot_path))
+    @if($p->method === 'Cash')
+      <div class="rounded-circle bg-success-subtle text-success mx-auto d-flex align-items-center justify-content-center" style="width:64px;height:64px;">
+        <i class="fa-solid fa-money-bill-wave fa-lg"></i>
+      </div>
+      <div class="small-note mt-1">Paid in cash -- no screenshot to review.</div>
+    @elseif($p->screenshot_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($p->screenshot_path))
       <img src="{{ Illuminate\Support\Facades\Storage::disk('public')->url($p->screenshot_path) }}" alt="Payment screenshot" class="img-fluid rounded" style="max-height:280px;">
     @else
       <div class="screenshot-thumb mx-auto d-flex align-items-center justify-content-center" style="width:120px;height:120px;">
@@ -22,7 +27,7 @@
   @endif
   <div class="dc-row"><span class="text-muted-fin">Paid Amount</span><span>₹{{ number_format($p->paid_amount) }}</span></div>
   <div class="dc-row"><span class="text-muted-fin">Payment Method</span><span>{{ $p->method }}</span></div>
-  <div class="dc-row"><span class="text-muted-fin">Transaction No.</span><span>{{ $p->txn_reference }}</span></div>
+  <div class="dc-row"><span class="text-muted-fin">Transaction No.</span><span>{{ $p->txn_reference ?? '-' }}</span></div>
   <div class="dc-row"><span class="text-muted-fin">Submitted On</span><span>{{ $p->submitted_at->format('d/m/Y') }}</span></div>
   <div class="dc-row"><span class="text-muted-fin">Status</span><x-status-badge :status="ucfirst(str_replace('_',' ',$p->status))" /></div>
   @if($p->remarks)

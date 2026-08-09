@@ -14,7 +14,7 @@
         <td>@if($p->is_foreclosure)<span class="badge bg-primary">Foreclosure</span>@else EMI #{{ $p->emi->emi_number }}@endif</td>
         <td>₹{{ number_format($p->paid_amount) }}</td>
         <td>{{ $p->method }}</td>
-        <td>{{ $p->txn_reference }}</td>
+        <td>{{ $p->txn_reference ?? '-' }}</td>
         <td><div class="screenshot-thumb d-inline-flex align-items-center justify-content-center"><i class="fa-solid fa-image text-primary"></i></div></td>
         <td>{{ $p->submitted_at->format('d/m/Y') }}</td>
         <td><x-status-badge :status="ucfirst(str_replace('_',' ',$p->status))" /></td>
