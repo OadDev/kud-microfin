@@ -23,7 +23,7 @@
     <!-- Used by @capgo/capacitor-native-biometric's AuthActivity, which
          hosts the legacy fingerprint dialog on older Android versions
          (BiometricPrompt on modern ones draws its own system UI and
-         doesn't need this) -- a transparent, undecorated overlay. -->
+         doesn't need this): a transparent, undecorated overlay. -->
     <style name="AppTheme.Transparent" parent="Theme.AppCompat.Translucent">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
