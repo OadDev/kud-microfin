@@ -3,15 +3,15 @@
 @if($isAdmin)
   @php
     $cards = [
-      ['label' => 'Total Shop Owners', 'value' => $stats['total_shop_owners'], 'icon' => 'fa-store', 'color' => 'var(--primary)', 'bg' => 'var(--primary-light)'],
-      ['label' => 'Pending Shop Owners', 'value' => $stats['pending_shop_owners'], 'icon' => 'fa-hourglass-half', 'color' => 'var(--orange)', 'bg' => 'var(--orange-bg)'],
-      ['label' => 'Total Customers', 'value' => $stats['total_customers'], 'icon' => 'fa-users', 'color' => 'var(--primary)', 'bg' => 'var(--primary-light)'],
-      ['label' => 'Active Loans', 'value' => $stats['active_loans'], 'icon' => 'fa-file-invoice-dollar', 'color' => 'var(--green)', 'bg' => 'var(--green-bg)'],
-      ['label' => 'Total Outstanding', 'value' => '₹'.number_format($stats['total_outstanding']), 'icon' => 'fa-indian-rupee-sign', 'color' => 'var(--red)', 'bg' => 'var(--red-bg)'],
-      ['label' => 'EMI Collected', 'value' => '₹'.number_format($stats['emi_collected']), 'icon' => 'fa-sack-dollar', 'color' => 'var(--green)', 'bg' => 'var(--green-bg)'],
-      ['label' => "Collected Today", 'value' => '₹'.number_format($stats['emi_collected_today']), 'icon' => 'fa-calendar-check', 'color' => 'var(--green)', 'bg' => 'var(--green-bg)'],
-      ['label' => 'Pending Verifications', 'value' => $stats['pending_verifications'], 'icon' => 'fa-magnifying-glass-dollar', 'color' => 'var(--orange)', 'bg' => 'var(--orange-bg)'],
-      ['label' => 'Overdue EMIs', 'value' => $stats['overdue_emis'], 'icon' => 'fa-triangle-exclamation', 'color' => 'var(--red)', 'bg' => 'var(--red-bg)'],
+      ['label' => 'Total Shop Owners', 'value' => $stats['total_shop_owners'], 'icon' => 'fa-store', 'color' => 'var(--primary)', 'bg' => 'var(--primary-light)', 'href' => route('admin.shop-owners.index')],
+      ['label' => 'Pending Shop Owners', 'value' => $stats['pending_shop_owners'], 'icon' => 'fa-hourglass-half', 'color' => 'var(--orange)', 'bg' => 'var(--orange-bg)', 'href' => route('admin.shop-owners.index', ['status' => 'pending'])],
+      ['label' => 'Total Customers', 'value' => $stats['total_customers'], 'icon' => 'fa-users', 'color' => 'var(--primary)', 'bg' => 'var(--primary-light)', 'href' => route('admin.customers.index')],
+      ['label' => 'Active Loans', 'value' => $stats['active_loans'], 'icon' => 'fa-file-invoice-dollar', 'color' => 'var(--green)', 'bg' => 'var(--green-bg)', 'href' => route('admin.loans.index')],
+      ['label' => 'Total Outstanding', 'value' => '₹'.number_format($stats['total_outstanding']), 'icon' => 'fa-indian-rupee-sign', 'color' => 'var(--red)', 'bg' => 'var(--red-bg)', 'href' => route('admin.loans.index')],
+      ['label' => 'EMI Collected', 'value' => '₹'.number_format($stats['emi_collected']), 'icon' => 'fa-sack-dollar', 'color' => 'var(--green)', 'bg' => 'var(--green-bg)', 'href' => route('admin.loans.index')],
+      ['label' => "Collected Today", 'value' => '₹'.number_format($stats['emi_collected_today']), 'icon' => 'fa-calendar-check', 'color' => 'var(--green)', 'bg' => 'var(--green-bg)', 'href' => route('admin.loans.index')],
+      ['label' => 'Pending Verifications', 'value' => $stats['pending_verifications'], 'icon' => 'fa-magnifying-glass-dollar', 'color' => 'var(--orange)', 'bg' => 'var(--orange-bg)', 'href' => route('admin.payment-verification.index')],
+      ['label' => 'Overdue EMIs', 'value' => $stats['overdue_emis'], 'icon' => 'fa-triangle-exclamation', 'color' => 'var(--red)', 'bg' => 'var(--red-bg)', 'href' => route('admin.loans.index')],
     ];
   @endphp
 @else
@@ -27,13 +27,13 @@
 <div class="row g-3 mb-3">
   @foreach($cards as $c)
     <div class="col-6 col-lg-3">
-      <div class="stat-card d-flex align-items-center gap-3">
+      <a href="{{ $c['href'] ?? '#' }}" class="stat-card d-flex align-items-center gap-3" style="color:inherit; text-decoration:none; {{ isset($c['href']) ? '' : 'pointer-events:none;' }}">
         <div class="stat-icon" style="background:{{ $c['bg'] }}; color:{{ $c['color'] }};"><i class="fa-solid {{ $c['icon'] }}"></i></div>
         <div class="min-w-0">
           <div class="stat-value text-truncate">{{ $c['value'] }}</div>
           <div class="stat-label text-truncate">{{ $c['label'] }}</div>
         </div>
-      </div>
+      </a>
     </div>
   @endforeach
 </div>
@@ -57,19 +57,22 @@
       <div class="section-title mb-2"><i class="fa-solid fa-users me-2"></i>Recent Customers</div>
       @forelse($customers as $c)
         <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-          <div class="min-w-0">
+          <a href="{{ route('customers.show', $c) }}" class="min-w-0" style="color:inherit; text-decoration:none;">
             <div class="fw-semibold text-truncate">{{ $c->user->name }}</div>
             @if($isAdmin)
               <div class="small-note">{{ $c->currentLoan()?->loan_account_no }} · ₹{{ number_format($c->currentLoan()?->principal ?? 0) }}</div>
             @else
               <div class="small-note">{{ $c->customer_code }}</div>
             @endif
+          </a>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0">
+            @if($isAdmin)
+              <a class="btn btn-sm btn-outline-success" href="tel:{{ $c->user->mobile }}" title="Call {{ $c->user->mobile }}"><i class="fa-solid fa-phone"></i></a>
+              <x-status-badge :status="ucfirst($c->currentLoan()?->status ?? 'active')" />
+            @else
+              <a class="btn btn-sm btn-outline-fin" href="{{ route('customers.show', $c) }}">View</a>
+            @endif
           </div>
-          @if($isAdmin)
-            <x-status-badge :status="ucfirst($c->currentLoan()?->status ?? 'active')" />
-          @else
-            <a class="btn btn-sm btn-outline-fin" href="{{ route('customers.show', $c) }}">View</a>
-          @endif
         </div>
       @empty
         <div class="small-note">No customers yet.</div>
@@ -82,11 +85,14 @@
       <div class="section-title mb-2"><i class="fa-solid fa-calendar-day me-2"></i>Upcoming EMI Due</div>
       @forelse($upcomingEmis as $row)
         <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-          <div class="min-w-0">
+          <a href="{{ route('customers.show', $row->loan->customer) }}" class="min-w-0" style="color:inherit; text-decoration:none;">
             <div class="fw-semibold text-truncate">{{ $row->loan->customer->user->name }}</div>
             <div class="small-note">₹{{ number_format($row->emi->amount) }} · Due {{ $row->emi->due_date->format('d/m/Y') }}</div>
+          </a>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0">
+            <a class="btn btn-sm btn-outline-success" href="tel:{{ $row->loan->customer->user->mobile }}" title="Call {{ $row->loan->customer->user->mobile }}"><i class="fa-solid fa-phone"></i></a>
+            <x-status-badge :status="$row->emi->displayStatus()" />
           </div>
-          <x-status-badge :status="$row->emi->displayStatus()" />
         </div>
       @empty
         <div class="small-note">No upcoming EMIs.</div>
