@@ -32,6 +32,11 @@ html,body{overflow-x:hidden; max-width:100%;}
    real network/page-load time instead of riding along with it. */
 html{animation:bpPageIn .18s ease;}
 @keyframes bpPageIn{from{opacity:0;} to{opacity:1;}}
+/* In-app AJAX navigation (partials/ajax-navigation.blade.php): the new screen's content
+   slides in from the side instead of popping in instantly -- forward navigation from the
+   right, back navigation from the left, matching a native push/pop transition. */
+@keyframes bpSlideInRight{from{transform:translateX(48px); opacity:0;} to{transform:translateX(0); opacity:1;}}
+@keyframes bpSlideInLeft{from{transform:translateX(-48px); opacity:0;} to{transform:translateX(0); opacity:1;}}
 /* Bootstrap's CDN can be slow or blocked; this app leans on .d-none for
    real show/hide logic (not just spacing), so it needs to work even if
    Bootstrap's stylesheet never loads. */

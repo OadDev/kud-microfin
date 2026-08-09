@@ -10,25 +10,13 @@
   var pageScripts = document.getElementById('bpPageScripts');
   if (!app || !pageScripts) return;
 
-  var bar = document.createElement('div');
-  bar.id = 'bpNavProgress';
-  bar.style.cssText = 'position:fixed;top:0;left:0;height:3px;width:0;background:#fff;z-index:9999;opacity:0;transition:width .25s ease,opacity .15s ease;pointer-events:none;';
-  document.body.appendChild(bar);
-
   var inFlight = null;
 
-  function showBar() {
-    bar.style.transition = 'none';
-    bar.style.width = '0';
-    bar.style.opacity = '1';
-    void bar.offsetWidth;
-    bar.style.transition = 'width 1.2s cubic-bezier(.1,.6,.4,1),opacity .15s ease';
-    bar.style.width = '80%';
-  }
-  function finishBar() {
-    bar.style.transition = 'width .2s ease';
-    bar.style.width = '100%';
-    setTimeout(function () { bar.style.opacity = '0'; }, 150);
+  function playSlide(direction) {
+    var anim = direction === 'back' ? 'bpSlideInLeft' : 'bpSlideInRight';
+    app.style.animation = 'none';
+    void app.offsetWidth;
+    app.style.animation = anim + ' .32s cubic-bezier(.22,.61,.36,1)';
   }
 
   function isAjaxable(link) {
@@ -62,7 +50,7 @@
     });
   }
 
-  function swap(html, url) {
+  function swap(html, url, direction) {
     var doc = new DOMParser().parseFromString(html, 'text/html');
     var newApp = doc.getElementById('customerApp');
     var newScripts = doc.getElementById('bpPageScripts');
@@ -71,6 +59,7 @@
     document.title = doc.title;
     app.innerHTML = newApp.innerHTML;
     pageScripts.innerHTML = newScripts.innerHTML;
+    playSlide(direction);
     initCarousels();
     // Page scripts normally live in #bpPageScripts (outside #customerApp, via
     // @push('scripts')) and are re-run below. This extra pass is a safety net for any
@@ -84,11 +73,10 @@
     return true;
   }
 
-  function navigate(url, push) {
+  function navigate(url, push, direction) {
     if (inFlight) inFlight.abort();
     var controller = new AbortController();
     inFlight = controller;
-    showBar();
 
     fetch(url, {
       credentials: 'same-origin',
@@ -103,13 +91,12 @@
       }
       return res.text().then(function (html) {
         if (inFlight !== controller) return;
-        var ok = swap(html, res.url || url);
+        var ok = swap(html, res.url || url, direction);
         if (!ok) {
           window.location.href = res.url || url;
           return;
         }
         if (push) history.pushState({ bpAjax: true }, '', res.url || url);
-        finishBar();
         inFlight = null;
       });
     }).catch(function () {
@@ -126,11 +113,14 @@
     if (!link || !app.contains(link) || !isAjaxable(link)) return;
     e.preventDefault();
     if (link.href === location.href) return;
-    navigate(link.href, true);
+    navigate(link.href, true, 'forward');
   });
 
   window.addEventListener('popstate', function () {
-    navigate(location.href, false);
+    // Browser "forward" is rare in a mobile app (no forward button) and indistinguishable
+    // from "back" via popstate alone -- defaulting to the back-direction slide is the
+    // right call the vast majority of the time (native back button / swipe-back gesture).
+    navigate(location.href, false, 'back');
   });
 
   // No initCarousels() call here for the very first real page load -- Bootstrap's own
