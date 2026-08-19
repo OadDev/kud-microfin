@@ -54,6 +54,7 @@ Route::post('/install', [InstallController::class, 'store'])->name('install.stor
 |--------------------------------------------------------------------------
 */
 Route::get('/', [MarketingController::class, 'index'])->name('marketing.home');
+Route::get('/privacy-policy', [MarketingController::class, 'privacyPolicy'])->name('marketing.privacy');
 
 // Domain-ownership files the mobile app needs for passkeys to work inside
 // the WebView -- see WellKnownController.

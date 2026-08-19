@@ -46,10 +46,16 @@
       </div>
       <div class="card-flat p-3 mb-3">
         <div class="section-title mb-2"><i class="fa-solid fa-file-invoice-dollar me-2"></i>Product EMI Financing</div>
-        <div class="small-note mb-2">Flat monthly interest rate applied to Shop EMI financing (Cart → EMI Financing): Monthly Interest = Loan Amount × Rate, charged once per installment -- e.g. a 3.5% rate on a ₹40,000 loan over 6 months charges ₹1,400/month × 6 = ₹8,400 total interest. Shown to customers as their EMI preview before they place the order.</div>
-        <div class="mb-2">
-          <label class="form-label">EMI Interest Rate (% per month)</label>
-          <input type="number" step="0.01" min="0" max="100" class="form-control" name="product_emi_interest_rate" value="{{ $settings->product_emi_interest_rate }}" required style="max-width:160px;">
+        <div class="small-note mb-2">Applied to Shop EMI financing (Cart → EMI Financing). The processing fee is financed along with the device (added to the loan amount before interest, not charged separately), then interest is charged monthly on that combined total -- e.g. a ₹20,000 loan + ₹1,500 fee = ₹21,500, at 3.5%/month over 6 months charges ₹752.50/month × 6 = ₹4,515 total interest. Shown to customers as their EMI preview before they place the order.</div>
+        <div class="row g-2">
+          <div class="col-6">
+            <label class="form-label">EMI Interest Rate (% per month)</label>
+            <input type="number" step="0.01" min="0" max="100" class="form-control" name="product_emi_interest_rate" value="{{ $settings->product_emi_interest_rate }}" required>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Processing Fee (₹)</label>
+            <input type="number" step="0.01" min="0" class="form-control" name="product_emi_processing_fee" value="{{ $settings->product_emi_processing_fee }}" required>
+          </div>
         </div>
       </div>
       <div class="card-flat p-3">

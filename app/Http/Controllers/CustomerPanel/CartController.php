@@ -41,6 +41,7 @@ class CartController extends Controller
             'financeableSingleItem' => $financeableSingleItem,
             'razorpayEnabled' => PaymentSetting::current()->razorpayEnabled(),
             'emiInterestRate' => (float) PaymentSetting::current()->product_emi_interest_rate,
+            'emiProcessingFee' => (float) PaymentSetting::current()->product_emi_processing_fee,
         ]);
     }
 
@@ -185,7 +186,8 @@ class CartController extends Controller
     protected function createFinancingLoan(Order $order, CartItem $item, $customer, float $downPayment, int $numInstallments): void
     {
         $devicePrice = (float) $item->product->price * $item->quantity;
-        $quote = EmiQuoteService::quote($devicePrice, $downPayment, 0, $numInstallments);
+        $processingFee = (float) PaymentSetting::current()->product_emi_processing_fee;
+        $quote = EmiQuoteService::quote($devicePrice, $downPayment, $processingFee, $numInstallments);
 
         $loan = Loan::create([
             'customer_id' => $customer->id,
@@ -194,7 +196,7 @@ class CartController extends Controller
             'purpose' => 'Purchase: '.$item->product->name,
             'principal' => $quote['loan_amount'],
             'interest' => $quote['interest'],
-            'processing_fee' => 0,
+            'processing_fee' => $quote['processing_fee'],
             'total_payable' => $quote['total_payable'],
             'num_emis' => $numInstallments,
             'emi_amount' => $quote['installment'],

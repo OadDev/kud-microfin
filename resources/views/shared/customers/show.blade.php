@@ -105,13 +105,17 @@
       <tbody>
       @foreach($loan->emis as $e)
         <tr>
-          <td>{{ $e->emi_number }}</td><td>{{ $e->due_date->format('d/m/Y') }}</td><td>₹{{ number_format($e->amount) }}</td><td><x-status-badge :status="$e->displayStatus()" /></td><td>{{ $e->payment_date?->format('d/m/Y') ?? '-' }}</td>
+          <td>{{ $e->emi_number }}</td><td>{{ $e->due_date->format('d/m/Y') }}</td>
+          <td>
+            ₹{{ number_format($e->amount) }}
+            @if($e->amount_paid > 0 && $e->status !== 'paid')
+              <div class="small-note text-success">₹{{ number_format($e->amount_paid, 2) }} paid, ₹{{ number_format($e->remainingAmount(), 2) }} due</div>
+            @endif
+          </td>
+          <td><x-status-badge :status="$e->displayStatus()" /></td><td>{{ $e->payment_date?->format('d/m/Y') ?? '-' }}</td>
           <td>
             @if($e->status !== 'paid')
-              <form method="POST" action="{{ route('admin.emis.mark-paid-cash', $e) }}">
-                @csrf
-                <button class="btn btn-sm btn-outline-success" type="submit" data-confirm="Mark EMI #{{ $e->emi_number }} (₹{{ number_format($e->amount) }}) as paid in cash for {{ $customer->user->name }}?" data-confirm-class="btn-primary-fin"><i class="fa-solid fa-money-bill-wave me-1"></i>Mark Paid (Cash)</button>
-              </form>
+              <button class="btn btn-sm btn-outline-success" type="button" data-bs-toggle="modal" data-bs-target="#modalCashEmi{{ $e->id }}"><i class="fa-solid fa-money-bill-wave me-1"></i>Mark Paid (Cash)</button>
             @endif
           </td>
         </tr>
@@ -125,16 +129,44 @@
         <div class="dc-head"><div class="fw-bold">EMI #{{ $e->emi_number }}</div><x-status-badge :status="$e->displayStatus()" /></div>
         <div class="dc-row"><span class="dc-label">Due Date</span><span>{{ $e->due_date->format('d/m/Y') }}</span></div>
         <div class="dc-row"><span class="dc-label">Amount</span><span>₹{{ number_format($e->amount) }}</span></div>
+        @if($e->amount_paid > 0 && $e->status !== 'paid')
+          <div class="dc-row"><span class="dc-label">Paid / Due</span><span class="text-success">₹{{ number_format($e->amount_paid, 2) }} / ₹{{ number_format($e->remainingAmount(), 2) }}</span></div>
+        @endif
         <div class="dc-row"><span class="dc-label">Payment Date</span><span>{{ $e->payment_date?->format('d/m/Y') ?? '-' }}</span></div>
         @if($e->status !== 'paid')
-          <form method="POST" action="{{ route('admin.emis.mark-paid-cash', $e) }}" class="mt-2">
-            @csrf
-            <button class="btn btn-sm btn-outline-success w-100" type="submit" data-confirm="Mark EMI #{{ $e->emi_number }} (₹{{ number_format($e->amount) }}) as paid in cash for {{ $customer->user->name }}?" data-confirm-class="btn-primary-fin"><i class="fa-solid fa-money-bill-wave me-1"></i>Mark Paid (Cash)</button>
-          </form>
+          <button class="btn btn-sm btn-outline-success w-100 mt-2" type="button" data-bs-toggle="modal" data-bs-target="#modalCashEmi{{ $e->id }}"><i class="fa-solid fa-money-bill-wave me-1"></i>Mark Paid (Cash)</button>
         @endif
       </div>
     @endforeach
   </div>
+
+  @foreach($loan->emis as $e)
+    @if($e->status !== 'paid')
+      <div class="modal fade" id="modalCashEmi{{ $e->id }}" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <form method="POST" action="{{ route('admin.emis.mark-paid-cash', $e) }}">
+              @csrf
+              <div class="modal-header">
+                <h5 class="modal-title">Mark EMI #{{ $e->emi_number }} Paid (Cash)</h5>
+                <button class="btn-close" type="button" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <div class="small-note mb-2">₹{{ number_format($e->remainingAmount(), 2) }} due from {{ $customer->user->name }}.</div>
+                <label class="form-label">Amount Paid</label>
+                <input type="number" step="0.01" min="0.01" max="{{ $e->remainingAmount() }}" class="form-control" name="amount" value="{{ $e->remainingAmount() }}" required>
+                <div class="small-note mt-1">Leave the full due amount, or lower it if the customer only paid part -- the remainder stays due and can be marked paid later.</div>
+              </div>
+              <div class="modal-footer">
+                <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary-fin" type="submit"><i class="fa-solid fa-check me-1"></i>Record Payment</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    @endif
+  @endforeach
 @elseif($isAdmin && $tab === 'payments')
   @php $payments = $loan->paymentSubmissions->sortByDesc('id'); @endphp
   <div class="card-flat p-0 table-responsive-fin">

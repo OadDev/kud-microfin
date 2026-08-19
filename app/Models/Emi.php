@@ -15,6 +15,7 @@ class Emi extends Model
         'emi_number',
         'due_date',
         'amount',
+        'amount_paid',
         'status',
         'payment_date',
         'reminder_sent_at',
@@ -26,6 +27,7 @@ class Emi extends Model
             'due_date' => 'date',
             'payment_date' => 'date',
             'amount' => 'decimal:2',
+            'amount_paid' => 'decimal:2',
             'reminder_sent_at' => 'datetime',
         ];
     }
@@ -33,6 +35,15 @@ class Emi extends Model
     public function loan(): BelongsTo
     {
         return $this->belongsTo(Loan::class);
+    }
+
+    /**
+     * How much is still owed on this EMI -- 0 once fully paid off, whether
+     * that happened in one payment or several partial ones.
+     */
+    public function remainingAmount(): float
+    {
+        return max(0, round((float) $this->amount - (float) $this->amount_paid, 2));
     }
 
     /**

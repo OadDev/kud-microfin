@@ -88,10 +88,15 @@ class Loan extends Model
         return $this->hasMany(Document::class);
     }
 
+    /**
+     * A fully-paid EMI counts its full amount; a still-pending EMI with a
+     * partial cash payment against it counts only what's actually been
+     * paid so far, not the whole scheduled amount.
+     */
     public function amountPaid(): string
     {
         return number_format(
-            $this->emis->where('status', 'paid')->sum('amount'),
+            $this->emis->sum(fn (Emi $emi) => $emi->status === 'paid' ? (float) $emi->amount : (float) $emi->amount_paid),
             2, '.', ''
         );
     }

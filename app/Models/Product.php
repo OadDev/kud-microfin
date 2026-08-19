@@ -85,6 +85,8 @@ class Product extends Model
             return null;
         }
 
-        return \App\Services\EmiQuoteService::quote((float) $this->price, (float) $this->down_payment, 0, 6)['installment'];
+        $processingFee = (float) \App\Models\PaymentSetting::current()->product_emi_processing_fee;
+
+        return \App\Services\EmiQuoteService::quote((float) $this->price, (float) $this->down_payment, $processingFee, 6)['installment'];
     }
 }

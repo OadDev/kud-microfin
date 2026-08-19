@@ -15,4 +15,9 @@ class MarketingController extends Controller
             'banners' => Banner::where('is_active', true)->orderBy('sort_order')->orderByDesc('id')->get(),
         ]);
     }
+
+    public function privacyPolicy(): View
+    {
+        return view('marketing.privacy-policy');
+    }
 }
