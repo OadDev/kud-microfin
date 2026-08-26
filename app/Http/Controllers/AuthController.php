@@ -18,6 +18,30 @@ use Illuminate\View\View;
  */
 class AuthController extends Controller
 {
+    /**
+     * Mobile numbers are always stored as plain 10 digits, but users often
+     * type +91/91/0 prefixes or spaces -- so a login lookup on the exact
+     * string as typed misses real accounts. Returns every plausible raw
+     * form to match against the mobile column.
+     */
+    private function mobileLookupCandidates(string $identifier): array
+    {
+        $candidates = [$identifier];
+        $digits = preg_replace('/\D+/', '', $identifier);
+
+        if ($digits !== '') {
+            if (strlen($digits) === 12 && str_starts_with($digits, '91')) {
+                $candidates[] = substr($digits, 2);
+            } elseif (strlen($digits) === 11 && str_starts_with($digits, '0')) {
+                $candidates[] = substr($digits, 1);
+            } elseif (strlen($digits) === 10) {
+                $candidates[] = $digits;
+            }
+        }
+
+        return array_unique($candidates);
+    }
+
     public function showAdminLogin(): View
     {
         return view('auth.admin-login');
@@ -30,7 +54,10 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::where('mobile', $data['identifier'])->orWhere('email', $data['identifier'])->first();
+        $user = User::where(function ($q) use ($data) {
+            $q->whereIn('mobile', $this->mobileLookupCandidates($data['identifier']))
+                ->orWhere('email', $data['identifier']);
+        })->first();
 
         if (! $user || $user->role !== 'admin' || ! Hash::check($data['password'], $user->password)) {
             return back()->withErrors(['identifier' => 'Invalid credentials.'])->onlyInput('identifier');
@@ -54,7 +81,10 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::where('mobile', $data['identifier'])->orWhere('email', $data['identifier'])->first();
+        $user = User::where(function ($q) use ($data) {
+            $q->whereIn('mobile', $this->mobileLookupCandidates($data['identifier']))
+                ->orWhere('email', $data['identifier']);
+        })->first();
 
         if (! $user || $user->role !== 'shop_owner' || ! Hash::check($data['password'], $user->password)) {
             return back()->withErrors(['identifier' => 'Invalid credentials.'])->onlyInput('identifier');
@@ -100,7 +130,10 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::where('mobile', $data['identifier'])->orWhere('email', $data['identifier'])->first();
+        $user = User::where(function ($q) use ($data) {
+            $q->whereIn('mobile', $this->mobileLookupCandidates($data['identifier']))
+                ->orWhere('email', $data['identifier']);
+        })->first();
 
         if (! $user || $user->role !== 'customer' || ! Hash::check($data['password'], $user->password)) {
             return back()->withErrors(['identifier' => 'Invalid mobile number/email or password.'])->onlyInput('identifier');
