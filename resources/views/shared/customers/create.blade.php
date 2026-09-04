@@ -38,9 +38,14 @@
     <div class="form-section-title"><i class="fa-solid fa-file-invoice-dollar me-2"></i>Loan Details</div>
     <div class="row g-3">
       <div class="col-md-6"><label class="form-label">Loan Purpose *</label><input class="form-control @error('purpose') is-invalid @enderror" name="purpose" value="{{ old('purpose') }}" required placeholder="e.g. Business Expansion"></div>
-      <div class="col-md-3"><label class="form-label">Principal Loan Amount *</label><input type="number" min="0" class="form-control" id="loan_principal" name="principal" value="{{ old('principal') }}" required></div>
-      <div class="col-md-3"><label class="form-label">Total Interest *</label><input type="number" min="0" class="form-control" id="loan_interest" name="interest" value="{{ old('interest') }}" required></div>
+      <div class="col-md-3"><label class="form-label">Loan Amount *</label><input type="number" min="0" class="form-control" id="loan_principal" name="principal" value="{{ old('principal') }}" required></div>
+      <div class="col-md-3"><label class="form-label">Interest Rate (% per month) *</label><input type="number" min="0" step="0.01" class="form-control" id="loan_rate" name="interest_rate" value="{{ old('interest_rate', $defaultRate) }}" required></div>
       <div class="col-md-3"><label class="form-label">Processing Fee</label><input type="number" min="0" class="form-control" id="loan_fee" name="fee" value="{{ old('fee', 0) }}"></div>
+      <div class="col-md-3">
+        <label class="form-label">Total Interest</label>
+        <input type="text" class="form-control" id="loan_interest_display" value="₹0" disabled>
+        <div class="small-note">Auto-calculated: (Loan Amount + Fee) × Rate × Installments</div>
+      </div>
       <div class="col-md-3"><label class="form-label">Number of EMIs *</label><input type="number" min="1" class="form-control" id="loan_numEmis" name="num_emis" value="{{ old('num_emis') }}" required></div>
       <div class="col-md-3"><label class="form-label">EMI Frequency</label>
         <select class="form-select" id="loan_frequency" name="frequency"><option value="Monthly">Monthly</option><option value="Weekly">Weekly</option></select>
@@ -104,19 +109,32 @@
 
 @push('scripts')
 <script>
-function updateLoanCalc(){
+// Mirrors EmiQuoteService::quote() exactly (same formula, same rounding):
+// base = principal + fee; monthly interest = base * rate/100;
+// total interest = monthly interest * installments; EMI = (base + total interest) / installments.
+function calcLoanQuote(){
   const principal = Number(document.getElementById('loan_principal').value) || 0;
-  const interest = Number(document.getElementById('loan_interest').value) || 0;
+  const rate = Number(document.getElementById('loan_rate').value) || 0;
   const fee = Number(document.getElementById('loan_fee').value) || 0;
   const numEmis = Number(document.getElementById('loan_numEmis').value) || 0;
-  const totalPayable = principal + interest + fee;
+  const base = principal + fee;
+  const monthlyInterest = base * (rate / 100);
+  const interest = numEmis > 0 ? Math.round((monthlyInterest * numEmis) * 100) / 100 : 0;
+  const totalPayable = base + interest;
   const emiAmount = numEmis > 0 ? Math.round(totalPayable / numEmis) : 0;
+  return { interest, totalPayable, emiAmount };
+}
+
+function updateLoanCalc(){
+  const numEmis = Number(document.getElementById('loan_numEmis').value) || 0;
+  const { interest, totalPayable, emiAmount } = calcLoanQuote();
+  document.getElementById('loan_interest_display').value = '₹' + interest.toLocaleString('en-IN');
   document.getElementById('calc_totalPayable').innerText = '₹' + totalPayable.toLocaleString('en-IN');
   document.getElementById('calc_emiAmount').innerText = '₹' + emiAmount.toLocaleString('en-IN');
   document.getElementById('calc_numEmis').innerText = numEmis;
   document.getElementById('calc_frequency').innerText = document.getElementById('loan_frequency').value;
 }
-['loan_principal','loan_interest','loan_fee','loan_numEmis','loan_frequency'].forEach(id=>{
+['loan_principal','loan_rate','loan_fee','loan_numEmis','loan_frequency'].forEach(id=>{
   document.getElementById(id).addEventListener('input', updateLoanCalc);
   document.getElementById(id).addEventListener('change', updateLoanCalc);
 });
@@ -124,17 +142,15 @@ updateLoanCalc();
 
 function generateEmiPreview(){
   const principal = Number(document.getElementById('loan_principal').value) || 0;
-  const interest = Number(document.getElementById('loan_interest').value) || 0;
-  const fee = Number(document.getElementById('loan_fee').value) || 0;
+  const rate = Number(document.getElementById('loan_rate').value) || 0;
   const numEmis = Number(document.getElementById('loan_numEmis').value) || 0;
   const frequency = document.getElementById('loan_frequency').value;
   const firstDue = document.querySelector('[name=first_due_date]').value;
-  if(!principal || !interest || !numEmis || !firstDue){
-    alert('Please fill principal, interest, number of EMIs and first due date first.');
+  if(!principal || !rate || !numEmis || !firstDue){
+    alert('Please fill loan amount, interest rate, number of EMIs and first due date first.');
     return;
   }
-  const totalPayable = principal + interest + fee;
-  const emiAmount = Math.round(totalPayable / numEmis);
+  const { emiAmount } = calcLoanQuote();
   let rows = '', cards = '';
   let due = new Date(firstDue + 'T00:00:00');
   for(let i=1;i<=numEmis;i++){

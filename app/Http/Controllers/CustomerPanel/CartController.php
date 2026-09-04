@@ -186,8 +186,10 @@ class CartController extends Controller
     protected function createFinancingLoan(Order $order, CartItem $item, $customer, float $downPayment, int $numInstallments): void
     {
         $devicePrice = (float) $item->product->price * $item->quantity;
-        $processingFee = (float) PaymentSetting::current()->product_emi_processing_fee;
-        $quote = EmiQuoteService::quote($devicePrice, $downPayment, $processingFee, $numInstallments);
+        $settings = PaymentSetting::current();
+        $processingFee = (float) $settings->product_emi_processing_fee;
+        $rate = (float) $settings->product_emi_interest_rate;
+        $quote = EmiQuoteService::quote($devicePrice, $downPayment, $processingFee, $numInstallments, $rate);
 
         $loan = Loan::create([
             'customer_id' => $customer->id,

@@ -8,6 +8,10 @@
   <a class="btn btn-primary-fin btn-sm" href="{{ route($isAdmin ? 'admin.customers.create' : 'shopowner.customers.create') }}"><i class="fa-solid fa-user-plus me-1"></i>Create Customer</a>
 </div>
 
+@if(session('error'))
+  <div class="alert alert-danger">{{ session('error') }}</div>
+@endif
+
 <div class="card-flat p-3 mb-3">
   <form method="GET" class="row g-2">
     <div class="{{ $isAdmin ? 'col-md-8' : 'col-12' }}"><input class="form-control" name="search" value="{{ $search }}" placeholder="Search by name, mobile{{ $isAdmin ? ', customer ID or loan A/C' : ' or customer ID' }}..."></div>
@@ -49,6 +53,10 @@
           <a class="btn btn-sm btn-outline-fin" href="{{ route('customers.show', $c) }}" title="View"><i class="fa-solid fa-eye"></i></a>
           @if($isAdmin)
             <a class="btn btn-sm btn-outline-success" href="tel:{{ $c->user->mobile }}" title="Call {{ $c->user->mobile }}"><i class="fa-solid fa-phone"></i></a>
+            <form method="POST" action="{{ route('admin.customers.destroy', $c) }}" onsubmit="return confirm('Delete {{ $c->user->name }}? This only works if they have no loan history, and cannot be undone.');">
+              @csrf @method('DELETE')
+              <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="fa-solid fa-trash"></i></button>
+            </form>
           @endif
         </td>
       </tr>
@@ -79,6 +87,10 @@
         <a class="btn btn-sm btn-outline-fin flex-fill" href="{{ route('customers.show', $c) }}"><i class="fa-solid fa-eye me-1"></i>View Details</a>
         @if($isAdmin)
           <a class="btn btn-sm btn-outline-success" href="tel:{{ $c->user->mobile }}"><i class="fa-solid fa-phone"></i></a>
+          <form method="POST" action="{{ route('admin.customers.destroy', $c) }}" onsubmit="return confirm('Delete {{ $c->user->name }}? This only works if they have no loan history, and cannot be undone.');">
+            @csrf @method('DELETE')
+            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button>
+          </form>
         @endif
       </div>
     </div>

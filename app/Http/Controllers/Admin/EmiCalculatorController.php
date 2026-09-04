@@ -13,7 +13,9 @@ class EmiCalculatorController extends Controller
     public function index(Request $request): View
     {
         $quote = null;
-        $defaultFee = (string) PaymentSetting::current()->product_emi_processing_fee;
+        $settings = PaymentSetting::current();
+        $defaultFee = (string) $settings->product_emi_processing_fee;
+        $rate = (float) $settings->product_emi_interest_rate;
 
         $devicePrice = (float) $request->query('device_price', 0);
         $downPayment = (float) $request->query('down_payment', 0);
@@ -21,7 +23,7 @@ class EmiCalculatorController extends Controller
         $numInstallments = (int) $request->query('installments', 0);
 
         if ($devicePrice > 0 && $numInstallments > 0) {
-            $quote = EmiQuoteService::quote($devicePrice, $downPayment, $processingFee, $numInstallments);
+            $quote = EmiQuoteService::quote($devicePrice, $downPayment, $processingFee, $numInstallments, $rate);
         }
 
         return view('admin.emi-calculator', [

@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use App\Models\Loan;
+use App\Models\PaymentSetting;
 use App\Models\ShopOwner;
 use App\Models\User;
 use App\Services\CodeGenerator;
+use App\Services\EmiQuoteService;
 use App\Services\EmiScheduleService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -57,6 +59,7 @@ class CustomerController extends Controller
         return view('shared.customers.create', [
             'title' => 'Create Customer', 'active' => 'create-customer', 'isAdmin' => $isAdmin,
             'shopOwners' => $isAdmin ? ShopOwner::whereHas('user', fn ($q) => $q->where('status', 'approved'))->with('user')->get() : null,
+            'defaultRate' => (float) PaymentSetting::current()->product_emi_interest_rate,
         ]);
     }
 
@@ -84,7 +87,7 @@ class CustomerController extends Controller
             'pan_doc' => ['nullable', 'file', 'max:4096'],
             'purpose' => ['required', 'string', 'max:255'],
             'principal' => ['required', 'numeric', 'min:1'],
-            'interest' => ['required', 'numeric', 'min:0'],
+            'interest_rate' => ['required', 'numeric', 'min:0'],
             'fee' => ['nullable', 'numeric', 'min:0'],
             'num_emis' => ['required', 'integer', 'min:1'],
             'frequency' => ['required', 'in:Weekly,Monthly'],
@@ -139,11 +142,10 @@ class CustomerController extends Controller
             $customer->save();
 
             $principal = (float) $data['principal'];
-            $interest = (float) $data['interest'];
+            $rate = (float) $data['interest_rate'];
             $fee = (float) ($data['fee'] ?? 0);
-            $totalPayable = $principal + $interest + $fee;
             $numEmis = (int) $data['num_emis'];
-            $emiAmount = round($totalPayable / $numEmis);
+            $quote = EmiQuoteService::quote($principal, 0, $fee, $numEmis, $rate);
 
             $loan = Loan::create([
                 'customer_id' => $customer->id,
@@ -151,11 +153,11 @@ class CustomerController extends Controller
                 'loan_account_no' => CodeGenerator::nextLoanAccountNo(),
                 'purpose' => $data['purpose'],
                 'principal' => $principal,
-                'interest' => $interest,
+                'interest' => $quote['interest'],
                 'processing_fee' => $fee,
-                'total_payable' => $totalPayable,
+                'total_payable' => $quote['total_payable'],
                 'num_emis' => $numEmis,
-                'emi_amount' => $emiAmount,
+                'emi_amount' => $quote['installment'],
                 'frequency' => $data['frequency'],
                 'late_fee' => $data['late_fee'] ?? 200,
                 'start_date' => $data['start_date'],
@@ -174,6 +176,29 @@ class CustomerController extends Controller
             ->with('created_loan_id', $loan->id)
             ->with('created_customer_id', $loan->customer_id)
             ->with('created_customer_password', $tempPassword);
+    }
+
+    /**
+     * Admin-only, and only when the customer never had a loan -- once a
+     * loan exists, its EMI/payment history is a financial record that must
+     * be retained (see the Privacy Policy's data-retention commitment), not
+     * something a delete button should be able to wipe via the DB cascade.
+     */
+    public function destroy(Customer $customer): RedirectResponse
+    {
+        if ($customer->loans()->exists()) {
+            return back()->with('error', 'This customer has loan history and cannot be deleted -- loan and payment records must be retained.');
+        }
+
+        foreach ([$customer->photo_path, $customer->aadhaar_doc_path, $customer->pan_doc_path] as $path) {
+            if ($path) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($path);
+            }
+        }
+
+        $customer->user->delete();
+
+        return redirect()->route('admin.customers.index')->with('success', 'Customer deleted.');
     }
 
     public function show(Request $request, Customer $customer): View

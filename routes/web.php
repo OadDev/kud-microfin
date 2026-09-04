@@ -186,6 +186,7 @@ Route::middleware(['auth', 'role:admin,shop_owner'])->group(function () {
 */
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/active-loans', [LoanController::class, 'index'])->name('admin.loans.index');
+    Route::delete('/admin/customers/{customer}', [CustomerController::class, 'destroy'])->name('admin.customers.destroy');
 });
 
 /*
