@@ -54,11 +54,15 @@
 <div class="card-flat p-3 mb-3">
   <div class="section-title mb-2">EMI Schedule</div>
   @foreach($loan->emis as $e)
+    @php $receipt = $e->paymentSubmissions->first(); @endphp
     <div class="data-card">
       <div class="dc-head"><div class="fw-bold">EMI #{{ $e->emi_number }}</div><x-status-badge :status="$e->displayStatus()" /></div>
       <div class="dc-row"><span class="dc-label">Due Date</span><span>{{ $e->due_date->format('d/m/Y') }}</span></div>
       <div class="dc-row"><span class="dc-label">Amount</span><span>₹{{ number_format($e->amount) }}</span></div>
       <div class="dc-row"><span class="dc-label">Payment Date</span><span>{{ $e->payment_date?->format('d/m/Y') ?? '-' }}</span></div>
+      @if($receipt)
+        <a class="btn btn-sm btn-outline-fin mt-2" href="{{ route('payments.receipt', $receipt) }}" target="_blank"><i class="fa-solid fa-receipt me-1"></i>Download Receipt</a>
+      @endif
     </div>
   @endforeach
 </div>

@@ -145,6 +145,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/loans/{loan}/documents/{type}', [DocumentController::class, 'show'])
         ->whereIn('type', ['welcome_letter', 'sanction_letter', 'noc'])
         ->name('documents.show');
+
+    Route::get('/payments/{paymentSubmission}/receipt', [DocumentController::class, 'receipt'])->name('payments.receipt');
 });
 
 /*
@@ -288,6 +290,7 @@ Route::middleware(['auth', 'role:customer', 'app.unlocked'])->prefix('customer')
     Route::get('/pay', [CustomerPaymentController::class, 'show'])->name('pay');
     Route::post('/pay', [CustomerPaymentController::class, 'store'])->name('pay.store');
     Route::get('/documents', [CustomerDocumentController::class, 'index'])->name('documents');
+    Route::get('/documents/receipts', [CustomerDocumentController::class, 'receipts'])->name('documents.receipts');
     Route::get('/profile', [CustomerProfileController::class, 'index'])->name('profile');
     Route::post('/profile/photo', [CustomerProfileController::class, 'updatePhoto'])->name('profile.photo');
     Route::post('/profile/details', [CustomerProfileController::class, 'updateDetails'])->name('profile.details');

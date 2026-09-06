@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\Document;
 use App\Models\Loan;
+use App\Models\PaymentSubmission;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -54,6 +55,19 @@ class DocumentController extends Controller
             'loan' => $loan,
             'document' => $document,
             'canUploadSigned' => $request->user()->isAdmin() || $request->user()->isShopOwner(),
+        ]);
+    }
+
+    public function receipt(Request $request, PaymentSubmission $paymentSubmission): View
+    {
+        $this->authorizeAccess($request, $paymentSubmission->loan);
+
+        abort_unless($paymentSubmission->status === 'approved', 404, 'A receipt is only available for an approved payment.');
+
+        $paymentSubmission->load(['loan.customer.user', 'emi', 'verifier']);
+
+        return view('documents.receipt', [
+            'p' => $paymentSubmission,
         ]);
     }
 

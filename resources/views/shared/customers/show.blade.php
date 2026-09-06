@@ -171,12 +171,14 @@
   @php $payments = $loan->paymentSubmissions->sortByDesc('id'); @endphp
   <div class="card-flat p-0 table-responsive-fin">
     <table class="table table-fin mb-0">
-      <thead><tr><th>Ref</th><th>EMI #</th><th>Amount</th><th>Method</th><th>Txn No.</th><th>Date</th><th>Status</th></tr></thead>
+      <thead><tr><th>Ref</th><th>EMI #</th><th>Amount</th><th>Method</th><th>Txn No.</th><th>Date</th><th>Status</th><th></th></tr></thead>
       <tbody>
       @forelse($payments as $p)
-        <tr><td>{{ $p->reference }}</td><td>{{ $p->is_foreclosure ? 'Foreclosure' : 'EMI #'.$p->emi->emi_number }}</td><td>₹{{ number_format($p->paid_amount) }}</td><td>{{ $p->method }}</td><td>{{ $p->txn_reference ?? '-' }}</td><td>{{ $p->submitted_at->format('d/m/Y') }}</td><td><x-status-badge :status="ucfirst(str_replace('_',' ',$p->status))" /></td></tr>
+        <tr><td>{{ $p->reference }}</td><td>{{ $p->is_foreclosure ? 'Foreclosure' : 'EMI #'.$p->emi->emi_number }}</td><td>₹{{ number_format($p->paid_amount) }}</td><td>{{ $p->method }}</td><td>{{ $p->txn_reference ?? '-' }}</td><td>{{ $p->submitted_at->format('d/m/Y') }}</td><td><x-status-badge :status="ucfirst(str_replace('_',' ',$p->status))" /></td>
+          <td>@if($p->status === 'approved')<a class="btn btn-sm btn-outline-fin" href="{{ route('payments.receipt', $p) }}" target="_blank"><i class="fa-solid fa-receipt me-1"></i>Receipt</a>@endif</td>
+        </tr>
       @empty
-        <tr><td colspan="7" class="text-center text-muted-fin py-3">No payments yet.</td></tr>
+        <tr><td colspan="8" class="text-center text-muted-fin py-3">No payments yet.</td></tr>
       @endforelse
       </tbody>
     </table>
@@ -189,6 +191,9 @@
         <div class="dc-row"><span class="dc-label">Method</span><span>{{ $p->method }}</span></div>
         <div class="dc-row"><span class="dc-label">Txn No.</span><span>{{ $p->txn_reference ?? '-' }}</span></div>
         <div class="dc-row"><span class="dc-label">Date</span><span>{{ $p->submitted_at->format('d/m/Y') }}</span></div>
+        @if($p->status === 'approved')
+          <a class="btn btn-sm btn-outline-fin mt-2" href="{{ route('payments.receipt', $p) }}" target="_blank"><i class="fa-solid fa-receipt me-1"></i>Receipt</a>
+        @endif
       </div>
     @empty
       <div class="text-center text-muted-fin py-3">No payments yet.</div>

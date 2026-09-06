@@ -11,7 +11,9 @@ class LoanController extends Controller
 {
     public function index(Request $request): View
     {
-        $customer = $request->user()->customer()->with('loans.emis')->first();
+        $customer = $request->user()->customer()->with([
+            'loans.emis.paymentSubmissions' => fn ($q) => $q->where('status', 'approved')->latest('verified_at'),
+        ])->first();
         $loan = $customer->currentLoan();
 
         $pendingForeclosure = $loan
