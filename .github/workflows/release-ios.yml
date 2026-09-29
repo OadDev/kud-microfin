@@ -8,9 +8,14 @@ name: Release iOS (TestFlight)
 #   APPSTORE_API_KEY_ID         -- App Store Connect -> Users and Access ->
 #                                  Integrations -> Keys
 #   APPSTORE_API_ISSUER_ID      -- same page, "Issuer ID" at the top
-#   APPSTORE_API_KEY_P8          -- contents of the downloaded AuthKey_*.p8
-#                                  file (Apple only lets you download this
-#                                  once when you generate the key -- save it)
+#   APPSTORE_API_KEY_P8          -- base64-encoded contents of the downloaded
+#                                  AuthKey_*.p8 file (Apple only lets you
+#                                  download this once when you generate the
+#                                  key -- save it). Encode it first so
+#                                  copy/paste can't mangle line breaks, e.g.
+#                                  on a Mac: base64 -i AuthKey_XXXX.p8 | pbcopy
+#                                  then paste the clipboard as the secret
+#                                  value.
 #
 # This has not been run/verified end to end (no Mac/Xcode access in the
 # environment that wrote it) -- the xcodebuild/export flags are correct
@@ -47,7 +52,7 @@ jobs:
           APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
         run: |
           mkdir -p ~/private_keys
-          printf '%s' "$APPSTORE_API_KEY_P8" | tr -d '\r' > ~/private_keys/AuthKey_${APPSTORE_API_KEY_ID}.p8
+          echo "$APPSTORE_API_KEY_P8" | base64 --decode > ~/private_keys/AuthKey_${APPSTORE_API_KEY_ID}.p8
 
       - name: Archive
         working-directory: mobile/ios/App
